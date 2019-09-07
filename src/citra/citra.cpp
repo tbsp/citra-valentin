@@ -43,7 +43,7 @@
 #include "core/movie.h"
 #include "core/settings.h"
 #include "network/network.h"
-#include "video_core/video_core.h"
+#include "video_core/renderer_base.h"
 
 #undef _UNICODE
 #include <getopt.h>
@@ -74,7 +74,8 @@ static void PrintHelp(const char* argv0) {
 }
 
 static void PrintVersion() {
-    std::cout << "vvanelslande-" << Version::major << "." << Version::minor << "." << Version::patch << std::endl;
+    std::cout << "vvanelslande-" << Version::major << "." << Version::minor << "." << Version::patch
+              << std::endl;
 }
 
 static void OnStateChanged(const Network::RoomMember::State& state) {
@@ -411,6 +412,13 @@ int main(int argc, char** argv) {
     }
 
     std::thread render_thread([&emu_window] { emu_window->Present(); });
+
+    Core::System::GetInstance().Renderer().Rasterizer()->LoadDiskResources(
+        stop_run, [](VideoCore::LoadCallbackStage stage, std::size_t value, std::size_t total) {
+            LOG_DEBUG(Frontend, "Loading stage {} progress {} {}", static_cast<u32>(stage), value,
+                      total);
+        });
+
     while (emu_window->IsOpen()) {
         system.RunLoop();
     }
