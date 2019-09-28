@@ -1,3 +1,24 @@
+# Merge log
+
+Scroll down for the original README.md!
+
+Base revision: acf1fe5ee15d40e299082c71e40fbf9e311d38da
+
+|Pull Request|Commit|Title|Author|Merged?|
+|----|----|----|----|----|
+|[6](https://github.com/citra-emu/citra-canary/pull/6)|[d9c3e53](https://github.com/citra-emu/citra-canary/pull/6/files/)|Canary Base (MinGW Test)|[liushuyu](https://github.com/liushuyu)|Yes|
+|[4956](https://github.com/citra-emu/citra/pull/4956)|[476dcb1](https://github.com/citra-emu/citra/pull/4956/files/)|Fixes to game list sorting|[vitor-k](https://github.com/vitor-k)|Yes|
+|[4948](https://github.com/citra-emu/citra/pull/4948)|[07eb89c](https://github.com/citra-emu/citra/pull/4948/files/)|citra_qt: add amiibo drag and drop support|[vvanelslande](https://github.com/vvanelslande)|Yes|
+|[4945](https://github.com/citra-emu/citra/pull/4945)|[1e0e420](https://github.com/citra-emu/citra/pull/4945/files/)|Update translations (2019-09-21)|[zhaobot](https://github.com/zhaobot)|Yes|
+|[4940](https://github.com/citra-emu/citra/pull/4940)|[5b3de00](https://github.com/citra-emu/citra/pull/4940/files/)|Split Presentation thread from Render thread|[jroweboy](https://github.com/jroweboy)|Yes|
+|[4868](https://github.com/citra-emu/citra/pull/4868)|[898418c](https://github.com/citra-emu/citra/pull/4868/files/)|Texture dumping and replacement|[khang06](https://github.com/khang06)|Yes|
+|[4754](https://github.com/citra-emu/citra/pull/4754)|[0f23efd](https://github.com/citra-emu/citra/pull/4754/files/)|HTTP_C::Implement Context::MakeRequest|[B3n30](https://github.com/B3n30)|Yes|
+
+
+End of merge log. You can find the original README.md below the break.
+
+------
+
 **BEFORE FILING AN ISSUE, READ THE RELEVANT SECTION IN THE [CONTRIBUTING](https://github.com/citra-emu/citra/wiki/Contributing#reporting-issues) FILE!!!**
 
 Citra
