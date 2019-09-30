@@ -8,6 +8,6 @@
 
 namespace Version {
 extern const u16 major;
-extern const  u16 minor;
-extern const  u16 patch;
+extern const u16 minor;
+extern const u16 patch;
 } // namespace Version
