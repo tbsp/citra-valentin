@@ -69,7 +69,7 @@ def parse_imports_recursive(file_name, path_list=[]):
 
 def find_dll(name):
     for path in DLL_PATH:
-        for root, _, files in os.walk(path):
+        for root, _, files in walk(path):
             for f in files:
                 if name.lower() == f.lower():
                     return join(root, f)
