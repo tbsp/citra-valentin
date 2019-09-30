@@ -3,6 +3,7 @@
 . .travis/common/pre-upload.sh
 
 export TRAVIS_TAG=$CITRA_VERSION
+git tag $TRAVIS_TAG || true
 
 REV_NAME="citra-linux-${CITRA_VERSION}"
 ARCHIVE_NAME="${REV_NAME}.tar.xz"
