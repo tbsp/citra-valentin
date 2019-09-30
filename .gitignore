@@ -33,3 +33,5 @@ Thumbs.db
 
 # Python files
 *.pyc
+
+*.log

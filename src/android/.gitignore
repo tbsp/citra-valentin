@@ -2,6 +2,7 @@
 .gradle
 .project
 .settings
+.classpath
 .DS_Store
 /local.properties
 /.idea/libraries

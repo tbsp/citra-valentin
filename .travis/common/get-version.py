@@ -10,6 +10,6 @@ with open(abspath(join('src', 'common', 'version.h'))) as h:
     patch = None
 
     for t in ['major', 'minor', 'patch']:
-        exec('{} = {}'.format(t, search(VERSION_RE.replace("TYPE", t), text)[1]))
+        exec('{} = {}'.format(t, search(VERSION_RE.replace("TYPE", t), text).group(1)))
 
     print('{}.{}.{}'.format(major, minor, patch))
