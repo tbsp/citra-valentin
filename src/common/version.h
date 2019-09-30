@@ -9,5 +9,5 @@
 namespace Version {
 constexpr u16 major = 1;
 constexpr u16 minor = 0;
-constexpr u16 patch = 1;
+constexpr u16 patch = 2;
 } // namespace Version
