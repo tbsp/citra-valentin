@@ -13,7 +13,7 @@ Citra emulates a subset of 3DS hardware and therefore is useful for running/debu
 
 Citra is licensed under the GPLv2 (or any later version). Refer to the license.txt file included.
 
-Check out our [Discord server](https://discord.gg/UQGexz)!
+Check out our [Discord server](https://discord.gg/ZSdHfDh)!
 
 ### Building
 
