@@ -91,6 +91,6 @@ class Citra:
                 return False
         return True
 
-if '__main__' == __name__:
+if __name__ == '__main__':
     import doctest
     doctest.testmod(extraglobs={'c': Citra()})
