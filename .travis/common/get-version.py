@@ -13,4 +13,4 @@ with open(abspath(join('src', 'common', 'version.h'))) as h:
     for t in ['major', 'minor', 'patch']:
         exec('{} = {}'.format(t, search(VERSION_RE.replace("TYPE", t), text)[1]))
 
-    print(f'{major}.{minor}.{patch}')
+    print('{}.{}.{}'.format(major, minor, patch))
