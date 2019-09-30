@@ -2,7 +2,7 @@
 
 . .travis/common/pre-upload.sh
 
-REV_NAME="citra-linux-${GITDATE}-${GITREV}"
+REV_NAME="citra-linux-${CITRA_VERSION}"
 ARCHIVE_NAME="${REV_NAME}.tar.xz"
 COMPRESSION_FLAGS="-cJvf"
 

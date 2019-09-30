@@ -1,3 +1,5 @@
+if: tag IS blank
+
 language: cpp
 matrix:
   include:
@@ -46,9 +48,7 @@ matrix:
 deploy:
   provider: releases
   api_key:
-    secure: $API_KEY
+    secure: $DEPLOY_KEY
   file_glob: true
   file: "artifacts/*"
   skip_cleanup: true
-  on:
-    tags: true

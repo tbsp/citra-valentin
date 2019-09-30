@@ -1,6 +1,5 @@
 #!/bin/bash -ex
 
-GITDATE="`git show -s --date=short --format='%ad' | sed 's/-//g'`"
-GITREV="`git show -s --format='%h'`"
+CITRA_VERSION=vvanelslande-$(python3 .travis/common/get-version.py)
 
 mkdir -p artifacts
