@@ -1,5 +1,4 @@
 from re import search
-from subprocess import run
 from os.path import join, abspath
 
 with open(abspath(join('src', 'common', 'version.h'))) as h:
