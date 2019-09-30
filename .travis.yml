@@ -49,6 +49,9 @@ deploy:
   provider: releases
   api_key:
     secure: $DEPLOY_KEY
+  on:
+    repo: vvanelslande/citra
+    branch: master
   file_glob: true
   file: "artifacts/*"
   skip_cleanup: true
