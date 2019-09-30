@@ -1,9 +1,9 @@
 from re import search
 from os.path import join, abspath
 
-with open(abspath(join('src', 'common', 'version.h'))) as h:
+with open(abspath(join('src', 'common', 'version.cpp'))) as h:
     text = h.read()
-    VERSION_RE = r'constexpr u16 TYPE = \b(.*)\b;'
+    VERSION_RE = r'const u16 TYPE = \b(.*)\b;'
 
     major = None
     minor = None
