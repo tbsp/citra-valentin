@@ -1,8 +1,8 @@
 from re import search
 from os.path import join, abspath
 
-with open(abspath(join('src', 'common', 'version.cpp'))) as h:
-    text = h.read()
+with open(abspath(join('src', 'common', 'version.cpp'))) as version:
+    text = version.read()
     VERSION_RE = r'const u16 TYPE = \b(.*)\b;'
 
     major = None
