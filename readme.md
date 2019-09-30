@@ -17,6 +17,6 @@ Check out our [Discord server](https://discord.gg/ZSdHfDh)!
 
 ### Building
 
-* __Windows__: [Windows Build](https://github.com/citra-emu/citra/wiki/Building-For-Windows)
+* __Windows__: [Windows Build using MSBuild](https://github.com/vvanelslande/citra/wiki/Building-for-Windows-(MSBuild))
 * __Linux__: [Linux Build](https://github.com/citra-emu/citra/wiki/Building-For-Linux)
 * __macOS__: [macOS Build](https://github.com/citra-emu/citra/wiki/Building-for-macOS)
