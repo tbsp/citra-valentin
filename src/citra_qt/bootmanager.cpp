@@ -14,6 +14,7 @@
 #include <QWindow>
 #include <fmt/format.h>
 #include "citra_qt/bootmanager.h"
+#include "citra_qt/main.h"
 #include "common/microprofile.h"
 #include "core/3ds.h"
 #include "core/core.h"
@@ -114,15 +115,16 @@ bool OpenGLWindow::event(QEvent* event) {
     case QEvent::UpdateRequest:
         Present();
         return true;
+    case QEvent::DragEnter:
+    case QEvent::DragMove:
+    case QEvent::Drop:
+        return QCoreApplication::sendEvent(parent(), event);
     case QEvent::MouseButtonPress:
     case QEvent::MouseButtonRelease:
     case QEvent::MouseButtonDblClick:
     case QEvent::MouseMove:
     case QEvent::KeyPress:
     case QEvent::KeyRelease:
-    case QEvent::DragEnter:
-    case QEvent::DragMove:
-    case QEvent::Drop:
     case QEvent::FocusIn:
     case QEvent::FocusOut:
     case QEvent::FocusAboutToChange:
