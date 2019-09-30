@@ -1,4 +1,4 @@
-**BEFORE FILING AN ISSUE, READ THE RELEVANT SECTION IN THE [CONTRIBUTING](https://github.com/citra-emu/citra/wiki/Contributing#reporting-issues) FILE!!!**
+**BEFORE FILING AN ISSUE, READ THE RELEVANT SECTION IN [CONTRIBUTING](https://github.com/vvanelslande/citra/wiki/Contributing#reporting-issues)**
 
 This is a fork of Citra Canary created because [jroweboy](https://github.com/jroweboy) didn't fix [this](https://github.com/citra-emu/citra/pull/4940#pullrequestreview-294661556).
 
