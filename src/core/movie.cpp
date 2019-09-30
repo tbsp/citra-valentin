@@ -23,7 +23,7 @@
 
 namespace Core {
 
-/*static*/ Movie Movie::s_instance;
+Movie Movie::s_instance;
 
 enum class PlayMode { None, Recording, Playing };
 
@@ -115,7 +115,7 @@ constexpr std::array<u8, 4> header_magic_bytes{{'C', 'T', 'M', 0x1C}};
 struct CTMHeader {
     std::array<u8, 4> filetype; /// Unique Identifier to check the file type (always "CTM"0x1C)
     u64_le program_id;          /// ID of the ROM being executed. Also called title_id
-    u16_le major_version;       /// Version of Citra this movie was created with
+    u16_le major_version;       /// Major version of Citra this movie was created with
     u64_le clock_init_time;     /// The init time of the system clock
 
     std::array<u8, 234> reserved; /// Make heading 256 bytes so it has consistent size
