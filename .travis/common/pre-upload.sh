@@ -1,5 +1,11 @@
 #!/bin/bash -ex
 
-CITRA_VERSION=vvanelslande-$(python3 .travis/common/get-version.py)
+export CITRA_VERSION=vvanelslande-$(python3 .travis/common/get-version.py)
+
+git config --local user.name travis-ci
+git config --local user.email none
+
+export TRAVIS_TAG=$CITRA_VERSION
+git tag $TRAVIS_TAG
 
 mkdir -p artifacts
