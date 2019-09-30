@@ -2,6 +2,8 @@
 
 . .travis/common/pre-upload.sh
 
+export TRAVIS_TAG=$CITRA_VERSION
+
 REV_NAME="citra-macos-${CITRA_VERSION}"
 ARCHIVE_NAME="${REV_NAME}.tar.gz"
 COMPRESSION_FLAGS="-czvf"
