@@ -77,10 +77,6 @@ struct Values {
     bool first_start;
     bool pause_when_in_background;
 
-    bool updater_found;
-    bool update_on_close;
-    bool check_for_update_on_start;
-
     // Discord RPC
     bool enable_discord_presence;
 

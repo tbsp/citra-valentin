@@ -288,12 +288,6 @@ void Config::ReadValues() {
     UISettings::values.screenshot_resolution_factor =
         static_cast<u16>(ReadSetting("screenshot_resolution_factor", 0).toUInt());
 
-    qt_config->beginGroup("Updater");
-    UISettings::values.check_for_update_on_start =
-        ReadSetting("check_for_update_on_start", true).toBool();
-    UISettings::values.update_on_close = ReadSetting("update_on_close", false).toBool();
-    qt_config->endGroup();
-
     qt_config->beginGroup("UILayout");
     UISettings::values.geometry = ReadSetting("geometry").toByteArray();
     UISettings::values.state = ReadSetting("state").toByteArray();
@@ -587,11 +581,6 @@ void Config::SaveValues() {
     WriteSetting("enable_discord_presence", UISettings::values.enable_discord_presence, true);
     WriteSetting("screenshot_resolution_factor", UISettings::values.screenshot_resolution_factor,
                  0);
-
-    qt_config->beginGroup("Updater");
-    WriteSetting("check_for_update_on_start", UISettings::values.check_for_update_on_start, true);
-    WriteSetting("update_on_close", UISettings::values.update_on_close, false);
-    qt_config->endGroup();
 
     qt_config->beginGroup("UILayout");
     WriteSetting("geometry", UISettings::values.geometry);

@@ -28,8 +28,6 @@
 #include "citra_qt/camera/qt_multimedia_camera.h"
 #include "citra_qt/camera/still_image_camera.h"
 #include "citra_qt/cheats.h"
-#include "citra_qt/compatdb.h"
-#include "citra_qt/compatibility_list.h"
 #include "citra_qt/configuration/config.h"
 #include "citra_qt/configuration/configure_dialog.h"
 #include "citra_qt/debugger/console.h"
@@ -183,7 +181,6 @@ GMainWindow::GMainWindow() : config(new Config()), emu_thread(nullptr) {
 
     show();
 
-    game_list->LoadCompatibilityList();
     game_list->PopulateAsync(UISettings::values.game_dirs);
 
     // Show one-time "callout" messages to the user
@@ -209,9 +206,6 @@ GMainWindow::~GMainWindow() {
 }
 
 void GMainWindow::InitializeWidgets() {
-#ifdef CITRA_ENABLE_COMPATIBILITY_REPORTING
-    ui.action_Report_Compatibility->setVisible(true);
-#endif
     render_window = new GRenderWindow(this, emu_thread.get());
     render_window->hide();
 
@@ -541,8 +535,6 @@ void GMainWindow::ConnectWidgetEvents() {
     connect(game_list, &GameList::GameChosen, this, &GMainWindow::OnGameListLoadFile);
     connect(game_list, &GameList::OpenDirectory, this, &GMainWindow::OnGameListOpenDirectory);
     connect(game_list, &GameList::OpenFolderRequested, this, &GMainWindow::OnGameListOpenFolder);
-    connect(game_list, &GameList::NavigateToGamedbEntryRequested, this,
-            &GMainWindow::OnGameListNavigateToGamedbEntry);
     connect(game_list, &GameList::AddDirectory, this, &GMainWindow::OnGameListAddDirectory);
     connect(game_list_placeholder, &GameListPlaceholder::AddDirectory, this,
             &GMainWindow::OnGameListAddDirectory);
@@ -577,8 +569,6 @@ void GMainWindow::ConnectMenuEvents() {
     connect(ui.action_Pause, &QAction::triggered, this, &GMainWindow::OnPauseGame);
     connect(ui.action_Stop, &QAction::triggered, this, &GMainWindow::OnStopGame);
     connect(ui.action_Restart, &QAction::triggered, this, [this] { BootGame(QString(game_path)); });
-    connect(ui.action_Report_Compatibility, &QAction::triggered, this,
-            &GMainWindow::OnMenuReportCompatibility);
     connect(ui.action_Configure, &QAction::triggered, this, &GMainWindow::OnConfigure);
     connect(ui.action_Cheats, &QAction::triggered, this, &GMainWindow::OnCheats);
 
@@ -990,7 +980,6 @@ void GMainWindow::ShutdownGame() {
     ui.action_Cheats->setEnabled(false);
     ui.action_Load_Amiibo->setEnabled(false);
     ui.action_Remove_Amiibo->setEnabled(false);
-    ui.action_Report_Compatibility->setEnabled(false);
     ui.action_Enable_Frame_Advancing->setEnabled(false);
     ui.action_Enable_Frame_Advancing->setChecked(false);
     ui.action_Advance_Frame->setEnabled(false);
@@ -1112,17 +1101,6 @@ void GMainWindow::OnGameListOpenFolder(u64 data_id, GameListOpenTarget target) {
     LOG_INFO(Frontend, "Opening {} path for data_id={:016x}", open_target, data_id);
 
     QDesktopServices::openUrl(QUrl::fromLocalFile(qpath));
-}
-
-void GMainWindow::OnGameListNavigateToGamedbEntry(u64 program_id,
-                                                  const CompatibilityList& compatibility_list) {
-    auto it = FindMatchingCompatibilityEntry(compatibility_list, program_id);
-
-    QString directory;
-    if (it != compatibility_list.end())
-        directory = it->second.second;
-
-    QDesktopServices::openUrl(QUrl("https://citra-emu.org/game/" + directory));
 }
 
 void GMainWindow::OnGameListOpenDirectory(const QString& directory) {
@@ -1294,7 +1272,6 @@ void GMainWindow::OnStartGame() {
     ui.action_Restart->setEnabled(true);
     ui.action_Cheats->setEnabled(true);
     ui.action_Load_Amiibo->setEnabled(true);
-    ui.action_Report_Compatibility->setEnabled(true);
     ui.action_Enable_Frame_Advancing->setEnabled(true);
     ui.action_Capture_Screenshot->setEnabled(true);
 
@@ -1314,17 +1291,6 @@ void GMainWindow::OnPauseGame() {
 
 void GMainWindow::OnStopGame() {
     ShutdownGame();
-}
-
-void GMainWindow::OnMenuReportCompatibility() {
-    if (!Settings::values.citra_token.empty() && !Settings::values.citra_username.empty()) {
-        CompatDB compatdb{this};
-        compatdb.exec();
-    } else {
-        QMessageBox::critical(this, tr("Missing Citra Account"),
-                              tr("You must link your Citra account to submit test cases."
-                                 "<br/>Go to Emulation &gt; Configure... &gt; Web to do so."));
-    }
 }
 
 void GMainWindow::ToggleFullscreen() {

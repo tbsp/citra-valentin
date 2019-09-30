@@ -84,8 +84,6 @@
     <addaction name="action_Stop"/>
     <addaction name="action_Restart"/>
     <addaction name="separator"/>
-    <addaction name="action_Report_Compatibility"/>
-    <addaction name="separator"/>
     <addaction name="action_Configure"/>
     <addaction name="action_Cheats"/>
    </widget>
@@ -164,9 +162,6 @@
     <property name="title">
      <string>&amp;Help</string>
     </property>
-    <addaction name="action_Check_For_Updates"/>
-    <addaction name="action_Open_Maintenance_Tool"/>
-    <addaction name="separator"/>
     <addaction name="action_FAQ"/>
     <addaction name="action_About"/>
    </widget>
@@ -185,11 +180,6 @@
   <action name="action_Install_CIA">
    <property name="text">
     <string>Install CIA...</string>
-   </property>
-  </action>
-  <action name="action_Load_Symbol_Map">
-   <property name="text">
-    <string>Load Symbol Map...</string>
    </property>
   </action>
   <action name="action_Exit">
@@ -271,14 +261,6 @@
    </property>
    <property name="text">
     <string>Show Status Bar</string>
-   </property>
-  </action>
-  <action name="action_Select_Game_List_Root">
-   <property name="text">
-    <string>Select Game Directory...</string>
-   </property>
-   <property name="toolTip">
-    <string>Selects a folder to display in the game list</string>
    </property>
   </action>
   <action name="action_Create_Pica_Surface_Viewer">
@@ -390,14 +372,6 @@
     <string>Fullscreen</string>
    </property>
   </action>
-  <action name="action_Open_Maintenance_Tool">
-   <property name="text">
-    <string>Modify Citra Install</string>
-   </property>
-   <property name="toolTip">
-    <string>Opens the maintenance tool to modify your Citra installation</string>
-   </property>
-  </action>
   <action name="action_Screen_Layout_Default">
    <property name="checkable">
     <bool>true</bool>
@@ -436,22 +410,6 @@
    </property>
    <property name="text">
     <string>Swap Screens</string>
-   </property>
-  </action>
-  <action name="action_Check_For_Updates">
-   <property name="text">
-    <string>Check for Updates</string>
-   </property>
-  </action>
-  <action name="action_Report_Compatibility">
-   <property name="enabled">
-    <bool>false</bool>
-   </property>
-   <property name="text">
-    <string>Report Compatibility</string>
-   </property>
-   <property name="visible">
-    <bool>false</bool>
    </property>
   </action>
   <action name="action_Restart">

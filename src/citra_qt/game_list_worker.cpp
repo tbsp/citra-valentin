@@ -8,7 +8,6 @@
 #include <vector>
 #include <QDir>
 #include <QFileInfo>
-#include "citra_qt/compatibility_list.h"
 #include "citra_qt/game_list.h"
 #include "citra_qt/game_list_p.h"
 #include "citra_qt/game_list_worker.h"
@@ -26,9 +25,7 @@ bool HasSupportedFileExtension(const std::string& file_name) {
 }
 } // Anonymous namespace
 
-GameListWorker::GameListWorker(QVector<UISettings::GameDir>& game_dirs,
-                               const CompatibilityList& compatibility_list)
-    : game_dirs(game_dirs), compatibility_list(compatibility_list) {}
+GameListWorker::GameListWorker(QVector<UISettings::GameDir>& game_dirs) : game_dirs(game_dirs) {}
 
 GameListWorker::~GameListWorker() = default;
 
@@ -88,18 +85,10 @@ void GameListWorker::AddFstEntriesToGameList(const std::string& dir_path, unsign
                 return true;
             }
 
-            auto it = FindMatchingCompatibilityEntry(compatibility_list, program_id);
-
-            // The game list uses this as compatibility number for untested games
-            QString compatibility("99");
-            if (it != compatibility_list.end())
-                compatibility = it->second.first;
-
             emit EntryReady(
                 {
                     new GameListItemPath(QString::fromStdString(physical_name), smdh, program_id,
                                          extdata_id),
-                    new GameListItemCompat(compatibility),
                     new GameListItemRegion(smdh),
                     new GameListItem(
                         QString::fromStdString(Loader::GetFileTypeString(loader->GetFileType()))),

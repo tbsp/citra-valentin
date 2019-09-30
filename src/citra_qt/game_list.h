@@ -8,7 +8,6 @@
 #include <QString>
 #include <QVector>
 #include <QWidget>
-#include "citra_qt/compatibility_list.h"
 #include "common/common_types.h"
 #include "uisettings.h"
 
@@ -44,7 +43,6 @@ class GameList : public QWidget {
 public:
     enum {
         COLUMN_NAME,
-        COLUMN_COMPATIBILITY,
         COLUMN_REGION,
         COLUMN_FILE_TYPE,
         COLUMN_SIZE,
@@ -60,8 +58,6 @@ public:
     void setFilterVisible(bool visibility);
     void setDirectoryWatcherEnabled(bool enabled);
     bool isEmpty() const;
-
-    void LoadCompatibilityList();
     void PopulateAsync(QVector<UISettings::GameDir>& game_dirs);
 
     void SaveInterfaceLayout();
@@ -79,8 +75,6 @@ signals:
     void GameChosen(QString game_path);
     void ShouldCancelWorker();
     void OpenFolderRequested(u64 program_id, GameListOpenTarget target);
-    void NavigateToGamedbEntryRequested(u64 program_id,
-                                        const CompatibilityList& compatibility_list);
     void OpenDirectory(const QString& directory);
     void AddDirectory();
     void ShowList(bool show);
@@ -112,7 +106,6 @@ private:
     QStandardItemModel* item_model = nullptr;
     GameListWorker* current_worker = nullptr;
     QFileSystemWatcher* watcher = nullptr;
-    CompatibilityList compatibility_list;
 
     friend class GameListSearchField;
 };

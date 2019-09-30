@@ -40,29 +40,6 @@
       </widget>
      </item>
      <item>
-      <widget class="QGroupBox" name="updateBox">
-       <property name="title">
-        <string>Updates</string>
-       </property>
-       <layout class="QVBoxLayout" name="verticalLayout_4">
-        <item>
-         <widget class="QCheckBox" name="toggle_update_check">
-          <property name="text">
-           <string>Check for updates on start</string>
-          </property>
-         </widget>
-        </item>
-        <item>
-         <widget class="QCheckBox" name="toggle_auto_update">
-          <property name="text">
-           <string>Silently auto update after closing</string>
-          </property>
-         </widget>
-        </item>
-       </layout>
-      </widget>
-     </item>
-     <item>
       <widget class="QGroupBox" name="groupBox_4">
        <property name="title">
         <string>Emulation</string>

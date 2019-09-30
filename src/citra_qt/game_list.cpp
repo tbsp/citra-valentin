@@ -21,7 +21,6 @@
 #include <QToolButton>
 #include <QTreeView>
 #include <fmt/format.h>
-#include "citra_qt/compatibility_list.h"
 #include "citra_qt/game_list.h"
 #include "citra_qt/game_list_p.h"
 #include "citra_qt/game_list_worker.h"
@@ -290,7 +289,6 @@ GameList::GameList(GMainWindow* parent) : QWidget{parent} {
 
     item_model->insertColumns(0, COLUMN_COUNT);
     item_model->setHeaderData(COLUMN_NAME, Qt::Horizontal, tr("Name"));
-    item_model->setHeaderData(COLUMN_COMPATIBILITY, Qt::Horizontal, tr("Compatibility"));
     item_model->setHeaderData(COLUMN_REGION, Qt::Horizontal, tr("Region"));
     item_model->setHeaderData(COLUMN_FILE_TYPE, Qt::Horizontal, tr("File type"));
     item_model->setHeaderData(COLUMN_SIZE, Qt::Horizontal, tr("Size"));
@@ -455,7 +453,6 @@ void GameList::AddGamePopup(QMenu& context_menu, const QString& path, u64 progra
     QAction* open_texture_dump_location = context_menu.addAction(tr("Open Texture Dump Location"));
     QAction* open_texture_load_location =
         context_menu.addAction(tr("Open Custom Texture Location"));
-    QAction* navigate_to_gamedb_entry = context_menu.addAction(tr("Navigate to GameDB entry"));
 
     const bool is_application =
         0x0004000000000000 <= program_id && program_id <= 0x00040000FFFFFFFF;
@@ -480,12 +477,9 @@ void GameList::AddGamePopup(QMenu& context_menu, const QString& path, u64 progra
         is_application && FileUtil::Exists(Service::AM::GetTitlePath(Service::FS::MediaType::SDMC,
                                                                      program_id + 0xe00000000) +
                                            "content/"));
-    auto it = FindMatchingCompatibilityEntry(compatibility_list, program_id);
 
     open_texture_dump_location->setVisible(is_application);
     open_texture_load_location->setVisible(is_application);
-
-    navigate_to_gamedb_entry->setVisible(it != compatibility_list.end());
 
     connect(open_save_location, &QAction::triggered, [this, program_id] {
         emit OpenFolderRequested(program_id, GameListOpenTarget::SAVE_DATA);
@@ -512,9 +506,6 @@ void GameList::AddGamePopup(QMenu& context_menu, const QString& path, u64 progra
                                                  program_id))) {
             emit OpenFolderRequested(program_id, GameListOpenTarget::TEXTURE_LOAD);
         }
-    });
-    connect(navigate_to_gamedb_entry, &QAction::triggered, [this, program_id]() {
-        emit NavigateToGamedbEntryRequested(program_id, compatibility_list);
     });
 };
 
@@ -581,48 +572,6 @@ void GameList::AddPermDirPopup(QMenu& context_menu, QModelIndex selected) {
             [this, game_dir] { emit OpenDirectory(game_dir.path); });
 }
 
-void GameList::LoadCompatibilityList() {
-    QFile compat_list{":compatibility_list/compatibility_list.json"};
-
-    if (!compat_list.open(QFile::ReadOnly | QFile::Text)) {
-        LOG_ERROR(Frontend, "Unable to open game compatibility list");
-        return;
-    }
-
-    if (compat_list.size() == 0) {
-        LOG_WARNING(Frontend, "Game compatibility list is empty");
-        return;
-    }
-
-    const QByteArray content = compat_list.readAll();
-    if (content.isEmpty()) {
-        LOG_ERROR(Frontend, "Unable to completely read game compatibility list");
-        return;
-    }
-
-    const QString string_content = content;
-    QJsonDocument json = QJsonDocument::fromJson(string_content.toUtf8());
-    QJsonArray arr = json.array();
-
-    for (const QJsonValueRef value : arr) {
-        QJsonObject game = value.toObject();
-
-        if (game.contains("compatibility") && game["compatibility"].isDouble()) {
-            int compatibility = game["compatibility"].toInt();
-            QString directory = game["directory"].toString();
-            QJsonArray ids = game["releases"].toArray();
-
-            for (const QJsonValueRef id_ref : ids) {
-                QJsonObject id_object = id_ref.toObject();
-                QString id = id_object["id"].toString();
-                compatibility_list.emplace(
-                    id.toUpper().toStdString(),
-                    std::make_pair(QString::number(compatibility), directory));
-            }
-        }
-    }
-}
-
 QStandardItemModel* GameList::GetModel() const {
     return item_model;
 }
@@ -635,7 +584,7 @@ void GameList::PopulateAsync(QVector<UISettings::GameDir>& game_dirs) {
 
     emit ShouldCancelWorker();
 
-    GameListWorker* worker = new GameListWorker(game_dirs, compatibility_list);
+    GameListWorker* worker = new GameListWorker(game_dirs);
 
     connect(worker, &GameListWorker::EntryReady, this, &GameList::AddEntry, Qt::QueuedConnection);
     connect(worker, &GameListWorker::DirEntryReady, this, &GameList::AddDirEntry,

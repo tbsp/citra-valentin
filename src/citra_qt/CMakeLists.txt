@@ -18,8 +18,6 @@ add_executable(citra-qt
     applets/swkbd.h
     bootmanager.cpp
     bootmanager.h
-    compatibility_list.cpp
-    compatibility_list.h
     camera/camera_util.cpp
     camera/camera_util.h
     camera/still_image_camera.cpp
@@ -32,9 +30,6 @@ add_executable(citra-qt
     cheats.h
     cheats.ui
     citra-qt.rc
-    compatdb.cpp
-    compatdb.h
-    compatdb.ui
     configuration/config.cpp
     configuration/config.h
     configuration/configure.ui
@@ -146,9 +141,6 @@ add_executable(citra-qt
     qt_image_interface.h
     uisettings.cpp
     uisettings.h
-    updater/updater.cpp
-    updater/updater.h
-    updater/updater_p.h
     util/clickable_label.cpp
     util/clickable_label.h
     util/sequence_dialog/sequence_dialog.cpp
@@ -159,9 +151,6 @@ add_executable(citra-qt
     util/util.h
 )
 
-file(GLOB COMPAT_LIST
-     ${PROJECT_BINARY_DIR}/dist/compatibility_list/compatibility_list.qrc
-     ${PROJECT_BINARY_DIR}/dist/compatibility_list/compatibility_list.json)
 file(GLOB_RECURSE ICONS ${PROJECT_SOURCE_DIR}/dist/icons/*)
 file(GLOB_RECURSE THEMES ${PROJECT_SOURCE_DIR}/dist/qt_themes/*)
 
@@ -198,12 +187,7 @@ else()
     set(LANGUAGES)
 endif()
 
-target_sources(citra-qt
-    PRIVATE
-        ${COMPAT_LIST}
-        ${ICONS}
-        ${THEMES}
-        ${LANGUAGES}
+target_sources(citra-qt PRIVATE ${ICONS} ${THEMES} ${LANGUAGES}
 )
 
 if (APPLE)
@@ -242,10 +226,6 @@ target_compile_definitions(citra-qt PRIVATE
     # Disable implicit QString->QUrl conversions to enforce use of proper resolving functions.
     -DQT_NO_URL_CAST_FROM_STRING
 )
-
-if (CITRA_ENABLE_COMPATIBILITY_REPORTING)
-    target_compile_definitions(citra-qt PRIVATE -DCITRA_ENABLE_COMPATIBILITY_REPORTING)
-endif()
 
 if (USE_DISCORD_PRESENCE)
     target_sources(citra-qt PUBLIC

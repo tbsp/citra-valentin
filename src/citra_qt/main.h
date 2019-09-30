@@ -9,7 +9,6 @@
 #include <QMainWindow>
 #include <QTimer>
 #include <QTranslator>
-#include "citra_qt/compatibility_list.h"
 #include "citra_qt/hotkeys.h"
 #include "common/announce_multiplayer_room.h"
 #include "core/core.h"
@@ -39,7 +38,6 @@ template <typename>
 class QFutureWatcher;
 class QProgressBar;
 class RegistersWidget;
-class Updater;
 class WaitTreeWidget;
 namespace DiscordRPC {
 class DiscordInterface;
@@ -115,7 +113,6 @@ private:
     void ShutdownGame();
 
     void ShowTelemetryCallout();
-    void ShowUpdaterWidgets();
     void ShowUpdatePrompt();
     void ShowNoUpdatePrompt();
     void CheckForUpdates();
@@ -156,12 +153,9 @@ private slots:
     void OnStartGame();
     void OnPauseGame();
     void OnStopGame();
-    void OnMenuReportCompatibility();
     /// Called whenever a user selects a game in the game list widget.
     void OnGameListLoadFile(QString game_path);
     void OnGameListOpenFolder(u64 program_id, GameListOpenTarget target);
-    void OnGameListNavigateToGamedbEntry(u64 program_id,
-                                         const CompatibilityList& compatibility_list);
     void OnGameListOpenDirectory(const QString& directory);
     void OnGameListAddDirectory();
     void OnGameListShowList(bool show);
@@ -196,9 +190,6 @@ private slots:
     void OnCoreError(Core::System::ResultStatus, std::string);
     /// Called whenever a user selects Help->About Citra
     void OnMenuAboutCitra();
-    void OnUpdateFound(bool found, bool error);
-    void OnCheckForUpdates();
-    void OnOpenUpdater();
     void OnLanguageChanged(const QString& locale);
 
 private:
@@ -259,7 +250,6 @@ private:
     IPCRecorderWidget* ipcRecorderWidget;
     LLEServiceModulesWidget* lleServiceModulesWidget;
     WaitTreeWidget* waitTreeWidget;
-    Updater* updater;
 
     bool explicit_update_check = false;
     bool defer_update_prompt = false;

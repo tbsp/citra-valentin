@@ -14,7 +14,6 @@
 #include <QRunnable>
 #include <QString>
 #include <QVector>
-#include "citra_qt/compatibility_list.h"
 #include "common/common_types.h"
 
 class QStandardItem;
@@ -27,8 +26,7 @@ class GameListWorker : public QObject, public QRunnable {
     Q_OBJECT
 
 public:
-    GameListWorker(QVector<UISettings::GameDir>& game_dirs,
-                   const CompatibilityList& compatibility_list);
+    GameListWorker(QVector<UISettings::GameDir>& game_dirs);
     ~GameListWorker() override;
 
     /// Starts the processing of directory tree information.
@@ -57,7 +55,6 @@ private:
                                  GameListDir* parent_dir);
 
     QStringList watch_list;
-    const CompatibilityList& compatibility_list;
     QVector<UISettings::GameDir>& game_dirs;
     std::atomic_bool stop_processing;
 };
