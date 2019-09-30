@@ -6,6 +6,5 @@ git config --local user.name travis-ci
 git config --local user.email none
 
 export TRAVIS_TAG=$CITRA_VERSION
-git tag $TRAVIS_TAG
 
 mkdir -p artifacts
