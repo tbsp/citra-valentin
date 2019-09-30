@@ -1,3 +1,5 @@
+skip_tags: true
+
 # shallow clone
 clone_depth: 10
 
