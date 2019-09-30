@@ -19,7 +19,6 @@ public:
     ~ConfigureDebug() override;
 
     void ApplyConfiguration();
-    void RetranslateUI();
     void SetConfiguration();
 
     std::unique_ptr<Ui::ConfigureDebug> ui;

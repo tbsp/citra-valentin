@@ -455,9 +455,6 @@ void ConfigureInput::keyPressEvent(QKeyEvent* event) {
     previous_key_code = 0;
 }
 
-void ConfigureInput::RetranslateUI() {
-    ui->retranslateUi(this);
-}
 
 void ConfigureInput::NewProfile() {
     const QString name =

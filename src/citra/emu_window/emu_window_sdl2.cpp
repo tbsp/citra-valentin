@@ -11,7 +11,6 @@
 #include <glad/glad.h>
 #include "citra/emu_window/emu_window_sdl2.h"
 #include "common/logging/log.h"
-#include "common/scm_rev.h"
 #include "core/3ds.h"
 #include "core/core.h"
 #include "core/settings.h"

@@ -22,7 +22,6 @@ public:
     ~ConfigureHotkeys();
 
     void ApplyConfiguration(HotkeyRegistry& registry);
-    void RetranslateUI();
 
     void EmitHotkeysChanged();
 

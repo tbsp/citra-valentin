@@ -8,7 +8,6 @@
 #include <QLabel>
 #include <QMainWindow>
 #include <QTimer>
-#include <QTranslator>
 #include "citra_qt/hotkeys.h"
 #include "common/announce_multiplayer_room.h"
 #include "core/core.h"
@@ -112,10 +111,6 @@ private:
     void BootGame(const QString& filename);
     void ShutdownGame();
 
-    void ShowTelemetryCallout();
-    void ShowUpdatePrompt();
-    void ShowNoUpdatePrompt();
-    void CheckForUpdates();
     void SetDiscordEnabled(bool state);
     void LoadAmiibo(const QString& filename);
 
@@ -190,15 +185,12 @@ private slots:
     void OnCoreError(Core::System::ResultStatus, std::string);
     /// Called whenever a user selects Help->About Citra
     void OnMenuAboutCitra();
-    void OnLanguageChanged(const QString& locale);
 
 private:
     bool ValidateMovie(const QString& path, u64 program_id = 0);
     Q_INVOKABLE void OnMoviePlaybackCompleted();
     void UpdateStatusBar();
-    void LoadTranslation();
     void UpdateWindowTitle();
-    void RetranslateStatusBar();
     void InstallCIA(QStringList filepaths);
 
     Ui::MainWindow ui;
@@ -255,8 +247,6 @@ private:
     bool defer_update_prompt = false;
 
     QAction* actions_recent_files[max_recent_files_item];
-
-    QTranslator translator;
 
     // stores default icon theme search paths for the platform
     QStringList default_theme_paths;

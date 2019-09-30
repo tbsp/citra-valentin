@@ -15,7 +15,6 @@
 #include <fmt/format.h>
 #include "citra_qt/bootmanager.h"
 #include "common/microprofile.h"
-#include "common/scm_rev.h"
 #include "core/3ds.h"
 #include "core/core.h"
 #include "core/frontend/scope_acquire_context.h"
@@ -121,6 +120,9 @@ bool OpenGLWindow::event(QEvent* event) {
     case QEvent::MouseMove:
     case QEvent::KeyPress:
     case QEvent::KeyRelease:
+    case QEvent::DragEnter:
+    case QEvent::DragMove:
+    case QEvent::Drop:
     case QEvent::FocusIn:
     case QEvent::FocusOut:
     case QEvent::FocusAboutToChange:
@@ -151,8 +153,7 @@ void OpenGLWindow::exposeEvent(QExposeEvent* event) {
 GRenderWindow::GRenderWindow(QWidget* parent, EmuThread* emu_thread)
     : QWidget(parent), emu_thread(emu_thread) {
 
-    setWindowTitle(QStringLiteral("Citra %1 | %2-%3")
-                       .arg(Common::g_build_name, Common::g_scm_branch, Common::g_scm_desc));
+    setWindowTitle("Citra");
     setAttribute(Qt::WA_AcceptTouchEvents);
     auto layout = new QHBoxLayout(this);
     layout->setMargin(0);

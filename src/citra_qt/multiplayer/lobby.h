@@ -35,7 +35,6 @@ public:
      * This model should be the original model of the game list.
      */
     void UpdateGameList(QStandardItemModel* list);
-    void RetranslateUi();
 
 public slots:
     /**

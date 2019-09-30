@@ -27,7 +27,6 @@ public:
 
     void ApplyConfiguration();
     void SetConfiguration();
-    void RetranslateUI();
 
 private:
     void ReadSystemSettings();

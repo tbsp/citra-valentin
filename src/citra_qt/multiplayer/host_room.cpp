@@ -23,9 +23,7 @@
 #include "core/hle/service/cfg/cfg.h"
 #include "core/settings.h"
 #include "ui_host_room.h"
-#ifdef ENABLE_WEB_SERVICE
 #include "web_service/verify_user_jwt.h"
-#endif
 
 HostRoomWindow::HostRoomWindow(QWidget* parent, QStandardItemModel* list,
                                std::shared_ptr<Core::AnnounceMultiplayerSession> session)
@@ -83,19 +81,11 @@ void HostRoomWindow::UpdateGameList(QStandardItemModel* list) {
     }
 }
 
-void HostRoomWindow::RetranslateUi() {
-    ui->retranslateUi(this);
-}
-
 std::unique_ptr<Network::VerifyUser::Backend> HostRoomWindow::CreateVerifyBackend(
     bool use_validation) const {
     std::unique_ptr<Network::VerifyUser::Backend> verify_backend;
     if (use_validation) {
-#ifdef ENABLE_WEB_SERVICE
         verify_backend = std::make_unique<WebService::VerifyUserJWT>(Settings::values.web_api_url);
-#else
-        verify_backend = std::make_unique<Network::VerifyUser::NullBackend>();
-#endif
     } else {
         verify_backend = std::make_unique<Network::VerifyUser::NullBackend>();
     }
@@ -179,7 +169,6 @@ void HostRoomWindow::Host() {
             }
         }
         std::string token;
-#ifdef ENABLE_WEB_SERVICE
         if (is_public) {
             WebService::Client client(Settings::values.web_api_url, Settings::values.citra_username,
                                       Settings::values.citra_token);
@@ -192,7 +181,6 @@ void HostRoomWindow::Host() {
                 LOG_INFO(WebService, "Successfully requested external JWT: size={}", token.size());
             }
         }
-#endif
         member->Join(ui->username->text().toStdString(),
                      Service::CFG::GetConsoleIdHash(Core::System::GetInstance()), "127.0.0.1", port,
                      0, Network::NoPreferredMac, password, token);

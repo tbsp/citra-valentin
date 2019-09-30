@@ -196,7 +196,6 @@ struct Values {
     std::unordered_map<std::string, bool> lle_modules;
 
     // WebService
-    bool enable_telemetry;
     std::string web_api_url;
     std::string citra_username;
     std::string citra_token;

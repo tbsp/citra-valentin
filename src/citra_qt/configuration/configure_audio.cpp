@@ -140,7 +140,3 @@ void ConfigureAudio::UpdateAudioOutputDevices(int sink_index) {
 }
 
 void ConfigureAudio::UpdateAudioInputDevices(int index) {}
-
-void ConfigureAudio::RetranslateUI() {
-    ui->retranslateUi(this);
-}

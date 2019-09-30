@@ -16,8 +16,6 @@ option(ENABLE_QT "Enable the Qt frontend" ON)
 option(ENABLE_QT_TRANSLATION "Enable translations for the Qt frontend" OFF)
 CMAKE_DEPENDENT_OPTION(CITRA_USE_BUNDLED_QT "Download bundled Qt binaries" ON "ENABLE_QT;MSVC" OFF)
 
-option(ENABLE_WEB_SERVICE "Enable web services (telemetry, etc.)" ON)
-
 option(ENABLE_CUBEB "Enables the cubeb audio backend" ON)
 
 option(ENABLE_FFMPEG_AUDIO_DECODER "Enable FFmpeg audio (AAC) decoder" OFF)
@@ -35,12 +33,6 @@ CMAKE_DEPENDENT_OPTION(ENABLE_MF "Use Media Foundation decoder (preferred over F
 
 CMAKE_DEPENDENT_OPTION(COMPILE_WITH_DWARF "Add DWARF debugging information" ON "MINGW" OFF)
 
-if(NOT EXISTS ${PROJECT_SOURCE_DIR}/.git/hooks/pre-commit)
-    message(STATUS "Copying pre-commit hook")
-    file(COPY hooks/pre-commit
-        DESTINATION ${PROJECT_SOURCE_DIR}/.git/hooks)
-endif()
-
 # Sanity check : Check that all submodules are present
 # =======================================================================
 
@@ -56,19 +48,6 @@ function(check_submodules_present)
     endforeach()
 endfunction()
 check_submodules_present()
-
-configure_file(${PROJECT_SOURCE_DIR}/dist/compatibility_list/compatibility_list.qrc
-               ${PROJECT_BINARY_DIR}/dist/compatibility_list/compatibility_list.qrc
-               COPYONLY)
-if (ENABLE_COMPATIBILITY_LIST_DOWNLOAD AND NOT EXISTS ${PROJECT_BINARY_DIR}/dist/compatibility_list/compatibility_list.json)
-    message(STATUS "Downloading compatibility list for citra...")
-    file(DOWNLOAD
-        https://api.citra-emu.org/gamedb/
-        "${PROJECT_BINARY_DIR}/dist/compatibility_list/compatibility_list.json" SHOW_PROGRESS)
-endif()
-if (NOT EXISTS ${PROJECT_BINARY_DIR}/dist/compatibility_list/compatibility_list.json)
-    file(WRITE ${PROJECT_BINARY_DIR}/dist/compatibility_list/compatibility_list.json "")
-endif()
 
 # Detect current compilation architecture and create standard definitions
 # =======================================================================
@@ -238,54 +217,6 @@ elseif (CMAKE_SYSTEM_NAME MATCHES "^(Linux|kFreeBSD|GNU|SunOS)$")
     set(PLATFORM_LIBRARIES rt)
 endif()
 
-# Setup a custom clang-format target (if clang-format can be found) that will run
-# against all the src files. This should be used before making a pull request.
-# =======================================================================
-
-set(CLANG_FORMAT_POSTFIX "-6.0")
-find_program(CLANG_FORMAT
-    NAMES clang-format${CLANG_FORMAT_POSTFIX}
-          clang-format
-    PATHS ${PROJECT_BINARY_DIR}/externals)
-# if find_program doesn't find it, try to download from externals
-if (NOT CLANG_FORMAT)
-    if (WIN32)
-        message(STATUS "Clang format not found! Downloading...")
-        set(CLANG_FORMAT "${PROJECT_BINARY_DIR}/externals/clang-format${CLANG_FORMAT_POSTFIX}.exe")
-        file(DOWNLOAD
-            https://github.com/yuzu-emu/ext-windows-bin/raw/master/clang-format${CLANG_FORMAT_POSTFIX}.exe
-            "${CLANG_FORMAT}" SHOW_PROGRESS
-            STATUS DOWNLOAD_SUCCESS)
-        if (NOT DOWNLOAD_SUCCESS EQUAL 0)
-            message(WARNING "Could not download clang format! Disabling the clang format target")
-            file(REMOVE ${CLANG_FORMAT})
-            unset(CLANG_FORMAT)
-        endif()
-    else()
-        message(WARNING "Clang format not found! Disabling the clang format target")
-    endif()
-endif()
-
-if (CLANG_FORMAT)
-    set(SRCS ${PROJECT_SOURCE_DIR}/src)
-    set(CCOMMENT "Running clang format against all the .h and .cpp files in src/")
-    if (WIN32)
-        add_custom_target(clang-format
-            COMMAND powershell.exe -Command "Get-ChildItem '${SRCS}/*' -Include *.cpp,*.h -Recurse | Foreach {&'${CLANG_FORMAT}' -i $_.fullname}"
-            COMMENT ${CCOMMENT})
-    elseif(MINGW)
-        add_custom_target(clang-format
-            COMMAND find `cygpath -u ${SRCS}` -iname *.h -o -iname *.cpp | xargs `cygpath -u ${CLANG_FORMAT}` -i
-            COMMENT ${CCOMMENT})
-    else()
-        add_custom_target(clang-format
-            COMMAND find ${SRCS} -iname *.h -o -iname *.cpp | xargs ${CLANG_FORMAT} -i
-            COMMENT ${CCOMMENT})
-    endif()
-    unset(SRCS)
-    unset(CCOMMENT)
-endif()
-
 # Include source code
 # ===================
 
@@ -330,8 +261,6 @@ get_timestamp(BUILD_DATE)
 enable_testing()
 add_subdirectory(externals)
 add_subdirectory(src)
-add_subdirectory(dist/installer)
-
 
 # Set citra-qt project or citra project as default StartUp Project in Visual Studio depending on whether QT is enabled or not
 if(ENABLE_QT)

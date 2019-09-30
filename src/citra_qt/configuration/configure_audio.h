@@ -19,7 +19,6 @@ public:
     ~ConfigureAudio() override;
 
     void ApplyConfiguration();
-    void RetranslateUI();
     void SetConfiguration();
 
 private:

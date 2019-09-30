@@ -6,9 +6,7 @@
 
 #include <fstream>
 #include "common/common_types.h"
-
-// defined in Version.cpp
-extern const char* scm_rev_git_str;
+#include "common/version.h"
 
 // On disk format:
 // header{
@@ -152,14 +150,10 @@ private:
     }
 
     struct Header {
-        Header() : id(*(u32*)"DCAC"), key_t_size(sizeof(K)), value_t_size(sizeof(V)) {
-            memcpy(ver, scm_rev_git_str, 40);
-        }
-
-        const u32 id;
-        const u16 key_t_size, value_t_size;
-        char ver[40];
-
+        const u32 id = *(u32*)"DCAC";
+        const u16 key_t_size = sizeof(K);
+        const u16 value_t_size = sizeof(V);
+        const u16 major_version = Version::major;
     } m_header;
 
     std::fstream m_file;

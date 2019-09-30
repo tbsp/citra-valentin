@@ -50,6 +50,3 @@ void ConfigureDebug::ApplyConfiguration() {
     Settings::values.use_cpu_jit = ui->toggle_cpu_jit->isChecked();
 }
 
-void ConfigureDebug::RetranslateUI() {
-    ui->retranslateUi(this);
-}

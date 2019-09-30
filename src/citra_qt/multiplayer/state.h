@@ -36,8 +36,6 @@ public:
         return status_icon;
     }
 
-    void retranslateUi();
-
     /**
      * Whether a public room is being hosted or not.
      * When this is true, Web Services configuration should be disabled.

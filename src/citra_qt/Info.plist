@@ -11,7 +11,7 @@
 	<key>CFBundleIconFile</key>
 	<string>citra.icns</string>
 	<key>CFBundleIdentifier</key>
-	<string>com.citra-emu.citra</string>
+	<string>com.github.vvanelslande.citra</string>
 	<key>CFBundleInfoDictionaryVersion</key>
 	<string>6.0</string>
 	<key>CFBundleLongVersionString</key>

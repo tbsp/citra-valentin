@@ -17,7 +17,6 @@ public:
     explicit ClientRoomWindow(QWidget* parent);
     ~ClientRoomWindow();
 
-    void RetranslateUi();
     void UpdateIconDisplay();
 
 public slots:

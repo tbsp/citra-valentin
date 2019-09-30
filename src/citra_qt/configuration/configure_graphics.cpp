@@ -54,7 +54,3 @@ void ConfigureGraphics::ApplyConfiguration() {
     Settings::values.shaders_accurate_mul = ui->toggle_accurate_mul->isChecked();
     Settings::values.use_shader_jit = ui->toggle_shader_jit->isChecked();
 }
-
-void ConfigureGraphics::RetranslateUI() {
-    ui->retranslateUi(this);
-}

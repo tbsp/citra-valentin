@@ -30,7 +30,6 @@ class ChatRoom : public QWidget {
 
 public:
     explicit ChatRoom(QWidget* parent);
-    void RetranslateUi();
     void SetPlayerList(const Network::RoomMember::MemberList& member_list);
     void Clear();
     void AppendStatusMessage(const QString& msg);

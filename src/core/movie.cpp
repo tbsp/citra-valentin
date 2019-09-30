@@ -11,10 +11,10 @@
 #include "common/common_types.h"
 #include "common/file_util.h"
 #include "common/logging/log.h"
-#include "common/scm_rev.h"
 #include "common/string_util.h"
 #include "common/swap.h"
 #include "common/timer.h"
+#include "common/version.h"
 #include "core/core.h"
 #include "core/hle/service/hid/hid.h"
 #include "core/hle/service/ir/extra_hid.h"
@@ -109,16 +109,16 @@ struct ControllerState {
 static_assert(sizeof(ControllerState) == 7, "ControllerState should be 7 bytes");
 #pragma pack(pop)
 
-constexpr std::array<u8, 4> header_magic_bytes{{'C', 'T', 'M', 0x1B}};
+constexpr std::array<u8, 4> header_magic_bytes{{'C', 'T', 'M', 0x1C}};
 
 #pragma pack(push, 1)
 struct CTMHeader {
-    std::array<u8, 4> filetype;  /// Unique Identifier to check the file type (always "CTM"0x1B)
-    u64_le program_id;           /// ID of the ROM being executed. Also called title_id
-    std::array<u8, 20> revision; /// Git hash of the revision this movie was created with
-    u64_le clock_init_time;      /// The init time of the system clock
+    std::array<u8, 4> filetype; /// Unique Identifier to check the file type (always "CTM"0x1C)
+    u64_le program_id;          /// ID of the ROM being executed. Also called title_id
+    u16_le major_version;       /// Version of Citra this movie was created with
+    u64_le clock_init_time;     /// The init time of the system clock
 
-    std::array<u8, 216> reserved; /// Make heading 256 bytes so it has consistent size
+    std::array<u8, 234> reserved; /// Make heading 256 bytes so it has consistent size
 };
 static_assert(sizeof(CTMHeader) == 256, "CTMHeader should be 256 bytes");
 #pragma pack(pop)
@@ -364,8 +364,6 @@ Movie::ValidationResult Movie::ValidateHeader(const CTMHeader& header, u64 progr
         return ValidationResult::Invalid;
     }
 
-    std::string revision = fmt::format("{:02x}", fmt::join(header.revision, ""));
-
     if (!program_id)
         Core::System::GetInstance().GetAppLoader().ReadProgramId(program_id);
     if (program_id != header.program_id) {
@@ -373,9 +371,10 @@ Movie::ValidationResult Movie::ValidateHeader(const CTMHeader& header, u64 progr
         return ValidationResult::GameDismatch;
     }
 
-    if (revision != Common::g_scm_rev) {
-        LOG_WARNING(Movie,
-                    "This movie was created on a different version of Citra, playback may desync");
+    if (header.major_version != Version::major) {
+        LOG_WARNING(
+            Movie,
+            "This movie was created on a different major version of Citra, playback may desync");
         return ValidationResult::RevisionDismatch;
     }
 
@@ -394,13 +393,9 @@ void Movie::SaveMovie() {
     CTMHeader header = {};
     header.filetype = header_magic_bytes;
     header.clock_init_time = init_time;
+    header.major_version = Version::major;
 
     Core::System::GetInstance().GetAppLoader().ReadProgramId(header.program_id);
-
-    std::string rev_bytes;
-    CryptoPP::StringSource(Common::g_scm_rev, true,
-                           new CryptoPP::HexDecoder(new CryptoPP::StringSink(rev_bytes)));
-    std::memcpy(header.revision.data(), rev_bytes.data(), sizeof(CTMHeader::revision));
 
     save_record.WriteBytes(&header, sizeof(CTMHeader));
     save_record.WriteBytes(recorded_input.data(), recorded_input.size());

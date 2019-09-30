@@ -27,9 +27,9 @@
 #include "common/logging/backend.h"
 #include "common/logging/filter.h"
 #include "common/logging/log.h"
-#include "common/scm_rev.h"
 #include "common/scope_exit.h"
 #include "common/string_util.h"
+#include "common/version.h"
 #include "core/core.h"
 #include "core/dumping/backend.h"
 #include "core/file_sys/cia_container.h"
@@ -381,8 +381,6 @@ int main(int argc, char** argv) {
     case Core::System::ResultStatus::Success:
         break; // Expected case
     }
-
-    system.TelemetrySession().AddField(Telemetry::FieldType::App, "Frontend", "SDL");
 
     if (use_multiplayer) {
         if (auto member = Network::GetRoomMember().lock()) {

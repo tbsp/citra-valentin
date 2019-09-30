@@ -83,10 +83,6 @@ void ConfigureEnhancements::UpdateBackgroundColorButton(const QColor& color) {
     ui->bg_button->setIcon(color_icon);
 }
 
-void ConfigureEnhancements::RetranslateUI() {
-    ui->retranslateUi(this);
-}
-
 void ConfigureEnhancements::ApplyConfiguration() {
     Settings::values.resolution_factor =
         static_cast<u16>(ui->resolution_factor_combobox->currentIndex());

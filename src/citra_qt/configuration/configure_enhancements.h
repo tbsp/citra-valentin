@@ -18,7 +18,6 @@ public:
     ~ConfigureEnhancements();
 
     void ApplyConfiguration();
-    void RetranslateUI();
     void SetConfiguration();
 
     void UpdateBackgroundColorButton(const QColor& color);

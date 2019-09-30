@@ -20,7 +20,6 @@ ConfigureDialog::ConfigureDialog(QWidget* parent, HotkeyRegistry& registry, bool
 
     setWindowFlags(windowFlags() & ~Qt::WindowContextHelpButtonHint);
 
-    connect(ui->uiTab, &ConfigureUi::LanguageChanged, this, &ConfigureDialog::OnLanguageChanged);
     connect(ui->selectorList, &QListWidget::itemSelectionChanged, this,
             &ConfigureDialog::UpdateVisibleTabs);
 
@@ -87,36 +86,6 @@ void ConfigureDialog::PopulateSelectionList() {
 
         ui->selectorList->addItem(item);
     }
-}
-
-void ConfigureDialog::OnLanguageChanged(const QString& locale) {
-    emit LanguageChanged(locale);
-    // first apply the configuration, and then restore the display
-    ApplyConfiguration();
-    RetranslateUI();
-    SetConfiguration();
-}
-
-void ConfigureDialog::RetranslateUI() {
-    int old_row = ui->selectorList->currentRow();
-    int old_index = ui->tabWidget->currentIndex();
-    ui->retranslateUi(this);
-    PopulateSelectionList();
-    // restore selection after repopulating
-    ui->selectorList->setCurrentRow(old_row);
-    ui->tabWidget->setCurrentIndex(old_index);
-
-    ui->generalTab->RetranslateUI();
-    ui->systemTab->RetranslateUI();
-    ui->inputTab->RetranslateUI();
-    ui->hotkeysTab->RetranslateUI();
-    ui->graphicsTab->RetranslateUI();
-    ui->enhancementsTab->RetranslateUI();
-    ui->audioTab->RetranslateUI();
-    ui->cameraTab->RetranslateUI();
-    ui->debugTab->RetranslateUI();
-    ui->webTab->RetranslateUI();
-    ui->uiTab->RetranslateUI();
 }
 
 void ConfigureDialog::UpdateVisibleTabs() {

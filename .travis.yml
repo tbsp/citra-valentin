@@ -2,13 +2,6 @@ language: cpp
 matrix:
   include:
     - os: linux
-      env: NAME="clang-format"
-      sudo: required
-      dist: trusty
-      services: docker
-      install: "./.travis/clang-format/deps.sh"
-      script: "./.travis/clang-format/build.sh"
-    - os: linux
       env: NAME="linux build"
       sudo: required
       dist: trusty

@@ -23,15 +23,8 @@ public:
 
     void ApplyConfiguration();
 
-private slots:
-    void OnLanguageChanged(const QString& locale);
-
-signals:
-    void LanguageChanged(const QString& locale);
-
 private:
     void SetConfiguration();
-    void RetranslateUI();
     void UpdateVisibleTabs();
     void PopulateSelectionList();
 

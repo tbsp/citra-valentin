@@ -274,7 +274,6 @@ void Config::ReadValues() {
     qt_config->endGroup();
 
     qt_config->beginGroup("WebService");
-    Settings::values.enable_telemetry = ReadSetting("enable_telemetry", true).toBool();
     Settings::values.web_api_url =
         ReadSetting("web_api_url", "https://api.citra-emu.org").toString().toStdString();
     Settings::values.citra_username = ReadSetting("citra_username").toString().toStdString();
@@ -362,7 +361,6 @@ void Config::ReadValues() {
         }
     }
     UISettings::values.recent_files = ReadSetting("recentFiles").toStringList();
-    UISettings::values.language = ReadSetting("language", "").toString();
     qt_config->endGroup();
 
     qt_config->beginGroup("Shortcuts");
@@ -385,8 +383,6 @@ void Config::ReadValues() {
     UISettings::values.show_filter_bar = ReadSetting("showFilterBar", true).toBool();
     UISettings::values.show_status_bar = ReadSetting("showStatusBar", true).toBool();
     UISettings::values.confirm_before_closing = ReadSetting("confirmClose", true).toBool();
-    UISettings::values.first_start = ReadSetting("firstStart", true).toBool();
-    UISettings::values.callout_flags = ReadSetting("calloutFlags", 0).toUInt();
     UISettings::values.show_console = ReadSetting("showConsole", false).toBool();
     UISettings::values.pause_when_in_background =
         ReadSetting("pauseWhenInBackground", false).toBool();
@@ -569,7 +565,6 @@ void Config::SaveValues() {
     qt_config->endGroup();
 
     qt_config->beginGroup("WebService");
-    WriteSetting("enable_telemetry", Settings::values.enable_telemetry, true);
     WriteSetting("web_api_url", QString::fromStdString(Settings::values.web_api_url),
                  "https://api.citra-emu.org");
     WriteSetting("citra_username", QString::fromStdString(Settings::values.citra_username));
@@ -616,7 +611,6 @@ void Config::SaveValues() {
     }
     qt_config->endArray();
     WriteSetting("recentFiles", UISettings::values.recent_files);
-    WriteSetting("language", UISettings::values.language, "");
     qt_config->endGroup();
 
     qt_config->beginGroup("Shortcuts");
@@ -639,8 +633,6 @@ void Config::SaveValues() {
     WriteSetting("showFilterBar", UISettings::values.show_filter_bar, true);
     WriteSetting("showStatusBar", UISettings::values.show_status_bar, true);
     WriteSetting("confirmClose", UISettings::values.confirm_before_closing, true);
-    WriteSetting("firstStart", UISettings::values.first_start, true);
-    WriteSetting("calloutFlags", UISettings::values.callout_flags, 0);
     WriteSetting("showConsole", UISettings::values.show_console, false);
     WriteSetting("pauseWhenInBackground", UISettings::values.pause_when_in_background, false);
 

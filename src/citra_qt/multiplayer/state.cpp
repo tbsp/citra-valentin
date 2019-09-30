@@ -84,28 +84,7 @@ void MultiplayerState::Close() {
         lobby->close();
 }
 
-void MultiplayerState::retranslateUi() {
-    status_text->setToolTip(tr("Current connection status"));
 
-    if (current_state == Network::RoomMember::State::Uninitialized) {
-        status_text->setText(tr("Not Connected. Click here to find a room!"));
-    } else if (current_state == Network::RoomMember::State::Joined ||
-               current_state == Network::RoomMember::State::Moderator) {
-
-        status_text->setText(tr("Connected"));
-    } else {
-        status_text->setText(tr("Not Connected"));
-    }
-
-    if (lobby)
-        lobby->RetranslateUi();
-    if (host_room)
-        host_room->RetranslateUi();
-    if (client_room)
-        client_room->RetranslateUi();
-    if (direct_connect)
-        direct_connect->RetranslateUi();
-}
 
 void MultiplayerState::OnNetworkStateChanged(const Network::RoomMember::State& state) {
     LOG_DEBUG(Frontend, "Network State: {}", Network::GetStateStr(state));

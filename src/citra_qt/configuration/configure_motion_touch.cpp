@@ -70,12 +70,10 @@ void CalibrationConfigurationDialog::UpdateButtonText(QString text) {
 }
 
 const std::array<std::pair<const char*, const char*>, 2> MotionProviders = {
-    {{"motion_emu", QT_TRANSLATE_NOOP("ConfigureMotionTouch", "Mouse (Right Click)")},
-     {"cemuhookudp", QT_TRANSLATE_NOOP("ConfigureMotionTouch", "CemuhookUDP")}}};
+    {{"motion_emu", "Mouse (Right Click)"}, {"cemuhookudp", "CemuhookUDP"}}};
 
 const std::array<std::pair<const char*, const char*>, 2> TouchProviders = {
-    {{"emu_window", QT_TRANSLATE_NOOP("ConfigureMotionTouch", "Emulator Window")},
-     {"cemuhookudp", QT_TRANSLATE_NOOP("ConfigureMotionTouch", "CemuhookUDP")}}};
+    {{"emu_window", "Emulator Window"}, {"cemuhookudp", "CemuhookUDP"}}};
 
 ConfigureMotionTouch::ConfigureMotionTouch(QWidget* parent)
     : QDialog(parent), ui(std::make_unique<Ui::ConfigureMotionTouch>()) {

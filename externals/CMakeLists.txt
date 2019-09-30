@@ -78,28 +78,26 @@ if (USE_DISCORD_PRESENCE)
     target_include_directories(discord-rpc INTERFACE ./discord-rpc/include)
 endif()
 
-    # LibreSSL
-    set(LIBRESSL_SKIP_INSTALL ON CACHE BOOL "")
-    add_subdirectory(libressl EXCLUDE_FROM_ALL)
-    target_include_directories(ssl INTERFACE ./libressl/include)
-    target_compile_definitions(ssl PRIVATE -DHAVE_INET_NTOP)
+# LibreSSL
+set(LIBRESSL_SKIP_INSTALL ON CACHE BOOL "")
+add_subdirectory(libressl EXCLUDE_FROM_ALL)
+target_include_directories(ssl INTERFACE ./libressl/include)
+target_compile_definitions(ssl PRIVATE -DHAVE_INET_NTOP)
 
-    # lurlparser
-    add_subdirectory(lurlparser EXCLUDE_FROM_ALL)
+# lurlparser
+add_subdirectory(lurlparser EXCLUDE_FROM_ALL)
 
-    # httplib
-    add_library(httplib INTERFACE)
-    target_include_directories(httplib INTERFACE ./httplib)
+# httplib
+add_library(httplib INTERFACE)
+target_include_directories(httplib INTERFACE ./httplib)
 
-if (ENABLE_WEB_SERVICE)
-    # JSON
-    add_library(json-headers INTERFACE)
-    target_include_directories(json-headers INTERFACE ./json)
+# JSON
+add_library(json-headers INTERFACE)
+target_include_directories(json-headers INTERFACE ./json)
 
-    # cpp-jwt
-    add_library(cpp-jwt INTERFACE)
-    target_include_directories(cpp-jwt INTERFACE ./cpp-jwt/include)
-endif()
+# cpp-jwt
+add_library(cpp-jwt INTERFACE)
+target_include_directories(cpp-jwt INTERFACE ./cpp-jwt/include)
 
 # lodepng
 add_subdirectory(lodepng)

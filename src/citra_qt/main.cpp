@@ -49,7 +49,6 @@
 #include "citra_qt/multiplayer/state.h"
 #include "citra_qt/qt_image_interface.h"
 #include "citra_qt/uisettings.h"
-#include "citra_qt/updater/updater.h"
 #include "citra_qt/util/clickable_label.h"
 #include "common/common_paths.h"
 #include "common/detached_tasks.h"
@@ -59,8 +58,8 @@
 #include "common/logging/log.h"
 #include "common/logging/text_formatter.h"
 #include "common/microprofile.h"
-#include "common/scm_rev.h"
 #include "common/scope_exit.h"
+#include "common/version.h"
 #ifdef ARCHITECTURE_x86_64
 #include "common/x64/cpu_detect.h"
 #endif
@@ -95,31 +94,6 @@ __declspec(dllexport) unsigned long NvOptimusEnablement = 0x00000001;
 }
 #endif
 
-/**
- * "Callouts" are one-time instructional messages shown to the user. In the config settings, there
- * is a bitfield "callout_flags" options, used to track if a message has already been shown to the
- * user. This is 32-bits - if we have more than 32 callouts, we should retire and recyle old ones.
- */
-enum class CalloutFlag : uint32_t {
-    Telemetry = 0x1,
-};
-
-void GMainWindow::ShowTelemetryCallout() {
-    if (UISettings::values.callout_flags & static_cast<uint32_t>(CalloutFlag::Telemetry)) {
-        return;
-    }
-
-    UISettings::values.callout_flags |= static_cast<uint32_t>(CalloutFlag::Telemetry);
-    const QString telemetry_message =
-        tr("<a href='https://citra-emu.org/entry/telemetry-and-why-thats-a-good-thing/'>Anonymous "
-           "data is collected</a> to help improve Citra. "
-           "<br/><br/>Would you like to share your usage data with us?");
-    if (QMessageBox::question(this, tr("Telemetry"), telemetry_message) != QMessageBox::Yes) {
-        Settings::values.enable_telemetry = false;
-        Settings::Apply();
-    }
-}
-
 const int GMainWindow::max_recent_files_item;
 
 static void InitializeLogging() {
@@ -144,8 +118,6 @@ GMainWindow::GMainWindow() : config(new Config()), emu_thread(nullptr) {
     qRegisterMetaType<std::size_t>("std::size_t");
     qRegisterMetaType<Service::AM::InstallStatus>("Service::AM::InstallStatus");
 
-    LoadTranslation();
-
     Pica::g_debug_context = Pica::DebugContext::Construct();
     setAcceptDrops(true);
     ui.setupUi(this);
@@ -163,7 +135,6 @@ GMainWindow::GMainWindow() : config(new Config()), emu_thread(nullptr) {
     InitializeDebugWidgets();
     InitializeRecentFileMenuActions();
     InitializeHotkeys();
-    ShowUpdaterWidgets();
 
     SetDefaultUIGeometry();
     RestoreUIState();
@@ -171,8 +142,8 @@ GMainWindow::GMainWindow() : config(new Config()), emu_thread(nullptr) {
     ConnectMenuEvents();
     ConnectWidgetEvents();
 
-    LOG_INFO(Frontend, "Citra Version: {} | {}-{}", Common::g_build_fullname, Common::g_scm_branch,
-             Common::g_scm_desc);
+    LOG_INFO(Frontend, "Citra Version: vvanelslande-{}.{}.{}", Version::major, Version::minor,
+             Version::patch);
 #ifdef ARCHITECTURE_x86_64
     LOG_INFO(Frontend, "Host CPU: {}", Common::GetCPUCaps().cpu_string);
 #endif
@@ -182,13 +153,6 @@ GMainWindow::GMainWindow() : config(new Config()), emu_thread(nullptr) {
     show();
 
     game_list->PopulateAsync(UISettings::values.game_dirs);
-
-    // Show one-time "callout" messages to the user
-    ShowTelemetryCallout();
-
-    if (UISettings::values.check_for_update_on_start) {
-        CheckForUpdates();
-    }
 
     QStringList args = QApplication::arguments();
     if (args.length() >= 2) {
@@ -219,10 +183,6 @@ void GMainWindow::InitializeWidgets() {
     multiplayer_state = new MultiplayerState(this, game_list->GetModel(), ui.action_Leave_Room,
                                              ui.action_Show_Room);
     multiplayer_state->setVisible(false);
-
-    // Setup updater
-    updater = new Updater(this);
-    UISettings::values.updater_found = updater->HasUpdater();
 
     // Create status bar
     message_label = new QLabel();
@@ -466,13 +426,6 @@ void GMainWindow::InitializeHotkeys() {
             });
 }
 
-void GMainWindow::ShowUpdaterWidgets() {
-    ui.action_Check_For_Updates->setVisible(UISettings::values.updater_found);
-    ui.action_Open_Maintenance_Tool->setVisible(UISettings::values.updater_found);
-
-    connect(updater, &Updater::CheckUpdatesDone, this, &GMainWindow::OnUpdateFound);
-}
-
 void GMainWindow::SetDefaultUIGeometry() {
     // geometry: 55% of the window contents are in the upper screen half, 45% in the lower half
     const QRect screenRect = QApplication::desktop()->screenGeometry(this);
@@ -648,10 +601,6 @@ void GMainWindow::ConnectMenuEvents() {
     connect(ui.action_FAQ, &QAction::triggered,
             []() { QDesktopServices::openUrl(QUrl("https://citra-emu.org/wiki/faq/")); });
     connect(ui.action_About, &QAction::triggered, this, &GMainWindow::OnMenuAboutCitra);
-    connect(ui.action_Check_For_Updates, &QAction::triggered, this,
-            &GMainWindow::OnCheckForUpdates);
-    connect(ui.action_Open_Maintenance_Tool, &QAction::triggered, this,
-            &GMainWindow::OnOpenUpdater);
 }
 
 void GMainWindow::OnDisplayTitleBars(bool show) {
@@ -672,72 +621,6 @@ void GMainWindow::OnDisplayTitleBars(bool show) {
                 delete old;
         }
     }
-}
-
-void GMainWindow::OnCheckForUpdates() {
-    explicit_update_check = true;
-    CheckForUpdates();
-}
-
-void GMainWindow::CheckForUpdates() {
-    if (updater->CheckForUpdates()) {
-        LOG_INFO(Frontend, "Update check started");
-    } else {
-        LOG_WARNING(Frontend, "Unable to start check for updates");
-    }
-}
-
-void GMainWindow::OnUpdateFound(bool found, bool error) {
-    if (error) {
-        LOG_WARNING(Frontend, "Update check failed");
-        return;
-    }
-
-    if (!found) {
-        LOG_INFO(Frontend, "No updates found");
-
-        // If the user explicitly clicked the "Check for Updates" button, we are
-        //  going to want to show them a prompt anyway.
-        if (explicit_update_check) {
-            explicit_update_check = false;
-            ShowNoUpdatePrompt();
-        }
-        return;
-    }
-
-    if (emulation_running && !explicit_update_check) {
-        LOG_INFO(Frontend, "Update found, deferring as game is running");
-        defer_update_prompt = true;
-        return;
-    }
-
-    LOG_INFO(Frontend, "Update found!");
-    explicit_update_check = false;
-
-    ShowUpdatePrompt();
-}
-
-void GMainWindow::ShowUpdatePrompt() {
-    defer_update_prompt = false;
-
-    auto result =
-        QMessageBox::question(this, tr("Update Available"),
-                              tr("An update is available. Would you like to install it now?"),
-                              QMessageBox::Yes | QMessageBox::No, QMessageBox::Yes);
-
-    if (result == QMessageBox::Yes) {
-        updater->LaunchUIOnExit();
-        close();
-    }
-}
-
-void GMainWindow::ShowNoUpdatePrompt() {
-    QMessageBox::information(this, tr("No Update Found"), tr("No update is found."),
-                             QMessageBox::Ok, QMessageBox::Ok);
-}
-
-void GMainWindow::OnOpenUpdater() {
-    updater->LaunchUI();
 }
 
 void GMainWindow::PreventOSSleep() {
@@ -856,7 +739,6 @@ bool GMainWindow::LoadROM(const QString& filename) {
 
     game_path = filename;
 
-    system.TelemetrySession().AddField(Telemetry::FieldType::App, "Frontend", "Qt");
     return true;
 }
 
@@ -999,10 +881,6 @@ void GMainWindow::ShutdownGame() {
     emu_frametime_label->setVisible(false);
 
     emulation_running = false;
-
-    if (defer_update_prompt) {
-        ShowUpdatePrompt();
-    }
 
     game_title.clear();
     UpdateWindowTitle();
@@ -1406,8 +1284,6 @@ void GMainWindow::OnCheats() {
 void GMainWindow::OnConfigure() {
     ConfigureDialog configureDialog(this, hotkey_registry,
                                     !multiplayer_state->IsHostingPublicRoom());
-    connect(&configureDialog, &ConfigureDialog::LanguageChanged, this,
-            &GMainWindow::OnLanguageChanged);
     auto old_theme = UISettings::values.theme;
     const int old_input_profile_index = Settings::values.current_input_profile_index;
     const auto old_input_profiles = Settings::values.input_profiles;
@@ -1821,7 +1697,6 @@ void GMainWindow::closeEvent(QCloseEvent* event) {
     UISettings::values.display_titlebar = ui.action_Display_Dock_Widget_Headers->isChecked();
     UISettings::values.show_filter_bar = ui.action_Show_Filter_Bar->isChecked();
     UISettings::values.show_status_bar = ui.action_Show_Status_Bar->isChecked();
-    UISettings::values.first_start = false;
 
     game_list->SaveInterfaceLayout();
     hotkey_registry.SaveHotkeys();
@@ -1908,58 +1783,22 @@ void GMainWindow::UpdateUITheme() {
     QIcon::setThemeSearchPaths(theme_paths);
 }
 
-void GMainWindow::LoadTranslation() {
-    // If the selected language is English, no need to install any translation
-    if (UISettings::values.language == "en") {
-        return;
-    }
-
-    bool loaded;
-
-    if (UISettings::values.language.isEmpty()) {
-        // If the selected language is empty, use system locale
-        loaded = translator.load(QLocale(), "", "", ":/languages/");
-    } else {
-        // Otherwise load from the specified file
-        loaded = translator.load(UISettings::values.language, ":/languages/");
-    }
-
-    if (loaded) {
-        qApp->installTranslator(&translator);
-    } else {
-        UISettings::values.language = "en";
-    }
-}
-
-void GMainWindow::OnLanguageChanged(const QString& locale) {
-    if (UISettings::values.language != "en") {
-        qApp->removeTranslator(&translator);
-    }
-
-    UISettings::values.language = locale;
-    LoadTranslation();
-    ui.retranslateUi(this);
-    RetranslateStatusBar();
-    UpdateWindowTitle();
-
-    if (emulation_running)
-        ui.action_Start->setText(tr("Continue"));
-}
-
 void GMainWindow::OnMoviePlaybackCompleted() {
-    QMessageBox::information(this, tr("Playback Completed"), tr("Movie playback completed."));
+    QMessageBox::information(this, "Playback Completed", "Movie playback completed.");
     ui.action_Record_Movie->setEnabled(true);
     ui.action_Play_Movie->setEnabled(true);
     ui.action_Stop_Recording_Playback->setEnabled(false);
 }
 
 void GMainWindow::UpdateWindowTitle() {
-    const QString full_name = QString::fromUtf8(Common::g_build_fullname);
-
     if (game_title.isEmpty()) {
-        setWindowTitle(tr("Citra %1").arg(full_name));
+        setWindowTitle(QStringLiteral("Citra vvanelslande-%1.%2.%3")
+                           .arg(QString::number(Version::major), QString::number(Version::minor),
+                                QString::number(Version::patch)));
     } else {
-        setWindowTitle(tr("Citra %1| %2").arg(full_name, game_title));
+        setWindowTitle(QStringLiteral("Citra vvanelslande-%1.%2.%3 | %4")
+                           .arg(QString::number(Version::major), QString::number(Version::minor),
+                                QString::number(Version::patch), game_title));
     }
 }
 
@@ -1973,21 +1812,6 @@ void GMainWindow::SyncMenuUISettings() {
     ui.action_Screen_Layout_Side_by_Side->setChecked(Settings::values.layout_option ==
                                                      Settings::LayoutOption::SideScreen);
     ui.action_Screen_Layout_Swap_Screens->setChecked(Settings::values.swap_screen);
-}
-
-void GMainWindow::RetranslateStatusBar() {
-    if (emu_thread)
-        UpdateStatusBar();
-
-    emu_speed_label->setToolTip(tr("Current emulation speed. Values higher or lower than 100% "
-                                   "indicate emulation is running faster or slower than a 3DS."));
-    game_fps_label->setToolTip(tr("How many frames per second the game is currently displaying. "
-                                  "This will vary from game to game and scene to scene."));
-    emu_frametime_label->setToolTip(
-        tr("Time taken to emulate a 3DS frame, not counting framelimiting or v-sync. For "
-           "full-speed emulation this should be at most 16.67 ms."));
-
-    multiplayer_state->retranslateUi();
 }
 
 void GMainWindow::SetDiscordEnabled([[maybe_unused]] bool state) {

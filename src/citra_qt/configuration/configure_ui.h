@@ -19,14 +19,7 @@ public:
     ~ConfigureUi() override;
 
     void ApplyConfiguration();
-    void RetranslateUI();
     void SetConfiguration();
-
-private slots:
-    void OnLanguageChanged(int index);
-
-signals:
-    void LanguageChanged(const QString& locale);
 
 private:
     std::unique_ptr<Ui::ConfigureUi> ui;

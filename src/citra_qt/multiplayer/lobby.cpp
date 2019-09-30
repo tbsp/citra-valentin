@@ -18,9 +18,7 @@
 #include "core/hle/service/cfg/cfg.h"
 #include "core/settings.h"
 #include "network/network.h"
-#ifdef ENABLE_WEB_SERVICE
 #include "web_service/web_backend.h"
-#endif
 
 Lobby::Lobby(QWidget* parent, QStandardItemModel* list,
              std::shared_ptr<Core::AnnounceMultiplayerSession> session)
@@ -93,10 +91,6 @@ void Lobby::UpdateGameList(QStandardItemModel* list) {
         proxy->UpdateGameList(game_list);
 }
 
-void Lobby::RetranslateUi() {
-    ui->retranslateUi(this);
-}
-
 QString Lobby::PasswordPrompt() {
     bool ok;
     const QString text = QInputDialog::getText(this, tr("Password Required to Join"),
@@ -150,7 +144,6 @@ void Lobby::OnJoinRoom(const QModelIndex& source) {
     // attempt to connect in a different thread
     QFuture<void> f = QtConcurrent::run([nickname, ip, port, password, verify_UID] {
         std::string token;
-#ifdef ENABLE_WEB_SERVICE
         if (!Settings::values.citra_username.empty() && !Settings::values.citra_token.empty()) {
             WebService::Client client(Settings::values.web_api_url, Settings::values.citra_username,
                                       Settings::values.citra_token);
@@ -161,7 +154,6 @@ void Lobby::OnJoinRoom(const QModelIndex& source) {
                 LOG_INFO(WebService, "Successfully requested external JWT: size={}", token.size());
             }
         }
-#endif
         if (auto room_member = Network::GetRoomMember().lock()) {
             room_member->Join(nickname, Service::CFG::GetConsoleIdHash(Core::System::GetInstance()),
                               ip.c_str(), port, 0, Network::NoPreferredMac, password, token);

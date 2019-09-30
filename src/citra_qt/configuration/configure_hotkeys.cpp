@@ -120,6 +120,3 @@ void ConfigureHotkeys::ApplyConfiguration(HotkeyRegistry& registry) {
     registry.SaveHotkeys();
 }
 
-void ConfigureHotkeys::RetranslateUI() {
-    ui->retranslateUi(this);
-}

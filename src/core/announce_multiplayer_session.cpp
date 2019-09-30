@@ -9,10 +9,7 @@
 #include "common/assert.h"
 #include "core/settings.h"
 #include "network/network.h"
-
-#ifdef ENABLE_WEB_SERVICE
 #include "web_service/announce_room_json.h"
-#endif
 
 namespace Core {
 
@@ -20,13 +17,9 @@ namespace Core {
 static constexpr std::chrono::seconds announce_time_interval(15);
 
 AnnounceMultiplayerSession::AnnounceMultiplayerSession() {
-#ifdef ENABLE_WEB_SERVICE
     backend = std::make_unique<WebService::RoomJson>(Settings::values.web_api_url,
                                                      Settings::values.citra_username,
                                                      Settings::values.citra_token);
-#else
-    backend = std::make_unique<AnnounceMultiplayerRoom::NullBackend>();
-#endif
 }
 
 Common::WebResult AnnounceMultiplayerSession::Register() {
@@ -153,11 +146,9 @@ bool AnnounceMultiplayerSession::IsRunning() const {
 void AnnounceMultiplayerSession::UpdateCredentials() {
     ASSERT_MSG(!IsRunning(), "Credentials can only be updated when session is not running");
 
-#ifdef ENABLE_WEB_SERVICE
     backend = std::make_unique<WebService::RoomJson>(Settings::values.web_api_url,
                                                      Settings::values.citra_username,
                                                      Settings::values.citra_token);
-#endif
 }
 
 } // namespace Core

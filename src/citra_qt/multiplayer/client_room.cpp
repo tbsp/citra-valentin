@@ -62,11 +62,6 @@ void ClientRoomWindow::SetModPerms(bool is_mod) {
     ui->moderation->setAutoDefault(false);
 }
 
-void ClientRoomWindow::RetranslateUi() {
-    ui->retranslateUi(this);
-    ui->chat->RetranslateUi();
-}
-
 void ClientRoomWindow::OnRoomUpdate(const Network::RoomInformation& info) {
     UpdateView();
 }

@@ -20,7 +20,6 @@ public:
     explicit DirectConnectWindow(QWidget* parent = nullptr);
     ~DirectConnectWindow();
 
-    void RetranslateUi();
 
 signals:
     /**

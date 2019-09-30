@@ -22,9 +22,7 @@
 #include "common/logging/log.h"
 #include "core/announce_multiplayer_session.h"
 #include "ui_chat_room.h"
-#ifdef ENABLE_WEB_SERVICE
 #include "web_service/web_backend.h"
-#endif
 
 class ChatMessage {
 public:
@@ -200,10 +198,6 @@ void ChatRoom::SetModPerms(bool is_mod) {
     has_mod_perms = is_mod;
 }
 
-void ChatRoom::RetranslateUi() {
-    ui->retranslateUi(this);
-}
-
 void ChatRoom::Clear() {
     ui->chat_history->clear();
     block_list.clear();
@@ -367,7 +361,6 @@ void ChatRoom::SetPlayerList(const Network::RoomMember::MemberList& member_list)
         QStandardItem* name_item = new PlayerListItem(member.nickname, member.username,
                                                       member.avatar_url, member.game_info.name);
 
-#ifdef ENABLE_WEB_SERVICE
         if (!icon_cache.count(member.avatar_url) && !member.avatar_url.empty()) {
             // Start a request to get the member's avatar
             const QUrl url(QString::fromStdString(member.avatar_url));
@@ -397,7 +390,6 @@ void ChatRoom::SetPlayerList(const Network::RoomMember::MemberList& member_list)
                     });
             future_watcher->setFuture(future);
         }
-#endif
 
         player_list->invisibleRootItem()->appendRow(name_item);
     }

@@ -19,7 +19,6 @@ public:
     ~ConfigureGraphics() override;
 
     void ApplyConfiguration();
-    void RetranslateUI();
     void SetConfiguration();
 
     std::unique_ptr<Ui::ConfigureGraphics> ui;

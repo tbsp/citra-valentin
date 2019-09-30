@@ -20,12 +20,10 @@ public:
     ~ConfigureWeb() override;
 
     void ApplyConfiguration();
-    void RetranslateUI();
     void SetConfiguration();
     void SetWebServiceConfigEnabled(bool enabled);
 
 private:
-    void RefreshTelemetryID();
     void OnLoginChanged();
     void VerifyLogin();
     void OnLoginVerified();

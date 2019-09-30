@@ -74,7 +74,6 @@ struct Values {
     bool show_status_bar;
 
     bool confirm_before_closing;
-    bool first_start;
     bool pause_when_in_background;
 
     // Discord RPC
@@ -99,14 +98,11 @@ struct Values {
     bool game_dir_deprecated_deepscan;
     QVector<UISettings::GameDir> game_dirs;
     QStringList recent_files;
-    QString language;
 
     QString theme;
 
     // Shortcut name <Shortcut, context>
     std::vector<Shortcut> shortcuts;
-
-    uint32_t callout_flags;
 
     // multiplayer settings
     QString nickname;

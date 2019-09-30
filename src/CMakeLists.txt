@@ -103,6 +103,4 @@ else()
     add_subdirectory(dedicated_room)
 endif()
 
-if (ENABLE_WEB_SERVICE)
-    add_subdirectory(web_service)
-endif()
+add_subdirectory(web_service)

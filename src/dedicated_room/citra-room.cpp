@@ -20,7 +20,6 @@
 
 #include "common/common_types.h"
 #include "common/detached_tasks.h"
-#include "common/scm_rev.h"
 #include "common/string_util.h"
 #include "core/announce_multiplayer_session.h"
 #include "core/core.h"
@@ -28,10 +27,7 @@
 #include "network/network.h"
 #include "network/room.h"
 #include "network/verify_user.h"
-
-#ifdef ENABLE_WEB_SERVICE
 #include "web_service/verify_user_jwt.h"
-#endif
 
 #undef _UNICODE
 #include <getopt.h>
@@ -59,7 +55,7 @@ static void PrintHelp(const char* argv0) {
 }
 
 static void PrintVersion() {
-    std::cout << "Citra dedicated room " << Common::g_scm_branch << " " << Common::g_scm_desc
+    std::cout << "Citra " << Version::major << "." << Version::minor << "." << Version::patch
               << " Libnetwork: " << Network::network_version << std::endl;
 }
 
@@ -279,13 +275,7 @@ int main(int argc, char** argv) {
 
     std::unique_ptr<Network::VerifyUser::Backend> verify_backend;
     if (announce) {
-#ifdef ENABLE_WEB_SERVICE
         verify_backend = std::make_unique<WebService::VerifyUserJWT>(Settings::values.web_api_url);
-#else
-        std::cout
-            << "Citra Web Services is not available with this build: validation is disabled.\n\n";
-        verify_backend = std::make_unique<Network::VerifyUser::NullBackend>();
-#endif
     } else {
         verify_backend = std::make_unique<Network::VerifyUser::NullBackend>();
     }

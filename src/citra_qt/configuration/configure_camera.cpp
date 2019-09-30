@@ -314,7 +314,3 @@ int ConfigureCamera::GetSelectedCameraIndex() {
     }
     return camera_selection;
 }
-
-void ConfigureCamera::RetranslateUI() {
-    ui->retranslateUi(this);
-}

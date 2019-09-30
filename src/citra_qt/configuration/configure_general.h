@@ -22,7 +22,6 @@ public:
 
     void ResetDefaults();
     void ApplyConfiguration();
-    void RetranslateUI();
     void SetConfiguration();
 
 private:
