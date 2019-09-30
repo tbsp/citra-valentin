@@ -74,7 +74,7 @@ static void PrintHelp(const char* argv0) {
 }
 
 static void PrintVersion() {
-    std::cout << "Citra " << Common::g_scm_branch << " " << Common::g_scm_desc << std::endl;
+    std::cout << "vvanelslande-" << Version::major << "." << Version::minor << "." << Version::patch << std::endl;
 }
 
 static void OnStateChanged(const Network::RoomMember::State& state) {

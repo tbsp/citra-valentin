@@ -21,6 +21,7 @@
 #include "common/common_types.h"
 #include "common/detached_tasks.h"
 #include "common/string_util.h"
+#include "common/version.h"
 #include "core/announce_multiplayer_session.h"
 #include "core/core.h"
 #include "core/settings.h"
@@ -55,8 +56,9 @@ static void PrintHelp(const char* argv0) {
 }
 
 static void PrintVersion() {
-    std::cout << "Citra " << Version::major << "." << Version::minor << "." << Version::patch
-              << " Libnetwork: " << Network::network_version << std::endl;
+    std::cout << "Citra: vvanelslande-" << Version::major << "." << Version::minor << "."
+              << Version::patch << std::endl
+              << "libnetwork: " << Network::network_version << std::endl;
 }
 
 /// The magic text at the beginning of a citra-room ban list file.

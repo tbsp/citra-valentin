@@ -11,6 +11,7 @@
 #include <glad/glad.h>
 #include "citra/emu_window/emu_window_sdl2.h"
 #include "common/logging/log.h"
+#include "common/version.h"
 #include "core/3ds.h"
 #include "core/core.h"
 #include "core/settings.h"
@@ -161,10 +162,10 @@ EmuWindow_SDL2::EmuWindow_SDL2(bool fullscreen) {
     // Enable vsync
     SDL_GL_SetSwapInterval(1);
 
-    std::string window_title = fmt::format("Citra {} | {}-{}", Common::g_build_fullname,
-                                           Common::g_scm_branch, Common::g_scm_desc);
+    std::string version =
+        fmt::format("Citra vvanelslande-{}.{}.{}", Version::major, Version::minor, Version::patch);
     render_window =
-        SDL_CreateWindow(window_title.c_str(),
+        SDL_CreateWindow(version.c_str(),
                          SDL_WINDOWPOS_UNDEFINED, // x position
                          SDL_WINDOWPOS_UNDEFINED, // y position
                          Core::kScreenTopWidth, Core::kScreenTopHeight + Core::kScreenBottomHeight,
@@ -204,8 +205,7 @@ EmuWindow_SDL2::EmuWindow_SDL2(bool fullscreen) {
     OnResize();
     OnMinimalClientAreaChangeRequest(GetActiveConfig().min_client_area_size);
     SDL_PumpEvents();
-    LOG_INFO(Frontend, "Citra Version: {} | {}-{}", Common::g_build_fullname, Common::g_scm_branch,
-             Common::g_scm_desc);
+    LOG_INFO(Frontend, "Version: {}", version);
     Settings::LogSettings();
 }
 
@@ -288,9 +288,9 @@ void EmuWindow_SDL2::PollEvents() {
     const u32 current_time = SDL_GetTicks();
     if (current_time > last_time + 2000) {
         const auto results = Core::System::GetInstance().GetAndResetPerfStats();
-        const auto title = fmt::format(
-            "Citra {} | {}-{} | FPS: {:.0f} ({:.0%})", Common::g_build_fullname,
-            Common::g_scm_branch, Common::g_scm_desc, results.game_fps, results.emulation_speed);
+        const std::string title =
+            fmt::format("Citra vvanelslande-{}.{}.{} | FPS: {:.0f} ({:.0%})", Version::major,
+                        Version::minor, Version::patch, results.game_fps, results.emulation_speed);
         SDL_SetWindowTitle(render_window, title.c_str());
         last_time = current_time;
     }
