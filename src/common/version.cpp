@@ -4,10 +4,10 @@
 
 #pragma once
 
-#include "common/common_types.h"
+#include "common/version.h"
 
 namespace Version {
-extern const u16 major;
-extern const  u16 minor;
-extern const  u16 patch;
+const u16 major = 1;
+const u16 minor = 0;
+const u16 patch = 4;
 } // namespace Version

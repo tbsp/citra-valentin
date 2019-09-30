@@ -47,6 +47,7 @@ add_library(common STATIC
     timer.h
     vector_math.h
     web_result.h
+    version.cpp
     version.h
 )
 
