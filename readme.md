@@ -1,5 +1,3 @@
-**BEFORE FILING AN ISSUE, READ THE RELEVANT SECTION IN [CONTRIBUTING](https://github.com/vvanelslande/citra/wiki/Contributing#reporting-issues)**
-
 # Citra
 
 [![Travis CI Build Status](https://travis-ci.com/vvanelslande/citra.svg?branch=master)](https://travis-ci.com/vvanelslande/citra)
