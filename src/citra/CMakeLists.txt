@@ -22,10 +22,6 @@ if (MSVC)
 endif()
 target_link_libraries(citra PRIVATE ${PLATFORM_LIBRARIES} SDL2 Threads::Threads)
 
-if(UNIX AND NOT APPLE)
-    install(TARGETS citra RUNTIME DESTINATION "${CMAKE_INSTALL_PREFIX}/bin")
-endif()
-
 if (MSVC)
     include(CopyCitraSDLDeps)
     copy_citra_SDL_deps(citra)
