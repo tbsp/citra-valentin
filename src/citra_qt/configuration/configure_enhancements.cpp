@@ -55,6 +55,7 @@ void ConfigureEnhancements::SetConfiguration() {
     ui->toggle_disk_cache->setChecked(Settings::values.use_disk_shader_cache);
     UpdateBackgroundColorButton(QColor::fromRgbF(Settings::values.bg_red, Settings::values.bg_green,
                                                  Settings::values.bg_blue));
+    ui->screen_refresh_rate->setValue(Settings::values.screen_refresh_rate);
     ui->sharper_distant_objects->setChecked(Settings::values.sharper_distant_objects);
     ui->ignore_format_reinterpretation->setChecked(Settings::values.ignore_format_reinterpretation);
 }
@@ -108,6 +109,7 @@ void ConfigureEnhancements::ApplyConfiguration() {
     Settings::values.bg_red = static_cast<float>(bg_color.redF());
     Settings::values.bg_green = static_cast<float>(bg_color.greenF());
     Settings::values.bg_blue = static_cast<float>(bg_color.blueF());
+    Settings::values.screen_refresh_rate = ui->screen_refresh_rate->value();
     Settings::values.sharper_distant_objects = ui->sharper_distant_objects->isChecked();
     Settings::values.ignore_format_reinterpretation =
         ui->ignore_format_reinterpretation->isChecked();

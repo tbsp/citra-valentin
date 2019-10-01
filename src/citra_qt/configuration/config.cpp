@@ -417,6 +417,7 @@ void Config::ReadValues() {
     qt_config->beginGroup("Hacks");
     Settings::values.custom_ticks = ReadSetting("custom_ticks", false).toBool();
     Settings::values.ticks = ReadSetting("ticks", 77).toULongLong();
+    Settings::values.screen_refresh_rate = ReadSetting("screen_refresh_rate", 60.0).toDouble();
     Settings::values.sharper_distant_objects =
         ReadSetting("sharper_distant_objects", false).toBool();
     Settings::values.ignore_format_reinterpretation =
@@ -669,6 +670,7 @@ void Config::SaveValues() {
     qt_config->beginGroup("Hacks");
     WriteSetting("custom_ticks", Settings::values.custom_ticks, false);
     WriteSetting("ticks", Settings::values.ticks, 77);
+    WriteSetting("screen_refresh_rate", Settings::values.screen_refresh_rate, 60.00);
     WriteSetting("sharper_distant_objects", Settings::values.sharper_distant_objects, false);
     WriteSetting("ignore_format_reinterpretation", Settings::values.ignore_format_reinterpretation,
                  true);

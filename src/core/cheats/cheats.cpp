@@ -104,6 +104,7 @@ void CheatEngine::RunCallback([[maybe_unused]] u64 userdata, int cycles_late) {
             }
         }
     }
+
     system.CoreTiming().ScheduleEvent(run_interval_ticks - cycles_late, event);
 }
 

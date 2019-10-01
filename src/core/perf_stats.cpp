@@ -113,8 +113,8 @@ PerfStats::Results PerfStats::GetAndResetStats(microseconds current_system_time_
 double PerfStats::GetLastFrameTimeScale() {
     std::lock_guard lock{object_mutex};
 
-    constexpr double FRAME_LENGTH = 1.0 / GPU::SCREEN_REFRESH_RATE;
-    return duration_cast<DoubleSecs>(previous_frame_length).count() / FRAME_LENGTH;
+    const double frame_length = 1.0 / Settings::values.screen_refresh_rate;
+    return duration_cast<DoubleSecs>(previous_frame_length).count() / frame_length;
 }
 
 void FrameLimiter::DoFrameLimiting(microseconds current_system_time_us) {

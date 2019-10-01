@@ -121,6 +121,7 @@ void LogSettings() {
     LogSetting("Hacks_SharperDistantObjects", Settings::values.sharper_distant_objects);
     LogSetting("Hacks_IgnoreFormatReinterpretation",
                Settings::values.ignore_format_reinterpretation);
+    LogSetting("Hacks_ScreenRefreshRate", Settings::values.screen_refresh_rate);
 }
 
 void LoadProfile(int index) {

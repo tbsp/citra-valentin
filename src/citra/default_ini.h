@@ -288,6 +288,7 @@ citra_token =
 [Hacks]
 custom_ticks = false
 ticks = 77
+screen_refresh_rate = 60.00
 sharper_distant_objects = false
 ignore_format_reinterpretation = true
 )";
