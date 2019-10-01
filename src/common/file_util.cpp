@@ -654,22 +654,6 @@ static const std::string GetUserDirectory(const std::string& envvar) {
 }
 #endif
 
-std::string GetSysDirectory() {
-    std::string sysDir;
-
-#if defined(__APPLE__)
-    sysDir = GetBundleDirectory();
-    sysDir += DIR_SEP;
-    sysDir += SYSDATA_DIR;
-#else
-    sysDir = SYSDATA_DIR;
-#endif
-    sysDir += DIR_SEP;
-
-    LOG_DEBUG(Common_Filesystem, "Setting to {}:", sysDir);
-    return sysDir;
-}
-
 namespace {
 std::unordered_map<UserPath, std::string> g_paths;
 }

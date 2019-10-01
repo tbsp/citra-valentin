@@ -140,9 +140,6 @@ void SetUserPath(const std::string& path = "");
 // directory. To be used in "multi-user" mode (that is, installed).
 const std::string& GetUserPath(UserPath path);
 
-// Returns the path to where the sys file are
-std::string GetSysDirectory();
-
 #ifdef __APPLE__
 std::string GetBundleDirectory();
 #endif
