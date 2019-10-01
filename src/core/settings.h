@@ -201,6 +201,12 @@ struct Values {
     std::string web_api_url;
     std::string citra_username;
     std::string citra_token;
+
+    // Hacks
+    bool custom_ticks;
+    u64 ticks;
+
+    bool ignore_format_reinterpretation;
 } extern values;
 
 // a special value for Values::region_value indicating that citra will automatically select a region

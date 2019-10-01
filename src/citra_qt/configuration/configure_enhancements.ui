@@ -101,12 +101,18 @@
         <property name="text">
          <string>Enable Linear Filtering</string>
         </property>
+        <property name="checked">
+         <bool>true</bool>
+        </property>
        </widget>
       </item>
       <item>
        <widget class="QCheckBox" name="toggle_disk_cache">
         <property name="text">
          <string>Reduce Stuttering by Saving Shaders to Disk</string>
+        </property>
+        <property name="checked">
+         <bool>true</bool>
         </property>
        </widget>
       </item>
@@ -303,6 +309,25 @@
         </property>
         <property name="text">
          <string>Preload Custom Textures</string>
+        </property>
+       </widget>
+      </item>
+     </layout>
+    </widget>
+   </item>
+   <item>
+    <widget class="QGroupBox" name="groupBox_2">
+     <property name="title">
+      <string>Hacks</string>
+     </property>
+     <layout class="QVBoxLayout" name="verticalLayout_2">
+      <item>
+       <widget class="QCheckBox" name="ignore_format_reinterpretation">
+        <property name="text">
+         <string>Ignore format reinterpretation</string>
+        </property>
+        <property name="checked">
+         <bool>true</bool>
         </property>
        </widget>
       </item>

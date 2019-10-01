@@ -15,12 +15,14 @@
 #include "core/gdbstub/gdbstub.h"
 #include "core/hle/kernel/svc.h"
 #include "core/memory.h"
+#include "core/settings.h"
 
 class DynarmicThreadContext final : public ARM_Interface::ThreadContext {
 public:
     DynarmicThreadContext() {
         Reset();
     }
+
     ~DynarmicThreadContext() override = default;
 
     void Reset() override {
@@ -34,30 +36,39 @@ public:
     u32 GetCpuRegister(std::size_t index) const override {
         return ctx.Regs()[index];
     }
+
     void SetCpuRegister(std::size_t index, u32 value) override {
         ctx.Regs()[index] = value;
     }
+
     u32 GetCpsr() const override {
         return ctx.Cpsr();
     }
+
     void SetCpsr(u32 value) override {
         ctx.SetCpsr(value);
     }
+
     u32 GetFpuRegister(std::size_t index) const override {
         return ctx.ExtRegs()[index];
     }
+
     void SetFpuRegister(std::size_t index, u32 value) override {
         ctx.ExtRegs()[index] = value;
     }
+
     u32 GetFpscr() const override {
         return ctx.Fpscr();
     }
+
     void SetFpscr(u32 value) override {
         ctx.SetFpscr(value);
     }
+
     u32 GetFpexc() const override {
         return fpexc;
     }
+
     void SetFpexc(u32 value) override {
         fpexc = value;
     }
@@ -74,31 +85,38 @@ public:
     explicit DynarmicUserCallbacks(ARM_Dynarmic& parent)
         : parent(parent), timing(parent.system.CoreTiming()), svc_context(parent.system),
           memory(parent.memory) {}
+
     ~DynarmicUserCallbacks() = default;
 
-    std::uint8_t MemoryRead8(VAddr vaddr) override {
+    u8 MemoryRead8(VAddr vaddr) override {
         return memory.Read8(vaddr);
     }
-    std::uint16_t MemoryRead16(VAddr vaddr) override {
+
+    u16 MemoryRead16(VAddr vaddr) override {
         return memory.Read16(vaddr);
     }
-    std::uint32_t MemoryRead32(VAddr vaddr) override {
+
+    u32 MemoryRead32(VAddr vaddr) override {
         return memory.Read32(vaddr);
     }
-    std::uint64_t MemoryRead64(VAddr vaddr) override {
+
+    u64 MemoryRead64(VAddr vaddr) override {
         return memory.Read64(vaddr);
     }
 
-    void MemoryWrite8(VAddr vaddr, std::uint8_t value) override {
+    void MemoryWrite8(VAddr vaddr, u8 value) override {
         memory.Write8(vaddr, value);
     }
-    void MemoryWrite16(VAddr vaddr, std::uint16_t value) override {
+
+    void MemoryWrite16(VAddr vaddr, u16 value) override {
         memory.Write16(vaddr, value);
     }
-    void MemoryWrite32(VAddr vaddr, std::uint32_t value) override {
+
+    void MemoryWrite32(VAddr vaddr, u32 value) override {
         memory.Write32(vaddr, value);
     }
-    void MemoryWrite64(VAddr vaddr, std::uint64_t value) override {
+
+    void MemoryWrite64(VAddr vaddr, u64 value) override {
         memory.Write64(vaddr, value);
     }
 
@@ -123,7 +141,7 @@ public:
         parent.interpreter_state->ServeBreak();
     }
 
-    void CallSVC(std::uint32_t swi) override {
+    void CallSVC(u32 swi) override {
         svc_context.CallSVC(swi);
     }
 
@@ -157,10 +175,11 @@ public:
                    static_cast<std::size_t>(exception), pc, MemoryReadCode(pc));
     }
 
-    void AddTicks(std::uint64_t ticks) override {
-        timing.AddTicks(ticks);
+    void AddTicks(u64 ticks) override {
+        timing.AddTicks(Settings::values.custom_ticks ? Settings::values.ticks : ticks);
     }
-    std::uint64_t GetTicksRemaining() override {
+
+    u64 GetTicksRemaining() override {
         s64 ticks = timing.GetDowncount();
         return static_cast<u64>(ticks <= 0 ? 0 : ticks);
     }
@@ -282,6 +301,7 @@ void ARM_Dynarmic::ClearInstructionCache() {
     for (const auto& j : jits) {
         j.second->ClearCache();
     }
+
     interpreter_state->instruction_cache.clear();
 }
 
@@ -309,5 +329,6 @@ std::unique_ptr<Dynarmic::A32::Jit> ARM_Dynarmic::MakeJit() {
     config.page_table = &current_page_table->pointers;
     config.coprocessors[15] = std::make_shared<DynarmicCP15>(interpreter_state);
     config.define_unpredictable_behaviour = true;
+
     return std::make_unique<Dynarmic::A32::Jit>(config);
 }

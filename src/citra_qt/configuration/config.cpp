@@ -56,7 +56,7 @@ const std::array<std::array<int, 5>, Settings::NativeAnalog::NumAnalogs> Config:
 // This must be in alphabetical order according to action name as it must have the same order as
 // UISetting::values.shortcuts, which is alphabetically ordered.
 // clang-format off
-const std::array<UISettings::Shortcut, 20> default_hotkeys{
+const std::array<UISettings::Shortcut, 21> default_hotkeys{
     {{QStringLiteral("Advance Frame"),            QStringLiteral("Main Window"), {QStringLiteral("\\"), Qt::ApplicationShortcut}},
      {QStringLiteral("Capture Screenshot"),       QStringLiteral("Main Window"), {QStringLiteral("Ctrl+P"), Qt::ApplicationShortcut}},
      {QStringLiteral("Continue/Pause Emulation"), QStringLiteral("Main Window"), {QStringLiteral("F4"), Qt::WindowShortcut}},
@@ -72,6 +72,7 @@ const std::array<UISettings::Shortcut, 20> default_hotkeys{
      {QStringLiteral("Stop Emulation"),           QStringLiteral("Main Window"), {QStringLiteral("F5"), Qt::WindowShortcut}},
      {QStringLiteral("Swap Screens"),             QStringLiteral("Main Window"), {QStringLiteral("F9"), Qt::WindowShortcut}},
      {QStringLiteral("Toggle Filter Bar"),        QStringLiteral("Main Window"), {QStringLiteral("Ctrl+F"), Qt::WindowShortcut}},
+     {QStringLiteral("Toggle Ticks Hack"),        QStringLiteral("Main Window"), {QStringLiteral("Ctrl+T"), Qt::ApplicationShortcut}},
      {QStringLiteral("Toggle Frame Advancing"),   QStringLiteral("Main Window"), {QStringLiteral("Ctrl+A"), Qt::ApplicationShortcut}},
      {QStringLiteral("Toggle Screen Layout"),     QStringLiteral("Main Window"), {QStringLiteral("F10"), Qt::WindowShortcut}},
      {QStringLiteral("Toggle Speed Limit"),       QStringLiteral("Main Window"), {QStringLiteral("Ctrl+Z"), Qt::ApplicationShortcut}},
@@ -412,6 +413,13 @@ void Config::ReadValues() {
     qt_config->endGroup();
 
     qt_config->endGroup();
+
+    qt_config->beginGroup("Hacks");
+    Settings::values.custom_ticks = ReadSetting("custom_ticks", false).toBool();
+    Settings::values.ticks = ReadSetting("ticks", 77).toULongLong();
+    Settings::values.ignore_format_reinterpretation =
+        ReadSetting("ignore_format_reinterpretation", true).toBool();
+    qt_config->endGroup();
 }
 
 void Config::SaveValues() {
@@ -654,6 +662,13 @@ void Config::SaveValues() {
     qt_config->endArray();
     qt_config->endGroup();
 
+    qt_config->endGroup();
+
+    qt_config->beginGroup("Hacks");
+    WriteSetting("custom_ticks", Settings::values.custom_ticks, false);
+    WriteSetting("ticks", Settings::values.ticks, 77);
+    WriteSetting("ignore_format_reinterpretation", Settings::values.ignore_format_reinterpretation,
+                 true);
     qt_config->endGroup();
 }
 

@@ -327,13 +327,10 @@ void GMainWindow::InitializeHotkeys() {
 
     connect(hotkey_registry.GetHotkey("Main Window", "Load File", this), &QShortcut::activated,
             ui.action_Load_File, &QAction::trigger);
-
     connect(hotkey_registry.GetHotkey("Main Window", "Stop Emulation", this), &QShortcut::activated,
             ui.action_Stop, &QAction::trigger);
-
     connect(hotkey_registry.GetHotkey("Main Window", "Exit Citra", this), &QShortcut::activated,
             ui.action_Exit, &QAction::trigger);
-
     connect(hotkey_registry.GetHotkey("Main Window", "Continue/Pause Emulation", this),
             &QShortcut::activated, this, [&] {
                 if (emulation_running) {
@@ -411,6 +408,13 @@ void GMainWindow::InitializeHotkeys() {
                 if (emu_thread->IsRunning()) {
                     OnCaptureScreenshot();
                 }
+            });
+    connect(hotkey_registry.GetHotkey("Main Window", "Toggle Ticks Hack", this),
+            &QShortcut::activated, this, [this] {
+                Settings::values.custom_ticks = !Settings::values.custom_ticks;
+                statusBar()->showMessage(
+                    QStringLiteral("Custom ticks: %1")
+                        .arg(Settings::values.custom_ticks ? "enabled" : "disabled"));
             });
 }
 
@@ -1008,11 +1012,12 @@ void GMainWindow::OnGameListShowList(bool show) {
 void GMainWindow::OnMenuLoadFile() {
     const QString extensions =
         QString("*.").append(GameList::supported_file_extensions.join(" *."));
-    const QString file_filter = tr("3DS Executable (%1);;All Files (*.*)",
-                                   "%1 is an identifier for the 3DS executable file extensions.")
-                                    .arg(extensions);
-    const QString filename = QFileDialog::getOpenFileName(
-        this, tr("Load File"), UISettings::values.roms_path, file_filter);
+
+    const QString file_filter =
+        QStringLiteral("3DS Executable (%1);;All Files (*.*)").arg(extensions);
+
+    const QString filename =
+        QFileDialog::getOpenFileName(this, "Load File", UISettings::values.roms_path, file_filter);
 
     if (filename.isEmpty()) {
         return;
@@ -1023,11 +1028,13 @@ void GMainWindow::OnMenuLoadFile() {
 }
 
 void GMainWindow::OnMenuInstallCIA() {
-    QStringList filepaths = QFileDialog::getOpenFileNames(
-        this, tr("Load Files"), UISettings::values.roms_path,
-        tr("3DS Installation File (*.CIA*)") + ";;" + tr("All Files (*.*)"));
-    if (filepaths.isEmpty())
+    const QStringList filepaths =
+        QFileDialog::getOpenFileNames(this, "Load Files", UISettings::values.roms_path,
+                                      "CTR Importable Archive (*.cia*);;All Files (*.*)");
+
+    if (filepaths.isEmpty()) {
         return;
+    }
 
     InstallCIA(filepaths);
 }
@@ -1059,28 +1066,33 @@ void GMainWindow::OnUpdateProgress(std::size_t written, std::size_t total) {
 
 void GMainWindow::OnCIAInstallReport(Service::AM::InstallStatus status, QString filepath) {
     QString filename = QFileInfo(filepath).fileName();
+
     switch (status) {
     case Service::AM::InstallStatus::Success:
-        this->statusBar()->showMessage(tr("%1 has been installed successfully.").arg(filename));
+        statusBar()->showMessage(
+            QStringLiteral("%1 has been installed successfully.").arg(filename));
         break;
     case Service::AM::InstallStatus::ErrorFailedToOpenFile:
-        QMessageBox::critical(this, tr("Unable to open File"),
-                              tr("Could not open %1").arg(filename));
+        QMessageBox::critical(this, "Unable to open File",
+                              QStringLiteral("Could not open %1").arg(filename));
         break;
     case Service::AM::InstallStatus::ErrorAborted:
         QMessageBox::critical(
-            this, tr("Installation aborted"),
-            tr("The installation of %1 was aborted. Please see the log for more details")
+            this, "Installation aborted",
+            QStringLiteral(
+                "The installation of %1 was aborted. Please see the log for more details")
                 .arg(filename));
         break;
     case Service::AM::InstallStatus::ErrorInvalid:
-        QMessageBox::critical(this, tr("Invalid File"), tr("%1 is not a valid CIA").arg(filename));
+        QMessageBox::critical(this, "Invalid File",
+                              QStringLiteral("%1 is not a valid CIA").arg(filename));
         break;
     case Service::AM::InstallStatus::ErrorEncrypted:
-        QMessageBox::critical(this, tr("Encrypted File"),
-                              tr("%1 must be decrypted "
-                                 "before being used with Citra. A real 3DS is required.")
-                                  .arg(filename));
+        QMessageBox::critical(
+            this, "Encrypted File",
+            QStringLiteral("%1 must be decrypted "
+                           "before being used with Citra. A real 3DS is required.")
+                .arg(filename));
         break;
     }
 }
@@ -1103,7 +1115,7 @@ void GMainWindow::OnMenuRecentFile() {
     } else {
         // Display an error message and remove the file from the list.
         QMessageBox::information(this, tr("File not found"),
-                                 tr("File \"%1\" not found").arg(filename));
+                                 QStringLiteral("File \"%1\" not found").arg(filename));
 
         UISettings::values.recent_files.removeOne(filename);
         UpdateRecentFiles();
@@ -1794,7 +1806,7 @@ void GMainWindow::SyncMenuUISettings() {
     ui.action_Screen_Layout_Single_Screen->setChecked(Settings::values.layout_option ==
                                                       Settings::LayoutOption::SingleScreen);
     ui.action_Screen_Layout_Medium_Screen->setChecked(Settings::values.layout_option ==
-                                                     Settings::LayoutOption::MediumScreen);
+                                                      Settings::LayoutOption::MediumScreen);
     ui.action_Screen_Layout_Large_Screen->setChecked(Settings::values.layout_option ==
                                                      Settings::LayoutOption::LargeScreen);
     ui.action_Screen_Layout_Side_by_Side->setChecked(Settings::values.layout_option ==

@@ -15,8 +15,8 @@ ConfigureGeneral::ConfigureGeneral(QWidget* parent)
     ui->setupUi(this);
     SetConfiguration();
 
-    connect(ui->toggle_frame_limit, &QCheckBox::toggled, ui->frame_limit, &QSpinBox::setEnabled);
-
+    connect(ui->toggle_frame_limit, &QCheckBox::toggled, ui->frame_limit, &QSpinBox::setVisible);
+    connect(ui->custom_ticks, &QCheckBox::toggled, ui->ticks, &QSpinBox::setVisible);
     connect(ui->button_reset_defaults, &QPushButton::clicked, this,
             &ConfigureGeneral::ResetDefaults);
 }
@@ -24,25 +24,22 @@ ConfigureGeneral::ConfigureGeneral(QWidget* parent)
 ConfigureGeneral::~ConfigureGeneral() = default;
 
 void ConfigureGeneral::SetConfiguration() {
-    ui->toggle_frame_limit->setChecked(Settings::values.use_frame_limit);
-    ui->frame_limit->setEnabled(ui->toggle_frame_limit->isChecked());
-    ui->frame_limit->setValue(Settings::values.frame_limit);
-
-    ui->toggle_check_exit->setChecked(UISettings::values.confirm_before_closing);
-    ui->toggle_background_pause->setChecked(UISettings::values.pause_when_in_background);
-
     // The first item is "auto-select" with actual value -1, so plus one here will do the trick
     ui->region_combobox->setCurrentIndex(Settings::values.region_value + 1);
 
     ui->toggle_frame_limit->setChecked(Settings::values.use_frame_limit);
-    ui->frame_limit->setEnabled(ui->toggle_frame_limit->isChecked());
+    ui->frame_limit->setVisible(ui->toggle_frame_limit->isChecked());
     ui->frame_limit->setValue(Settings::values.frame_limit);
+    ui->toggle_check_exit->setChecked(UISettings::values.confirm_before_closing);
+    ui->toggle_background_pause->setChecked(UISettings::values.pause_when_in_background);
+    ui->custom_ticks->setChecked(Settings::values.custom_ticks);
+    ui->ticks->setVisible(Settings::values.custom_ticks);
+    ui->ticks->setValue(Settings::values.ticks);
 }
 
 void ConfigureGeneral::ResetDefaults() {
-    QMessageBox::StandardButton answer = QMessageBox::question(
-        this, tr("Citra"),
-        tr("Are you sure you want to <b>reset your settings</b> and close Citra?"),
+    const QMessageBox::StandardButton answer = QMessageBox::question(
+        this, "Citra", "Are you sure you want to <b>reset your settings</b> and close Citra?",
         QMessageBox::Yes | QMessageBox::No, QMessageBox::No);
 
     if (answer == QMessageBox::No)
@@ -55,12 +52,11 @@ void ConfigureGeneral::ResetDefaults() {
 void ConfigureGeneral::ApplyConfiguration() {
     Settings::values.use_frame_limit = ui->toggle_frame_limit->isChecked();
     Settings::values.frame_limit = ui->frame_limit->value();
-
     UISettings::values.confirm_before_closing = ui->toggle_check_exit->isChecked();
     UISettings::values.pause_when_in_background = ui->toggle_background_pause->isChecked();
-
     Settings::values.region_value = ui->region_combobox->currentIndex() - 1;
-
     Settings::values.use_frame_limit = ui->toggle_frame_limit->isChecked();
     Settings::values.frame_limit = ui->frame_limit->value();
+    Settings::values.custom_ticks = ui->custom_ticks->isChecked();
+    Settings::values.ticks = ui->ticks->value();
 }

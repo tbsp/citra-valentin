@@ -178,6 +178,7 @@ custom_bottom_bottom =
 # 0 (default): Top Screen is prominent, 1: Bottom Screen is prominent
 swap_screen =
 
+[Utility]
 # Dumps textures as PNG to dump/textures/[Title ID]/.
 # 0 (default): Off, 1: On
 dump_textures =
@@ -198,7 +199,6 @@ enable_dsp_lle =
 # Whether or not to run DSP LLE on a different thread
 # 0 (default): No, 1: Yes
 enable_dsp_lle_thread =
-
 
 # Which audio output engine to use.
 # auto (default): Auto-select, null: No audio output, sdl2: SDL2 (if available)
@@ -279,9 +279,15 @@ gdbstub_port=24689
 [WebService]
 # URL for Web API
 web_api_url = https://api.citra-emu.org
+
 # Username and token for Citra Web Service
 # See https://profile.citra-emu.org/ for more info
 citra_username =
 citra_token =
+
+[Hacks]
+custom_ticks = false
+ticks = 77
+ignore_format_reinterpretation = true
 )";
 }

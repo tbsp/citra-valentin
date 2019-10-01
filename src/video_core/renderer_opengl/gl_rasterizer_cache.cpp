@@ -1914,6 +1914,19 @@ void RasterizerCacheOpenGL::ValidateSurface(const Surface& surface, PAddr addr, 
             }
         }
 
+        if (Settings::values.ignore_format_reinterpretation) {
+            bool retry = false;
+
+            for (const auto& pair : RangeFromInterval(dirty_regions, interval)) {
+                surface->invalid_regions.erase(pair.first & interval);
+                retry = true;
+            }
+
+            if (retry) {
+                continue;
+            }
+        }
+
         // Load data from 3DS memory
         FlushRegion(params.addr, params.size);
         surface->LoadGLBuffer(params.addr, params.end);

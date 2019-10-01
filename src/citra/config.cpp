@@ -248,6 +248,12 @@ void Config::ReadValues() {
         sdl2_config->GetString("WebService", "web_api_url", "https://api.citra-emu.org");
     Settings::values.citra_username = sdl2_config->GetString("WebService", "citra_username", "");
     Settings::values.citra_token = sdl2_config->GetString("WebService", "citra_token", "");
+
+    // Hacks
+    Settings::values.custom_ticks = sdl2_config->GetBoolean("Hacks", "custom_ticks", false);
+    Settings::values.ticks = static_cast<u64>(sdl2_config->GetInteger("Hacks", "ticks", 77));
+    Settings::values.ignore_format_reinterpretation =
+        sdl2_config->GetBoolean("Hacks", "ignore_format_reinterpretation", true);
 }
 
 void Config::Reload() {

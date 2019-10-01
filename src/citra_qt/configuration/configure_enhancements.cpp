@@ -55,22 +55,26 @@ void ConfigureEnhancements::SetConfiguration() {
     ui->toggle_disk_cache->setChecked(Settings::values.use_disk_shader_cache);
     UpdateBackgroundColorButton(QColor::fromRgbF(Settings::values.bg_red, Settings::values.bg_green,
                                                  Settings::values.bg_blue));
+    ui->ignore_format_reinterpretation->setChecked(Settings::values.ignore_format_reinterpretation);
 }
 
 void ConfigureEnhancements::updateShaders(bool anaglyph) {
     ui->shader_combobox->clear();
 
-    if (anaglyph)
+    if (anaglyph) {
         ui->shader_combobox->addItem("dubois (builtin)");
-    else
+    } else {
         ui->shader_combobox->addItem("none (builtin)");
+    }
 
     ui->shader_combobox->setCurrentIndex(0);
 
     for (const auto& shader : OpenGL::GetPostProcessingShaderList(anaglyph)) {
         ui->shader_combobox->addItem(QString::fromStdString(shader));
-        if (Settings::values.pp_shader_name == shader)
+
+        if (Settings::values.pp_shader_name == shader) {
             ui->shader_combobox->setCurrentIndex(ui->shader_combobox->count() - 1);
+        }
     }
 }
 
@@ -103,6 +107,8 @@ void ConfigureEnhancements::ApplyConfiguration() {
     Settings::values.bg_red = static_cast<float>(bg_color.redF());
     Settings::values.bg_green = static_cast<float>(bg_color.greenF());
     Settings::values.bg_blue = static_cast<float>(bg_color.blueF());
+    Settings::values.ignore_format_reinterpretation =
+        ui->ignore_format_reinterpretation->isChecked();
 }
 
 ConfigureEnhancements::~ConfigureEnhancements() {
