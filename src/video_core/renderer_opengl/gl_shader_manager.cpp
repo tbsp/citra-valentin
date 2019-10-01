@@ -51,14 +51,16 @@ static OGLProgram GeneratePrecompiledProgram(const ShaderDiskCacheDump& dump,
 static std::set<GLenum> GetSupportedFormats() {
     std::set<GLenum> supported_formats;
 
-    GLint num_formats{};
+    GLint num_formats;
     glGetIntegerv(GL_NUM_PROGRAM_BINARY_FORMATS, &num_formats);
 
     std::vector<GLint> formats(num_formats);
     glGetIntegerv(GL_PROGRAM_BINARY_FORMATS, formats.data());
 
-    for (const GLint format : formats)
+    for (const GLint format : formats) {
         supported_formats.insert(static_cast<GLenum>(format));
+    }
+
     return supported_formats;
 }
 

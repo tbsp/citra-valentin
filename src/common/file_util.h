@@ -141,10 +141,6 @@ void SetUserPath(const std::string& path = "");
 // directory. To be used in "multi-user" mode (that is, installed).
 const std::string& GetUserPath(UserPath path);
 
-#ifdef __APPLE__
-std::string GetBundleDirectory();
-#endif
-
 #ifdef _WIN32
 const std::string& GetExeDirectory();
 std::string AppDataRoamingDirectory();

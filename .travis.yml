@@ -16,14 +16,6 @@ matrix:
       script: "./.travis/linux/build.sh"
       after_success: "./.travis/linux/upload.sh"
       cache: ccache
-    - os: osx
-      env: NAME="macos build"
-      sudo: false
-      osx_image: xcode11
-      install: "./.travis/macos/deps.sh"
-      script: "./.travis/macos/build.sh"
-      after_success: "./.travis/macos/upload.sh"
-      cache: ccache
     - os: linux
       env: NAME="linux build (debug, frozen versions of dependencies, no additional CMake flags)"
       sudo: required

@@ -15,9 +15,6 @@
 #include <QtGui>
 #include <QtWidgets>
 #include <fmt/format.h>
-#ifdef __APPLE__
-#include <unistd.h> // for chdir
-#endif
 #ifdef _WIN32
 #include <windows.h>
 #endif
@@ -1816,10 +1813,6 @@ int main(int argc, char* argv[]) {
     format.setSwapBehavior(QSurfaceFormat::DefaultSwapBehavior);
     QSurfaceFormat::setDefaultFormat(format);
 
-#ifdef __APPLE__
-    std::string bin_path = FileUtil::GetBundleDirectory() + DIR_SEP + "..";
-    chdir(bin_path.c_str());
-#endif
     QCoreApplication::setAttribute(Qt::AA_EnableHighDpiScaling);
     QCoreApplication::setAttribute(Qt::AA_DontCheckOpenGLContextThreadAffinity);
     QCoreApplication::setAttribute(Qt::AA_ShareOpenGLContexts);

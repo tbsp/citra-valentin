@@ -155,13 +155,7 @@ file(GLOB_RECURSE THEMES ${PROJECT_SOURCE_DIR}/dist/qt_themes/*)
 
 target_sources(citra-qt PRIVATE ${ICONS} ${THEMES})
 
-if (APPLE)
-    set(MACOSX_ICON "../../dist/citra.icns")
-    set_source_files_properties(${MACOSX_ICON} PROPERTIES MACOSX_PACKAGE_LOCATION Resources)
-    target_sources(citra-qt PRIVATE ${MACOSX_ICON})
-    set_target_properties(citra-qt PROPERTIES MACOSX_BUNDLE TRUE)
-    set_target_properties(citra-qt PROPERTIES MACOSX_BUNDLE_INFO_PLIST ${CMAKE_CURRENT_SOURCE_DIR}/Info.plist)
-elseif(WIN32)
+if(WIN32)
     # compile as a win32 gui application instead of a console application
     target_link_libraries(citra-qt PRIVATE Qt5::WinMain)
     if(MSVC)
