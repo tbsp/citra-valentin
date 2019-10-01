@@ -44,8 +44,8 @@ MultiplayerState::MultiplayerState(QWidget* parent, QStandardItemModel* game_lis
 
     status_text = new ClickableLabel(this);
     status_icon = new ClickableLabel(this);
-    status_text->setToolTip(tr("Current connection status"));
-    status_text->setText(tr("Not Connected. Click here to find a room!"));
+    status_text->setToolTip("Current connection status");
+    status_text->setText("Click to open lobby");
     status_icon->setPixmap(QIcon::fromTheme("disconnected").pixmap(16));
 
     connect(status_text, &ClickableLabel::clicked, this, &MultiplayerState::OnOpenNetworkRoom);
@@ -84,8 +84,6 @@ void MultiplayerState::Close() {
         lobby->close();
 }
 
-
-
 void MultiplayerState::OnNetworkStateChanged(const Network::RoomMember::State& state) {
     LOG_DEBUG(Frontend, "Network State: {}", Network::GetStateStr(state));
     if (state == Network::RoomMember::State::Joined ||
@@ -93,12 +91,13 @@ void MultiplayerState::OnNetworkStateChanged(const Network::RoomMember::State& s
 
         OnOpenNetworkRoom();
         status_icon->setPixmap(QIcon::fromTheme("connected").pixmap(16));
-        status_text->setText(tr("Connected"));
+        status_text->hide();
         leave_room->setEnabled(true);
         show_room->setEnabled(true);
     } else {
         status_icon->setPixmap(QIcon::fromTheme("disconnected").pixmap(16));
-        status_text->setText(tr("Not Connected"));
+        status_text->setText("Click to open lobby");
+        status_text->show();
         leave_room->setEnabled(false);
         show_room->setEnabled(false);
     }
@@ -153,11 +152,12 @@ void MultiplayerState::OnNetworkError(const Network::RoomMember::Error& error) {
 
 void MultiplayerState::OnAnnounceFailed(const Common::WebResult& result) {
     announce_multiplayer_session->Stop();
-    QMessageBox::warning(this, tr("Error"),
-                         tr("Failed to update the room information. Please check your Internet "
-                            "connection and try hosting the room again.\nDebug Message: ") +
-                             QString::fromStdString(result.result_string),
-                         QMessageBox::Ok);
+    QMessageBox::warning(
+        this, "Error",
+        QStringLiteral("Failed to update the room information. Please check your Internet "
+                       "connection and try hosting the room again.\nDebug Message: %1")
+            .arg(QString::fromStdString(result.result_string)),
+        QMessageBox::Ok);
 }
 
 void MultiplayerState::UpdateThemedIcons() {
@@ -225,13 +225,14 @@ void MultiplayerState::ShowNotification() {
     show_notification = true;
     QApplication::alert(nullptr);
     status_icon->setPixmap(QIcon::fromTheme("connected_notification").pixmap(16));
-    status_text->setText(tr("New Messages Received"));
+    status_text->setText("New Message Received");
+    status_text->show();
 }
 
 void MultiplayerState::HideNotification() {
     show_notification = false;
     status_icon->setPixmap(QIcon::fromTheme("connected").pixmap(16));
-    status_text->setText(tr("Connected"));
+    status_text->hide();
 }
 
 void MultiplayerState::OnOpenNetworkRoom() {
