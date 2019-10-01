@@ -102,7 +102,6 @@ add_executable(citra-qt
     debugger/registers.ui
     debugger/wait_tree.cpp
     debugger/wait_tree.h
-    discord.h
     game_list.cpp
     game_list.h
     game_list_p.h
@@ -192,15 +191,6 @@ target_compile_definitions(citra-qt PRIVATE
     # Disable implicit QString->QUrl conversions to enforce use of proper resolving functions.
     -DQT_NO_URL_CAST_FROM_STRING
 )
-
-if (USE_DISCORD_PRESENCE)
-    target_sources(citra-qt PUBLIC
-        discord_impl.cpp
-        discord_impl.h
-    )
-    target_link_libraries(citra-qt PRIVATE discord-rpc)
-    target_compile_definitions(citra-qt PRIVATE -DUSE_DISCORD_PRESENCE)
-endif()
 
 if (MSVC)
     include(CopyCitraQt5Deps)

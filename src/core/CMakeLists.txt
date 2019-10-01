@@ -465,9 +465,8 @@ get_directory_property(OPENSSL_LIBS
         DEFINITION OPENSSL_LIBS)
 target_compile_options(core PRIVATE -DCPPHTTPLIB_OPENSSL_SUPPORT)
 
-target_link_libraries(core PUBLIC common PRIVATE audio_core network video_core)
+target_link_libraries(core PUBLIC common PRIVATE audio_core network video_core web_service)
 target_link_libraries(core PUBLIC Boost::boost PRIVATE cryptopp fmt open_source_archives ${OPENSSL_LIBS} httplib lurlparser)
-target_link_libraries(core PRIVATE web_service)
 
 if (ARCHITECTURE_x86_64)
     target_sources(core PRIVATE

@@ -25,7 +25,7 @@
         <item>
          <widget class="QLabel" name="web_credentials_disclaimer">
           <property name="text">
-           <string>By providing your username and token, you agree to allow Citra to collect additional usage data, which may include user identifying information.</string>
+           <string>This is required to host public rooms.</string>
           </property>
          </widget>
         </item>
@@ -127,22 +127,6 @@
       </widget>
      </item>
     </layout>
-   </item>
-   <item>
-    <widget class="QGroupBox" name="discord_group">
-     <property name="title">
-      <string>Discord Presence</string>
-     </property>
-     <layout class="QVBoxLayout" name="verticalLayout_21">
-      <item>
-       <widget class="QCheckBox" name="toggle_discordrpc">
-        <property name="text">
-         <string>Show Current Game in your Discord Status</string>
-        </property>
-       </widget>
-      </item>
-     </layout>
-    </widget>
    </item>
    <item>
     <spacer name="verticalSpacer">

@@ -17,9 +17,6 @@ ConfigureWeb::ConfigureWeb(QWidget* parent)
     connect(ui->button_verify_login, &QPushButton::clicked, this, &ConfigureWeb::VerifyLogin);
     connect(&verify_watcher, &QFutureWatcher<bool>::finished, this, &ConfigureWeb::OnLoginVerified);
 
-#ifndef USE_DISCORD_PRESENCE
-    ui->discord_group->setVisible(false);
-#endif
     SetConfiguration();
 }
 
@@ -43,12 +40,9 @@ void ConfigureWeb::SetConfiguration() {
     connect(ui->edit_token, &QLineEdit::textChanged, this, &ConfigureWeb::OnLoginChanged);
     connect(ui->edit_username, &QLineEdit::textChanged, this, &ConfigureWeb::OnLoginChanged);
     user_verified = true;
-
-    ui->toggle_discordrpc->setChecked(UISettings::values.enable_discord_presence);
 }
 
 void ConfigureWeb::ApplyConfiguration() {
-    UISettings::values.enable_discord_presence = ui->toggle_discordrpc->isChecked();
     if (user_verified) {
         Settings::values.citra_username = ui->edit_username->text().toStdString();
         Settings::values.citra_token = ui->edit_token->text().toStdString();

@@ -282,8 +282,6 @@ void Config::ReadValues() {
 
     qt_config->beginGroup("UI");
     UISettings::values.theme = ReadSetting("theme", UISettings::themes[0].second).toString();
-    UISettings::values.enable_discord_presence =
-        ReadSetting("enable_discord_presence", true).toBool();
     UISettings::values.screenshot_resolution_factor =
         static_cast<u16>(ReadSetting("screenshot_resolution_factor", 0).toUInt());
 
@@ -573,7 +571,6 @@ void Config::SaveValues() {
 
     qt_config->beginGroup("UI");
     WriteSetting("theme", UISettings::values.theme, UISettings::themes[0].second);
-    WriteSetting("enable_discord_presence", UISettings::values.enable_discord_presence, true);
     WriteSetting("screenshot_resolution_factor", UISettings::values.screenshot_resolution_factor,
                  0);
 

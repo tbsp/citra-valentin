@@ -38,9 +38,6 @@ class QFutureWatcher;
 class QProgressBar;
 class RegistersWidget;
 class WaitTreeWidget;
-namespace DiscordRPC {
-class DiscordInterface;
-}
 
 class GMainWindow : public QMainWindow {
     Q_OBJECT
@@ -64,7 +61,6 @@ public:
     ~GMainWindow();
 
     GameList* game_list;
-    std::unique_ptr<DiscordRPC::DiscordInterface> discord_rpc;
 
 public slots:
     void OnAppFocusStateChanged(Qt::ApplicationState state);
@@ -111,7 +107,6 @@ private:
     void BootGame(const QString& filename);
     void ShutdownGame();
 
-    void SetDiscordEnabled(bool state);
     void LoadAmiibo(const QString& filename);
 
     /**

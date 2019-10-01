@@ -76,9 +76,6 @@ struct Values {
     bool confirm_before_closing;
     bool pause_when_in_background;
 
-    // Discord RPC
-    bool enable_discord_presence;
-
     // Game List
     GameListIconSize game_list_icon_size;
     GameListText game_list_row_1;
