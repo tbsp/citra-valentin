@@ -206,6 +206,7 @@ struct Values {
     bool custom_ticks;
     u64 ticks;
 
+    bool sharper_distant_objects;
     bool ignore_format_reinterpretation;
 } extern values;
 

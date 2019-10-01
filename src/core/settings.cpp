@@ -49,12 +49,16 @@ void Apply() {
         }
 
         auto sm = system.ServiceManager();
+
         auto ir_user = sm.GetService<Service::IR::IR_USER>("ir:USER");
-        if (ir_user)
+        if (ir_user) {
             ir_user->ReloadInputDevices();
+        }
+
         auto ir_rst = sm.GetService<Service::IR::IR_RST>("ir:rst");
-        if (ir_rst)
+        if (ir_rst) {
             ir_rst->ReloadInputDevices();
+        }
 
         auto cam = Service::CAM::GetModule(system);
         if (cam) {
@@ -71,6 +75,8 @@ void LogSetting(const std::string& name, const T& value) {
 }
 
 void LogSettings() {
+    using namespace Service::CAM;
+
     LOG_INFO(Config, "Citra Configuration:");
     LogSetting("Core_UseCpuJit", Settings::values.use_cpu_jit);
     LogSetting("Renderer_UseGLES", Settings::values.use_gles);
@@ -96,7 +102,6 @@ void LogSettings() {
     LogSetting("Audio_OutputDevice", Settings::values.audio_device_id);
     LogSetting("Audio_InputDeviceType", static_cast<int>(Settings::values.mic_input_type));
     LogSetting("Audio_InputDevice", Settings::values.mic_input_device);
-    using namespace Service::CAM;
     LogSetting("Camera_OuterRightName", Settings::values.camera_name[OuterRightCamera]);
     LogSetting("Camera_OuterRightConfig", Settings::values.camera_config[OuterRightCamera]);
     LogSetting("Camera_OuterRightFlip", Settings::values.camera_flip[OuterRightCamera]);
@@ -111,6 +116,11 @@ void LogSettings() {
     LogSetting("System_RegionValue", Settings::values.region_value);
     LogSetting("Debugging_UseGdbstub", Settings::values.use_gdbstub);
     LogSetting("Debugging_GdbstubPort", Settings::values.gdbstub_port);
+    LogSetting("Hacks_CustomTicks", Settings::values.custom_ticks);
+    LogSetting("Hacks_Ticks", Settings::values.ticks);
+    LogSetting("Hacks_SharperDistantObjects", Settings::values.sharper_distant_objects);
+    LogSetting("Hacks_IgnoreFormatReinterpretation",
+               Settings::values.ignore_format_reinterpretation);
 }
 
 void LoadProfile(int index) {
