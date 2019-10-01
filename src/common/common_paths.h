@@ -15,17 +15,15 @@
 // The user data dir
 #define ROOT_DIR "."
 #define USERDATA_DIR "user"
+
 #ifdef USER_DIR
 #define EMU_DATA_DIR USER_DIR
 #else
-#ifdef _WIN32
-#define EMU_DATA_DIR "Citra"
-#elif ANDROID
+#define EMU_DATA_DIR "vvanelslande-citra"
+
+#if ANDROID
 // On Android internal storage is mounted as "/sdcard"
 #define SDCARD_DIR "sdcard"
-#define EMU_DATA_DIR "citra-emu"
-#else
-#define EMU_DATA_DIR "citra-emu"
 #endif
 #endif
 

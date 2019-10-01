@@ -5,7 +5,7 @@
 #include "common/version.h"
 
 namespace Version {
-const u16 major = 1;
-const u16 minor = 1;
-const u16 patch = 1;
+const u16 major = 2;
+const u16 minor = 0;
+const u16 patch = 0;
 } // namespace Version
