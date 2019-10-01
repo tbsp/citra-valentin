@@ -442,6 +442,8 @@ void ShaderProgramManager::LoadDiskCache(const std::atomic_bool& stop_loading,
     auto& disk_cache = impl->disk_cache;
     const auto transferable = disk_cache.LoadTransferable();
     if (!transferable) {
+        LOG_INFO(Render_OpenGL,
+                 "Not loading precompiled cache because transferable cache failed to load.");
         return;
     }
     const auto raws = *transferable;

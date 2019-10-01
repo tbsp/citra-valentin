@@ -985,7 +985,9 @@ static void APIENTRY DebugHandler(GLenum source, GLenum type, GLuint id, GLenum 
 
 /// Initialize the renderer
 VideoCore::ResultStatus RendererOpenGL::Init() {
-    render_window.MakeCurrent();
+    if (!gladLoadGL()) {
+        return VideoCore::ResultStatus::ErrorBelowGL33;
+    }
 
     if (GLAD_GL_KHR_debug) {
         glEnable(GL_DEBUG_OUTPUT);
@@ -1009,7 +1011,6 @@ VideoCore::ResultStatus RendererOpenGL::Init() {
     }
 
     InitOpenGLObjects();
-
     RefreshRasterizerSetting();
 
     return VideoCore::ResultStatus::Success;
