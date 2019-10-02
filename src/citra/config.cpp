@@ -254,8 +254,7 @@ void Config::ReadValues() {
     Settings::values.ticks = static_cast<u64>(sdl2_config->GetInteger("Hacks", "ticks", 77));
     Settings::values.custom_screen_refresh_rate =
         sdl2_config->GetBoolean("Hacks", "custom_screen_refresh_rate", false);
-    Settings::values.screen_refresh_rate =
-        sdl2_config->GetReal("Hacks", "screen_refresh_rate", 60.0);
+    Settings::values.screen_refresh_rate = sdl2_config->GetReal("Hacks", "screen_refresh_rate", 60);
     Settings::values.sharper_distant_objects =
         sdl2_config->GetBoolean("Hacks", "sharper_distant_objects", false);
     Settings::values.ignore_format_reinterpretation =

@@ -290,7 +290,7 @@ custom_ticks = false
 ticks = 77
 
 custom_screen_refresh_rate = false
-screen_refresh_rate = 60.00
+screen_refresh_rate = 60
 
 sharper_distant_objects = false
 ignore_format_reinterpretation = true

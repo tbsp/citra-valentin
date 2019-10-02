@@ -65,6 +65,7 @@ void ConfigureDialog::ApplyConfiguration() {
     ui->debugTab->ApplyConfiguration();
     ui->webTab->ApplyConfiguration();
     ui->uiTab->ApplyConfiguration();
+
     Settings::Apply();
     Settings::LogSettings();
 }

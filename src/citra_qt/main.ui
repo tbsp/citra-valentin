@@ -79,12 +79,42 @@
     <property name="title">
      <string>&amp;Emulation</string>
     </property>
+    <widget class="QMenu" name="configuration">
+     <property name="title">
+      <string>Configuration</string>
+     </property>
+     <widget class="QMenu" name="hacks">
+      <property name="title">
+       <string>Hacks</string>
+      </property>
+      <widget class="QMenu" name="m_custom_ticks">
+       <property name="title">
+        <string>Custom ticks</string>
+       </property>
+       <addaction name="custom_ticks"/>
+       <addaction name="ticks"/>
+      </widget>
+      <widget class="QMenu" name="m_custom_screen_refresh_rate">
+       <property name="title">
+        <string>Custom screen refresh rate</string>
+       </property>
+       <addaction name="custom_screen_refresh_rate"/>
+       <addaction name="screen_refresh_rate"/>
+      </widget>
+      <addaction name="m_custom_ticks"/>
+      <addaction name="m_custom_screen_refresh_rate"/>
+      <addaction name="sharper_distant_objects"/>
+      <addaction name="ignore_format_reinterpretation"/>
+     </widget>
+     <addaction name="action_Configure"/>
+     <addaction name="hacks"/>
+    </widget>
     <addaction name="action_Start"/>
     <addaction name="action_Pause"/>
     <addaction name="action_Stop"/>
     <addaction name="action_Restart"/>
     <addaction name="separator"/>
-    <addaction name="action_Configure"/>
+    <addaction name="configuration"/>
     <addaction name="action_Cheats"/>
    </widget>
    <widget class="QMenu" name="menu_View">
@@ -222,11 +252,6 @@
    </property>
    <property name="text">
     <string>Single Window Mode</string>
-   </property>
-  </action>
-  <action name="action_Configure">
-   <property name="text">
-    <string>Configure...</string>
    </property>
   </action>
   <action name="action_Cheats">
@@ -442,6 +467,56 @@
   <action name="action_Open_Citra_Folder">
    <property name="text">
     <string>Open Citra Folder</string>
+   </property>
+  </action>
+  <action name="action_Configure">
+   <property name="text">
+    <string>Open configuration window</string>
+   </property>
+  </action>
+  <action name="custom_ticks">
+   <property name="checkable">
+    <bool>true</bool>
+   </property>
+   <property name="text">
+    <string>Enable</string>
+   </property>
+  </action>
+  <action name="ticks">
+   <property name="text">
+    <string>Change (current: 77)</string>
+   </property>
+  </action>
+  <action name="ignore_format_reinterpretation">
+   <property name="checkable">
+    <bool>true</bool>
+   </property>
+   <property name="checked">
+    <bool>true</bool>
+   </property>
+   <property name="text">
+    <string>Ignore format reinterpretation</string>
+   </property>
+  </action>
+  <action name="sharper_distant_objects">
+   <property name="checkable">
+    <bool>true</bool>
+   </property>
+   <property name="text">
+    <string>Sharper distant objects</string>
+   </property>
+  </action>
+  <action name="custom_screen_refresh_rate">
+   <property name="checkable">
+    <bool>true</bool>
+   </property>
+   <property name="text">
+    <string>Enable</string>
+   </property>
+  </action>
+  <action name="screen_refresh_rate">
+   <property name="text">
+    <string>Change (current: 60.00)</string>
    </property>
   </action>
  </widget>

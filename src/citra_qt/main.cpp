@@ -128,7 +128,7 @@ GMainWindow::GMainWindow() : config(new Config()), emu_thread(nullptr) {
     SetDefaultUIGeometry();
     RestoreUIState();
 
-    ConnectMenuEvents();
+    SetupMenu();
     ConnectWidgetEvents();
 
     LOG_INFO(Frontend, "Citra Version: vvanelslande-{}.{}.{}", Version::major, Version::minor,
@@ -409,13 +409,8 @@ void GMainWindow::InitializeHotkeys() {
                     OnCaptureScreenshot();
                 }
             });
-    connect(hotkey_registry.GetHotkey("Main Window", "Toggle Ticks Hack", this),
-            &QShortcut::activated, this, [this] {
-                Settings::values.custom_ticks = !Settings::values.custom_ticks;
-                statusBar()->showMessage(
-                    QStringLiteral("Custom ticks: %1")
-                        .arg(Settings::values.custom_ticks ? "enabled" : "disabled"));
-            });
+    connect(hotkey_registry.GetHotkey("Main Window", "Toggle Custom Ticks", this),
+            &QShortcut::activated, this, &GMainWindow::OnCustomTicks);
 }
 
 void GMainWindow::SetDefaultUIGeometry() {
@@ -501,7 +496,7 @@ void GMainWindow::ConnectWidgetEvents() {
             &MultiplayerState::UpdateThemedIcons);
 }
 
-void GMainWindow::ConnectMenuEvents() {
+void GMainWindow::SetupMenu() {
     // File
     connect(ui.action_Load_File, &QAction::triggered, this, &GMainWindow::OnMenuLoadFile);
     connect(ui.action_Install_CIA, &QAction::triggered, this, &GMainWindow::OnMenuInstallCIA);
@@ -516,6 +511,68 @@ void GMainWindow::ConnectMenuEvents() {
     connect(ui.action_Restart, &QAction::triggered, this, [this] { BootGame(QString(game_path)); });
     connect(ui.action_Configure, &QAction::triggered, this, &GMainWindow::OnConfigure);
     connect(ui.action_Cheats, &QAction::triggered, this, &GMainWindow::OnCheats);
+
+    // Configuration: Custom Ticks
+    ui.custom_ticks->setChecked(Settings::values.custom_ticks);
+    ui.ticks->setText(QStringLiteral("Current: %1").arg(Settings::values.ticks));
+    ui.ticks->setVisible(ui.custom_ticks->isChecked());
+    connect(ui.custom_ticks, &QAction::triggered, this, &GMainWindow::OnCustomTicks);
+    connect(ui.ticks, &QAction::triggered, this, [this] {
+        bool ok;
+        const QString text = QInputDialog::getText(this, "Change ticks", "", QLineEdit::Normal,
+                                                   QString::number(Settings::values.ticks), &ok);
+        if (!ok) {
+            return;
+        }
+
+        const u64 new_ticks = text.toULongLong(&ok);
+        if (ok) {
+            Settings::values.ticks = new_ticks;
+            ui.ticks->setText(QStringLiteral("Change (current: %1)").arg(new_ticks));
+            Settings::LogSettings();
+        } else {
+            QMessageBox::critical(this, "Invalid Input", "Not a valid unsigned long long");
+            return;
+        }
+    });
+
+    // Configuration: ignore format reinterpretation
+    ui.ignore_format_reinterpretation->setChecked(Settings::values.ignore_format_reinterpretation);
+    connect(ui.ignore_format_reinterpretation, &QAction::triggered, this, [this] {
+        Settings::values.ignore_format_reinterpretation =
+            ui.ignore_format_reinterpretation->isChecked();
+        Settings::LogSettings();
+    });
+
+    // Configuration: sharper distant objects
+    ui.sharper_distant_objects->setChecked(Settings::values.sharper_distant_objects);
+    connect(ui.sharper_distant_objects, &QAction::triggered, this, [this] {
+        Settings::values.sharper_distant_objects = ui.sharper_distant_objects->isChecked();
+        Settings::LogSettings();
+    });
+
+    // Configuration: custom screen refresh rate
+    ui.custom_screen_refresh_rate->setChecked(Settings::values.custom_ticks);
+    ui.screen_refresh_rate->setText(QStringLiteral("Change (current: %1)")
+                                        .arg(Settings::values.screen_refresh_rate, 0, 'f', 0));
+    ui.screen_refresh_rate->setVisible(ui.custom_screen_refresh_rate->isChecked());
+    connect(ui.custom_screen_refresh_rate, &QAction::triggered, this, [this] {
+        Settings::values.custom_screen_refresh_rate = ui.custom_screen_refresh_rate->isChecked();
+        ui.screen_refresh_rate->setVisible(ui.custom_screen_refresh_rate->isChecked());
+        Settings::LogSettings();
+    });
+    connect(ui.screen_refresh_rate, &QAction::triggered, this, [this] {
+        bool ok;
+        const double new_screen_refresh_rate = QInputDialog::getDouble(
+            this, "Change screen refresh rate", "", Settings::values.screen_refresh_rate,
+            -2147483647, 2147483647, 0, &ok);
+        if (ok) {
+            Settings::values.screen_refresh_rate = new_screen_refresh_rate;
+            ui.screen_refresh_rate->setText(
+                QStringLiteral("Change (current: %1)").arg(new_screen_refresh_rate, 0, 'f', 0));
+            Settings::LogSettings();
+        }
+    });
 
     // View
     connect(ui.action_Single_Window_Mode, &QAction::triggered, this,
@@ -1666,12 +1723,14 @@ void GMainWindow::OnMenuAboutCitra() {
 }
 
 bool GMainWindow::ConfirmClose() {
-    if (emu_thread == nullptr || !UISettings::values.confirm_before_closing)
+    if (emu_thread == nullptr || !UISettings::values.confirm_before_closing) {
         return true;
+    }
 
-    QMessageBox::StandardButton answer =
-        QMessageBox::question(this, tr("Citra"), tr("Would you like to exit now?"),
+    const QMessageBox::StandardButton answer =
+        QMessageBox::question(this, "Citra", "Would you like to exit now?",
                               QMessageBox::Yes | QMessageBox::No, QMessageBox::No);
+
     return answer != QMessageBox::No;
 }
 
@@ -1700,8 +1759,9 @@ void GMainWindow::closeEvent(QCloseEvent* event) {
     hotkey_registry.SaveHotkeys();
 
     // Shutdown session if the emu thread is active...
-    if (emu_thread != nullptr)
+    if (emu_thread != nullptr) {
         ShutdownGame();
+    }
 
     render_window->close();
     multiplayer_state->Close();
@@ -1743,11 +1803,12 @@ void GMainWindow::dragMoveEvent(QDragMoveEvent* event) {
 }
 
 bool GMainWindow::ConfirmChangeGame() {
-    if (emu_thread == nullptr)
+    if (emu_thread == nullptr) {
         return true;
+    }
 
     auto answer = QMessageBox::question(
-        this, tr("Citra"), tr("The game is still running. Would you like to stop emulation?"),
+        this, "Citra", "The game is still running. Would you like to stop emulation?",
         QMessageBox::Yes | QMessageBox::No, QMessageBox::No);
     return answer != QMessageBox::No;
 }
@@ -1812,6 +1873,14 @@ void GMainWindow::SyncMenuUISettings() {
     ui.action_Screen_Layout_Side_by_Side->setChecked(Settings::values.layout_option ==
                                                      Settings::LayoutOption::SideScreen);
     ui.action_Screen_Layout_Swap_Screens->setChecked(Settings::values.swap_screen);
+}
+
+void GMainWindow::OnCustomTicks() {
+    Settings::values.custom_ticks = !Settings::values.custom_ticks;
+    Settings::LogSettings();
+
+    ui.custom_ticks->setChecked(Settings::values.custom_ticks);
+    ui.ticks->setVisible(ui.custom_ticks->isChecked());
 }
 
 #ifdef main

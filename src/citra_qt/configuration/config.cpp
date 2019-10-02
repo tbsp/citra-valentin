@@ -72,7 +72,7 @@ const std::array<UISettings::Shortcut, 21> default_hotkeys{
      {QStringLiteral("Stop Emulation"),           QStringLiteral("Main Window"), {QStringLiteral("F5"), Qt::WindowShortcut}},
      {QStringLiteral("Swap Screens"),             QStringLiteral("Main Window"), {QStringLiteral("F9"), Qt::WindowShortcut}},
      {QStringLiteral("Toggle Filter Bar"),        QStringLiteral("Main Window"), {QStringLiteral("Ctrl+F"), Qt::WindowShortcut}},
-     {QStringLiteral("Toggle Ticks Hack"),        QStringLiteral("Main Window"), {QStringLiteral("Ctrl+T"), Qt::ApplicationShortcut}},
+     {QStringLiteral("Toggle Custom Ticks"),      QStringLiteral("Main Window"), {QStringLiteral("Ctrl+T"), Qt::ApplicationShortcut}},
      {QStringLiteral("Toggle Frame Advancing"),   QStringLiteral("Main Window"), {QStringLiteral("Ctrl+A"), Qt::ApplicationShortcut}},
      {QStringLiteral("Toggle Screen Layout"),     QStringLiteral("Main Window"), {QStringLiteral("F10"), Qt::WindowShortcut}},
      {QStringLiteral("Toggle Speed Limit"),       QStringLiteral("Main Window"), {QStringLiteral("Ctrl+Z"), Qt::ApplicationShortcut}},
@@ -420,7 +420,7 @@ void Config::ReadValues() {
 
     Settings::values.custom_screen_refresh_rate =
         ReadSetting("custom_screen_refresh_rate", false).toBool();
-    Settings::values.screen_refresh_rate = ReadSetting("screen_refresh_rate", 60.0).toDouble();
+    Settings::values.screen_refresh_rate = ReadSetting("screen_refresh_rate", 60).toDouble();
 
     Settings::values.sharper_distant_objects =
         ReadSetting("sharper_distant_objects", false).toBool();
@@ -710,6 +710,7 @@ void Config::WriteSetting(const QString& name, const QVariant& value,
 
 void Config::Reload() {
     ReadValues();
+
     // To apply default value changes
     SaveValues();
     Settings::Apply();
