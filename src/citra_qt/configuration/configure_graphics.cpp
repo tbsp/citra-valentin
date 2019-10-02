@@ -14,7 +14,7 @@ ConfigureGraphics::ConfigureGraphics(QWidget* parent)
     ui->setupUi(this);
     SetConfiguration();
 
-    ui->hw_renderer_group->setEnabled(ui->toggle_hw_renderer->isChecked());
+    ui->hw_renderer_group->setVisible(ui->toggle_hw_renderer->isChecked());
     connect(ui->toggle_hw_renderer, &QCheckBox::toggled, ui->hw_renderer_group,
             &QGroupBox::setVisible);
 
