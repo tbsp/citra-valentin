@@ -18,7 +18,7 @@ ConfigureGraphics::ConfigureGraphics(QWidget* parent)
     connect(ui->toggle_hw_renderer, &QCheckBox::toggled, ui->hw_renderer_group,
             &QGroupBox::setVisible);
 
-    ui->hw_shader_group->setEnabled(ui->toggle_hw_shader->isChecked());
+    ui->hw_shader_group->setVisible(ui->toggle_hw_shader->isChecked());
     connect(ui->toggle_hw_shader, &QCheckBox::toggled, ui->hw_shader_group, &QGroupBox::setVisible);
 }
 
