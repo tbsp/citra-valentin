@@ -529,6 +529,7 @@ void GMainWindow::SetupMenu() {
         if (ok) {
             Settings::values.ticks = new_ticks;
             ui.ticks->setText(QStringLiteral("Change (current: %1)").arg(new_ticks));
+            config->Save();
             Settings::LogSettings();
         } else {
             QMessageBox::critical(this, "Invalid Input", "Not a valid unsigned long long");
@@ -541,6 +542,7 @@ void GMainWindow::SetupMenu() {
     connect(ui.ignore_format_reinterpretation, &QAction::triggered, this, [this] {
         Settings::values.ignore_format_reinterpretation =
             ui.ignore_format_reinterpretation->isChecked();
+        config->Save();
         Settings::LogSettings();
     });
 
@@ -548,17 +550,19 @@ void GMainWindow::SetupMenu() {
     ui.sharper_distant_objects->setChecked(Settings::values.sharper_distant_objects);
     connect(ui.sharper_distant_objects, &QAction::triggered, this, [this] {
         Settings::values.sharper_distant_objects = ui.sharper_distant_objects->isChecked();
+        config->Save();
         Settings::LogSettings();
     });
 
     // Configuration: custom screen refresh rate
-    ui.custom_screen_refresh_rate->setChecked(Settings::values.custom_ticks);
+    ui.custom_screen_refresh_rate->setChecked(Settings::values.custom_screen_refresh_rate);
     ui.screen_refresh_rate->setText(QStringLiteral("Change (current: %1)")
                                         .arg(Settings::values.screen_refresh_rate, 0, 'f', 0));
     ui.screen_refresh_rate->setVisible(ui.custom_screen_refresh_rate->isChecked());
     connect(ui.custom_screen_refresh_rate, &QAction::triggered, this, [this] {
         Settings::values.custom_screen_refresh_rate = ui.custom_screen_refresh_rate->isChecked();
         ui.screen_refresh_rate->setVisible(ui.custom_screen_refresh_rate->isChecked());
+        config->Save();
         Settings::LogSettings();
     });
     connect(ui.screen_refresh_rate, &QAction::triggered, this, [this] {
@@ -570,6 +574,7 @@ void GMainWindow::SetupMenu() {
             Settings::values.screen_refresh_rate = new_screen_refresh_rate;
             ui.screen_refresh_rate->setText(
                 QStringLiteral("Change (current: %1)").arg(new_screen_refresh_rate, 0, 'f', 0));
+            config->Save();
             Settings::LogSettings();
         }
     });
@@ -820,6 +825,8 @@ void GMainWindow::BootGame(const QString& filename) {
     emu_thread->start();
 
     connect(render_window, &GRenderWindow::Closed, this, &GMainWindow::OnStopGame);
+    connect(render_window, &GRenderWindow::MiddleClick, ui.action_Fullscreen, &QAction::trigger);
+
     // BlockingQueuedConnection is important here, it makes sure we've finished refreshing our views
     // before the CPU continues
     connect(emu_thread.get(), &EmuThread::DebugModeEntered, registersWidget,
@@ -1226,6 +1233,7 @@ void GMainWindow::ToggleFullscreen() {
     if (!emulation_running) {
         return;
     }
+
     if (ui.action_Fullscreen->isChecked()) {
         ShowFullscreen();
     } else {
@@ -1877,10 +1885,10 @@ void GMainWindow::SyncMenuUISettings() {
 
 void GMainWindow::OnCustomTicks() {
     Settings::values.custom_ticks = !Settings::values.custom_ticks;
-    Settings::LogSettings();
-
     ui.custom_ticks->setChecked(Settings::values.custom_ticks);
     ui.ticks->setVisible(ui.custom_ticks->isChecked());
+    config->Save();
+    Settings::LogSettings();
 }
 
 #ifdef main

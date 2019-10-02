@@ -31,8 +31,6 @@ void ConfigureGeneral::SetConfiguration() {
     ui->frame_limit->setValue(Settings::values.frame_limit);
     ui->toggle_check_exit->setChecked(UISettings::values.confirm_before_closing);
     ui->toggle_background_pause->setChecked(UISettings::values.pause_when_in_background);
-    ui->ticks->setVisible(Settings::values.custom_ticks);
-    ui->ticks->setValue(Settings::values.ticks);
 }
 
 void ConfigureGeneral::ResetDefaults() {
@@ -56,5 +54,4 @@ void ConfigureGeneral::ApplyConfiguration() {
     Settings::values.region_value = ui->region_combobox->currentIndex() - 1;
     Settings::values.use_frame_limit = ui->toggle_frame_limit->isChecked();
     Settings::values.frame_limit = ui->frame_limit->value();
-    Settings::values.ticks = ui->ticks->value();
 }

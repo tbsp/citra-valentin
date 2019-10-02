@@ -177,7 +177,6 @@ public:
     void CaptureScreenshot(u32 res_scale, const QString& screenshot_path);
 
 public slots:
-
     void OnEmulationStarting(EmuThread* emu_thread);
     void OnEmulationStopping();
     void OnFramebufferSizeChanged();
@@ -185,6 +184,9 @@ public slots:
 signals:
     /// Emitted when the window is closed
     void Closed();
+
+    /// Useful if you don't use a keyboard
+    void MiddleClick();
 
 private:
     std::pair<u32, u32> ScaleTouch(QPointF pos) const;

@@ -254,6 +254,8 @@ void GRenderWindow::mousePressEvent(QMouseEvent* event) {
     if (event->button() == Qt::LeftButton) {
         const auto [x, y] = ScaleTouch(pos);
         this->TouchPressed(x, y);
+    } else if (event->button() == Qt::MiddleButton) {
+        emit MiddleClick();
     } else if (event->button() == Qt::RightButton) {
         InputCommon::GetMotionEmu()->BeginTilt(pos.x(), pos.y());
     }
