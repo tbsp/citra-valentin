@@ -33,15 +33,9 @@ ConfigureEnhancements::ConfigureEnhancements(QWidget* parent)
         UpdateBackgroundColorButton(new_bg_color);
     });
 
-    ui->toggle_preload_textures->setEnabled(ui->toggle_custom_textures->isChecked());
-    connect(ui->toggle_custom_textures, &QCheckBox::toggled, this, [this] {
-        ui->toggle_preload_textures->setEnabled(ui->toggle_custom_textures->isChecked());
-
-        if (!ui->toggle_preload_textures->isEnabled()) {
-            ui->toggle_preload_textures->setChecked(false);
-        }
-    });
-
+    ui->toggle_preload_textures->setVisible(ui->toggle_custom_textures->isChecked());
+    connect(ui->toggle_custom_textures, &QCheckBox::toggled, ui->toggle_preload_textures,
+            &QCheckBox::setVisible);
     connect(ui->custom_screen_refresh_rate, &QCheckBox::toggled, ui->screen_refresh_rate,
             &QDoubleSpinBox::setVisible);
 }

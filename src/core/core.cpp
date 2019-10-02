@@ -154,9 +154,11 @@ System::ResultStatus System::Load(Frontend::EmuWindow& emu_window, const std::st
                                              FileUtil::GetUserPath(FileUtil::UserPath::LoadDir),
                                              Kernel().GetCurrentProcess()->codeset->program_id));
         custom_tex_cache->FindCustomTextures();
+
+        if (Settings::values.preload_textures) {
+            custom_tex_cache->PreloadTextures();
+        }
     }
-    if (Settings::values.preload_textures)
-        custom_tex_cache->PreloadTextures();
 
     u64 title_id{0};
     if (app_loader->ReadProgramId(title_id) != Loader::ResultStatus::Success) {
