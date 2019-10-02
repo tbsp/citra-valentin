@@ -11,11 +11,9 @@
 #include <type_traits>
 #include "common/common_types.h"
 
-// namespace avoids conflict with OS X Carbon; don't use BitSet<T> directly
 namespace Common {
 
 // Helper functions:
-
 #ifdef _MSC_VER
 template <typename T>
 static inline int CountSetBits(T v) {
