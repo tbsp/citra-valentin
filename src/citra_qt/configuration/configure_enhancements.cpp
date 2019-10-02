@@ -36,9 +36,14 @@ ConfigureEnhancements::ConfigureEnhancements(QWidget* parent)
     ui->toggle_preload_textures->setEnabled(ui->toggle_custom_textures->isChecked());
     connect(ui->toggle_custom_textures, &QCheckBox::toggled, this, [this] {
         ui->toggle_preload_textures->setEnabled(ui->toggle_custom_textures->isChecked());
-        if (!ui->toggle_preload_textures->isEnabled())
+
+        if (!ui->toggle_preload_textures->isEnabled()) {
             ui->toggle_preload_textures->setChecked(false);
+        }
     });
+
+    connect(ui->custom_screen_refresh_rate, &QCheckBox::toggled, ui->screen_refresh_rate,
+            &QDoubleSpinBox::setVisible);
 }
 
 void ConfigureEnhancements::SetConfiguration() {
@@ -55,7 +60,11 @@ void ConfigureEnhancements::SetConfiguration() {
     ui->toggle_disk_cache->setChecked(Settings::values.use_disk_shader_cache);
     UpdateBackgroundColorButton(QColor::fromRgbF(Settings::values.bg_red, Settings::values.bg_green,
                                                  Settings::values.bg_blue));
+
+    ui->custom_screen_refresh_rate->setChecked(Settings::values.custom_screen_refresh_rate);
+    ui->screen_refresh_rate->setVisible(ui->custom_screen_refresh_rate->isChecked());
     ui->screen_refresh_rate->setValue(Settings::values.screen_refresh_rate);
+
     ui->sharper_distant_objects->setChecked(Settings::values.sharper_distant_objects);
     ui->ignore_format_reinterpretation->setChecked(Settings::values.ignore_format_reinterpretation);
 }
@@ -109,7 +118,10 @@ void ConfigureEnhancements::ApplyConfiguration() {
     Settings::values.bg_red = static_cast<float>(bg_color.redF());
     Settings::values.bg_green = static_cast<float>(bg_color.greenF());
     Settings::values.bg_blue = static_cast<float>(bg_color.blueF());
+
+    Settings::values.custom_screen_refresh_rate = ui->custom_screen_refresh_rate->isChecked();
     Settings::values.screen_refresh_rate = ui->screen_refresh_rate->value();
+
     Settings::values.sharper_distant_objects = ui->sharper_distant_objects->isChecked();
     Settings::values.ignore_format_reinterpretation =
         ui->ignore_format_reinterpretation->isChecked();

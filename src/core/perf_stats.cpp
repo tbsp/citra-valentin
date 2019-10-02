@@ -24,6 +24,8 @@ using std::chrono::microseconds;
 // booting that we shouldn't account for
 constexpr std::size_t IgnoreFrames = 5;
 
+constexpr double FRAME_LENGTH = 1.0 / 60.00f;
+
 namespace Core {
 
 PerfStats::PerfStats(u64 title_id) : title_id(title_id) {}
@@ -79,8 +81,10 @@ double PerfStats::GetMeanFrametime() {
     if (current_index <= IgnoreFrames) {
         return 0;
     }
+
     const double sum = std::accumulate(perf_history.begin() + IgnoreFrames,
                                        perf_history.begin() + current_index, 0);
+
     return sum / (current_index - IgnoreFrames);
 }
 
@@ -88,12 +92,13 @@ PerfStats::Results PerfStats::GetAndResetStats(microseconds current_system_time_
     std::lock_guard lock(object_mutex);
 
     const auto now = Clock::now();
+
     // Walltime elapsed since stats were reset
     const auto interval = duration_cast<DoubleSecs>(now - reset_point).count();
 
     const auto system_us_per_second = (current_system_time_us - reset_point_system_us) / interval;
 
-    Results results{};
+    Results results;
     results.system_fps = static_cast<double>(system_frames) / interval;
     results.game_fps = static_cast<double>(game_frames) / interval;
     results.frametime = duration_cast<DoubleSecs>(accumulated_frametime).count() /
@@ -112,9 +117,7 @@ PerfStats::Results PerfStats::GetAndResetStats(microseconds current_system_time_
 
 double PerfStats::GetLastFrameTimeScale() {
     std::lock_guard lock{object_mutex};
-
-    const double frame_length = 1.0 / Settings::values.screen_refresh_rate;
-    return duration_cast<DoubleSecs>(previous_frame_length).count() / frame_length;
+    return duration_cast<DoubleSecs>(previous_frame_length).count() / FRAME_LENGTH;
 }
 
 void FrameLimiter::DoFrameLimiting(microseconds current_system_time_us) {

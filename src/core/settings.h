@@ -205,6 +205,8 @@ struct Values {
     // Hacks
     bool custom_ticks;
     u64 ticks;
+
+    bool custom_screen_refresh_rate;
     double screen_refresh_rate;
 
     bool sharper_distant_objects;

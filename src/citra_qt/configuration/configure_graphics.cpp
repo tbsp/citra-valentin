@@ -15,13 +15,11 @@ ConfigureGraphics::ConfigureGraphics(QWidget* parent)
     SetConfiguration();
 
     ui->hw_renderer_group->setEnabled(ui->toggle_hw_renderer->isChecked());
-    connect(ui->toggle_hw_renderer, &QCheckBox::toggled, this, [this] {
-        auto checked = ui->toggle_hw_renderer->isChecked();
-        ui->hw_renderer_group->setEnabled(checked);
-    });
+    connect(ui->toggle_hw_renderer, &QCheckBox::toggled, ui->hw_renderer_group,
+            &QGroupBox::setVisible);
 
     ui->hw_shader_group->setEnabled(ui->toggle_hw_shader->isChecked());
-    connect(ui->toggle_hw_shader, &QCheckBox::toggled, ui->hw_shader_group, &QWidget::setEnabled);
+    connect(ui->toggle_hw_shader, &QCheckBox::toggled, ui->hw_shader_group, &QGroupBox::setVisible);
 }
 
 ConfigureGraphics::~ConfigureGraphics() = default;

@@ -190,10 +190,10 @@ void GMainWindow::InitializeWidgets() {
     emu_speed_label->setToolTip(
         "Frames per second and current emulation speed. Speed values higher or lower than 100% "
         "indicate emulation is running faster or slower than a 3DS.");
+
     emu_frametime_label = new QLabel();
     emu_frametime_label->setToolTip(
-        "Time taken to emulate a 3DS frame, not counting framelimiting or v-sync. For "
-        "full-speed emulation this should be at most 16.67 ms.");
+        "Time taken to emulate a 3DS frame, not counting framelimiting or v-sync.");
 
     for (auto& label : {emu_speed_label, emu_frametime_label}) {
         label->setVisible(false);

@@ -524,7 +524,9 @@ static void VBlankCallback(u64 userdata, s64 cycles_late) {
 
     // Reschedule recurrent event
     Core::System::GetInstance().CoreTiming().ScheduleEvent(
-        static_cast<u64>(BASE_CLOCK_RATE_ARM11 / Settings::values.screen_refresh_rate) -
+        static_cast<u64>(BASE_CLOCK_RATE_ARM11 / (Settings::values.custom_screen_refresh_rate
+                                                      ? Settings::values.screen_refresh_rate
+                                                      : 60.0)) -
             cycles_late,
         vblank_event);
 }
@@ -562,8 +564,10 @@ void Init(Memory::MemorySystem& memory) {
 
     Core::Timing& timing = Core::System::GetInstance().CoreTiming();
     vblank_event = timing.RegisterEvent("GPU::VBlankCallback", VBlankCallback);
-    timing.ScheduleEvent(
-        static_cast<u64>(BASE_CLOCK_RATE_ARM11 / Settings::values.screen_refresh_rate),
+    Core::System::GetInstance().CoreTiming().ScheduleEvent(
+        static_cast<u64>(BASE_CLOCK_RATE_ARM11 / (Settings::values.custom_screen_refresh_rate
+                                                      ? Settings::values.screen_refresh_rate
+                                                      : 60.0)),
         vblank_event);
 
     LOG_DEBUG(HW_GPU, "initialized OK");

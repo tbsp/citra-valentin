@@ -341,22 +341,22 @@
       <item>
        <layout class="QHBoxLayout" name="horizontalLayout_2">
         <item>
-         <widget class="QLabel" name="label_5">
+         <widget class="QCheckBox" name="custom_screen_refresh_rate">
           <property name="text">
-           <string>Screen refresh rate</string>
+           <string>Custom screen refresh rate</string>
           </property>
          </widget>
         </item>
         <item>
          <widget class="QDoubleSpinBox" name="screen_refresh_rate">
           <property name="minimum">
-           <double>1.00</double>
+           <double>1.000000000000000</double>
           </property>
           <property name="maximum">
-           <double>300.00</double>
+           <double>300.000000000000000</double>
           </property>
           <property name="value">
-           <double>60.00</double>
+           <double>60.000000000000000</double>
           </property>
          </widget>
         </item>
