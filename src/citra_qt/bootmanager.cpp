@@ -330,6 +330,7 @@ void GRenderWindow::focusOutEvent(QFocusEvent* event) {
 void GRenderWindow::resizeEvent(QResizeEvent* event) {
     child_widget->resize(event->size());
     QWidget::resizeEvent(event);
+
     OnFramebufferSizeChanged();
 }
 
@@ -377,6 +378,8 @@ void GRenderWindow::OnMinimalClientAreaChangeRequest(std::pair<u32, u32> minimal
 
 void GRenderWindow::OnEmulationStarting(EmuThread* emu_thread) {
     this->emu_thread = emu_thread;
+
+    OnFramebufferSizeChanged();
 }
 
 void GRenderWindow::OnEmulationStopping() {
