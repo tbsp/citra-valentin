@@ -321,14 +321,12 @@ void OpenGLState::Apply() const {
     }
 
     // Clip distance
-    if (GLAD_GL_EXT_clip_cull_distance) {
-        for (size_t i = 0; i < clip_distance.size(); ++i) {
-            if (clip_distance[i] != cur_state.clip_distance[i]) {
-                if (clip_distance[i]) {
-                    glEnable(GL_CLIP_DISTANCE0 + static_cast<GLenum>(i));
-                } else {
-                    glDisable(GL_CLIP_DISTANCE0 + static_cast<GLenum>(i));
-                }
+    for (std::size_t i = 0; i < clip_distance.size(); ++i) {
+        if (clip_distance[i] != cur_state.clip_distance[i]) {
+            if (clip_distance[i]) {
+                glEnable(GL_CLIP_DISTANCE0 + static_cast<GLenum>(i));
+            } else {
+                glDisable(GL_CLIP_DISTANCE0 + static_cast<GLenum>(i));
             }
         }
     }
@@ -346,26 +344,36 @@ OpenGLState& OpenGLState::ResetTexture(GLuint handle) {
             unit.texture_2d = 0;
         }
     }
-    if (texture_cube_unit.texture_cube == handle)
+    if (texture_cube_unit.texture_cube == handle) {
         texture_cube_unit.texture_cube = 0;
-    if (texture_buffer_lut_rg.texture_buffer == handle)
+    }
+    if (texture_buffer_lut_rg.texture_buffer == handle) {
         texture_buffer_lut_rg.texture_buffer = 0;
-    if (texture_buffer_lut_rgba.texture_buffer == handle)
+    }
+    if (texture_buffer_lut_rgba.texture_buffer == handle) {
         texture_buffer_lut_rgba.texture_buffer = 0;
-    if (image_shadow_buffer == handle)
+    }
+    if (image_shadow_buffer == handle) {
         image_shadow_buffer = 0;
-    if (image_shadow_texture_px == handle)
+    }
+    if (image_shadow_texture_px == handle) {
         image_shadow_texture_px = 0;
-    if (image_shadow_texture_nx == handle)
+    }
+    if (image_shadow_texture_nx == handle) {
         image_shadow_texture_nx = 0;
-    if (image_shadow_texture_py == handle)
+    }
+    if (image_shadow_texture_py == handle) {
         image_shadow_texture_py = 0;
-    if (image_shadow_texture_ny == handle)
+    }
+    if (image_shadow_texture_ny == handle) {
         image_shadow_texture_ny = 0;
-    if (image_shadow_texture_pz == handle)
+    }
+    if (image_shadow_texture_pz == handle) {
         image_shadow_texture_pz = 0;
-    if (image_shadow_texture_nz == handle)
+    }
+    if (image_shadow_texture_nz == handle) {
         image_shadow_texture_nz = 0;
+    }
     return *this;
 }
 
