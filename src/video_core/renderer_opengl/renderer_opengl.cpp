@@ -1000,7 +1000,7 @@ VideoCore::ResultStatus RendererOpenGL::Init() {
         return VideoCore::ResultStatus::ErrorGenericDrivers;
     }
 
-    if (!(GLAD_GL_VERSION_3_3 || GLAD_GL_ES_VERSION_3_1)) {
+    if (!GLAD_GL_VERSION_3_3) {
         return VideoCore::ResultStatus::ErrorBelowGL33;
     }
 
