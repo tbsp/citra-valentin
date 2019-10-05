@@ -78,7 +78,6 @@ void LogSettings() {
 
     LOG_INFO(Config, "Citra Configuration:");
     LogSetting("use_cpu_jit", Settings::values.use_cpu_jit);
-    LogSetting("use_gles", Settings::values.use_gles);
     LogSetting("use_hw_renderer", Settings::values.use_hw_renderer);
     LogSetting("use_hw_shader", Settings::values.use_hw_shader);
     LogSetting("shaders_accurate_mul", Settings::values.shaders_accurate_mul);

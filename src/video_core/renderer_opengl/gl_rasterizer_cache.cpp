@@ -33,7 +33,6 @@
 #include "video_core/renderer_base.h"
 #include "video_core/renderer_opengl/gl_rasterizer_cache.h"
 #include "video_core/renderer_opengl/gl_state.h"
-#include "video_core/renderer_opengl/gl_vars.h"
 #include "video_core/utils.h"
 #include "video_core/video_core.h"
 
@@ -56,17 +55,6 @@ static constexpr std::array<FormatTuple, 5> fb_format_tuples = {{
     {GL_RGBA4, GL_RGBA, GL_UNSIGNED_SHORT_4_4_4_4},   // RGBA4
 }};
 
-// Same as above, with minor changes for OpenGL ES. Replaced
-// GL_UNSIGNED_INT_8_8_8_8 with GL_UNSIGNED_BYTE and
-// GL_BGR with GL_RGB
-static constexpr std::array<FormatTuple, 5> fb_format_tuples_oes = {{
-    {GL_RGBA8, GL_RGBA, GL_UNSIGNED_BYTE},            // RGBA8
-    {GL_RGB8, GL_RGB, GL_UNSIGNED_BYTE},              // RGB8
-    {GL_RGB5_A1, GL_RGBA, GL_UNSIGNED_SHORT_5_5_5_1}, // RGB5A1
-    {GL_RGB565, GL_RGB, GL_UNSIGNED_SHORT_5_6_5},     // RGB565
-    {GL_RGBA4, GL_RGBA, GL_UNSIGNED_SHORT_4_4_4_4},   // RGBA4
-}};
-
 static constexpr std::array<FormatTuple, 4> depth_format_tuples = {{
     {GL_DEPTH_COMPONENT16, GL_DEPTH_COMPONENT, GL_UNSIGNED_SHORT}, // D16
     {},
@@ -80,9 +68,6 @@ static const FormatTuple& GetFormatTuple(PixelFormat pixel_format) {
     const SurfaceType type = SurfaceParams::GetFormatType(pixel_format);
     if (type == SurfaceType::Color) {
         ASSERT(static_cast<std::size_t>(pixel_format) < fb_format_tuples.size());
-        if (GLES) {
-            return fb_format_tuples_oes[static_cast<unsigned int>(pixel_format)];
-        }
         return fb_format_tuples[static_cast<unsigned int>(pixel_format)];
     } else if (type == SurfaceType::Depth || type == SurfaceType::DepthStencil) {
         std::size_t tuple_idx = static_cast<std::size_t>(pixel_format) - 14;
@@ -93,12 +78,11 @@ static const FormatTuple& GetFormatTuple(PixelFormat pixel_format) {
 }
 
 /**
- * OpenGL ES does not support glGetTexImage. Obtain the pixels by attaching the
- * texture to a framebuffer.
+ * Hack: obtain the pixels by attaching the texture to a framebuffer.
  * Originally from https://github.com/apitrace/apitrace/blob/master/retrace/glstate_images.cpp
  */
-static inline void GetTexImageOES(GLenum target, GLint level, GLenum format, GLenum type,
-                                  GLint height, GLint width, GLint depth, GLubyte* pixels) {
+static inline void GetTexImage(GLenum target, GLint level, GLenum format, GLenum type, GLint height,
+                               GLint width, GLint depth, GLubyte* pixels) {
 
     memset(pixels, 0x80, height * width * 4);
 
@@ -115,8 +99,6 @@ static inline void GetTexImageOES(GLenum target, GLint level, GLenum format, GLe
     case GL_TEXTURE_CUBE_MAP_NEGATIVE_Z:
         texture_binding = GL_TEXTURE_BINDING_CUBE_MAP;
         break;
-    case GL_TEXTURE_3D_OES:
-        texture_binding = GL_TEXTURE_BINDING_3D_OES;
     default:
         return;
     }
@@ -149,17 +131,9 @@ static inline void GetTexImageOES(GLenum target, GLint level, GLenum format, GLe
         glReadPixels(0, 0, width, height, format, type, pixels);
         break;
     }
-    case GL_TEXTURE_3D_OES:
-        for (int i = 0; i < depth; i++) {
-            glFramebufferTexture3D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_3D, texture,
-                                   level, i);
-            glReadPixels(0, 0, width, height, format, type, pixels + 4 * i * width * height);
-        }
-        break;
     }
 
     glBindFramebuffer(GL_FRAMEBUFFER, prev_fbo);
-
     glDeleteFramebuffers(1, &fbo);
 }
 
@@ -180,17 +154,6 @@ static void MortonCopyTile(u32 stride, u8* tile_buffer, u8* gl_buffer) {
                 if (format == PixelFormat::D24S8) {
                     gl_ptr[0] = tile_ptr[3];
                     std::memcpy(gl_ptr + 1, tile_ptr, 3);
-                } else if (format == PixelFormat::RGBA8 && GLES) {
-                    // because GLES does not have ABGR format
-                    // so we will do byteswapping here
-                    gl_ptr[0] = tile_ptr[3];
-                    gl_ptr[1] = tile_ptr[2];
-                    gl_ptr[2] = tile_ptr[1];
-                    gl_ptr[3] = tile_ptr[0];
-                } else if (format == PixelFormat::RGB8 && GLES) {
-                    gl_ptr[0] = tile_ptr[2];
-                    gl_ptr[1] = tile_ptr[1];
-                    gl_ptr[2] = tile_ptr[0];
                 } else {
                     std::memcpy(gl_ptr, tile_ptr, bytes_per_pixel);
                 }
@@ -735,12 +698,11 @@ void RasterizerCacheOpenGL::CopySurface(const Surface& src_surface, const Surfac
 MICROPROFILE_DEFINE(OpenGL_SurfaceLoad, "OpenGL", "Surface Load", MP_RGB(128, 192, 64));
 void CachedSurface::LoadGLBuffer(PAddr load_start, PAddr load_end) {
     ASSERT(type != SurfaceType::Fill);
-    const bool need_swap =
-        GLES && (pixel_format == PixelFormat::RGBA8 || pixel_format == PixelFormat::RGB8);
 
     const u8* const texture_src_data = VideoCore::g_memory->GetPhysicalPointer(addr);
-    if (texture_src_data == nullptr)
+    if (texture_src_data == nullptr) {
         return;
+    }
 
     if (gl_buffer == nullptr) {
         gl_buffer_size = width * height * GetGLBytesPerPixel(pixel_format);
@@ -748,11 +710,13 @@ void CachedSurface::LoadGLBuffer(PAddr load_start, PAddr load_end) {
     }
 
     // TODO: Should probably be done in ::Memory:: and check for other regions too
-    if (load_start < Memory::VRAM_VADDR_END && load_end > Memory::VRAM_VADDR_END)
+    if (load_start < Memory::VRAM_VADDR_END && load_end > Memory::VRAM_VADDR_END) {
         load_end = Memory::VRAM_VADDR_END;
+    }
 
-    if (load_start < Memory::VRAM_VADDR && load_end > Memory::VRAM_VADDR)
+    if (load_start < Memory::VRAM_VADDR && load_end > Memory::VRAM_VADDR) {
         load_start = Memory::VRAM_VADDR;
+    }
 
     MICROPROFILE_SCOPE(OpenGL_SurfaceLoad);
 
@@ -761,27 +725,8 @@ void CachedSurface::LoadGLBuffer(PAddr load_start, PAddr load_end) {
 
     if (!is_tiled) {
         ASSERT(type == SurfaceType::Color);
-        if (need_swap) {
-            // TODO(liushuyu): check if the byteswap here is 100% correct
-            // cannot fully test this
-            if (pixel_format == PixelFormat::RGBA8) {
-                for (std::size_t i = start_offset; i < load_end - addr; i += 4) {
-                    gl_buffer[i] = texture_src_data[i + 3];
-                    gl_buffer[i + 1] = texture_src_data[i + 2];
-                    gl_buffer[i + 2] = texture_src_data[i + 1];
-                    gl_buffer[i + 3] = texture_src_data[i];
-                }
-            } else if (pixel_format == PixelFormat::RGB8) {
-                for (std::size_t i = start_offset; i < load_end - addr; i += 3) {
-                    gl_buffer[i] = texture_src_data[i + 2];
-                    gl_buffer[i + 1] = texture_src_data[i + 1];
-                    gl_buffer[i + 2] = texture_src_data[i];
-                }
-            }
-        } else {
-            std::memcpy(&gl_buffer[start_offset], texture_src_data + start_offset,
-                        load_end - load_start);
-        }
+        std::memcpy(&gl_buffer[start_offset], texture_src_data + start_offset,
+                    load_end - load_start);
     } else {
         if (type == SurfaceType::Texture) {
             Pica::Texture::TextureInfo tex_info{};
@@ -918,7 +863,7 @@ void CachedSurface::DumpTexture(GLuint target_tex, u64 tex_hash) {
         decoded_texture.resize(width * height * 4);
         glBindTexture(GL_TEXTURE_2D, target_tex);
         /*
-           GetTexImageOES is used even if not using OpenGL ES to work around a small issue that
+           GetTexImage is used to work around a small issue that
            happens if using custom textures with texture dumping at the same.
            Let's say there's 2 textures that are both 32x32 and one of them gets replaced with a
            higher quality 256x256 texture. If the 256x256 texture is displayed first and the 32x32
@@ -927,11 +872,10 @@ void CachedSurface::DumpTexture(GLuint target_tex, u64 tex_hash) {
            If texture dumping is enabled and the 32x32 is undumped, Citra will attempt to dump it.
            Since the underlying OpenGL texture is still 256x256, Citra crashes because it thinks the
            texture is only 32x32.
-           GetTexImageOES conveniently only dumps the specified region, and works on both
-           desktop and ES.
+           GetTexImage conveniently only dumps the specified region.
         */
-        GetTexImageOES(GL_TEXTURE_2D, 0, GL_RGBA, GL_UNSIGNED_BYTE, height, width, 0,
-                       &decoded_texture[0]);
+        GetTexImage(GL_TEXTURE_2D, 0, GL_RGBA, GL_UNSIGNED_BYTE, height, width, 0,
+                    &decoded_texture[0]);
         glBindTexture(GL_TEXTURE_2D, 0);
         Common::FlipRGBA8Texture(decoded_texture, width, height);
         if (!image_interface->EncodePNG(dump_path, decoded_texture, width, height))
@@ -1084,12 +1028,7 @@ void CachedSurface::DownloadGLTexture(const Common::Rectangle<u32>& rect, GLuint
         state.Apply();
 
         glActiveTexture(GL_TEXTURE0);
-        if (GLES) {
-            GetTexImageOES(GL_TEXTURE_2D, 0, tuple.format, tuple.type, rect.GetHeight(),
-                           rect.GetWidth(), 0, &gl_buffer[buffer_offset]);
-        } else {
-            glGetTexImage(GL_TEXTURE_2D, 0, tuple.format, tuple.type, &gl_buffer[buffer_offset]);
-        }
+        glGetTexImage(GL_TEXTURE_2D, 0, tuple.format, tuple.type, &gl_buffer[buffer_offset]);
     } else {
         state.ResetTexture(texture.handle);
         state.draw.read_framebuffer = read_fb_handle;
@@ -1230,15 +1169,17 @@ RasterizerCacheOpenGL::RasterizerCacheOpenGL() {
     d24s8_abgr_buffer.Create();
     d24s8_abgr_buffer_size = 0;
 
-    std::string vs_source = R"(
+    std::string vs_source = R"(#version 330 core
+
 const vec2 vertices[4] = vec2[4](vec2(-1.0, -1.0), vec2(1.0, -1.0), vec2(-1.0, 1.0), vec2(1.0, 1.0));
+
 void main() {
     gl_Position = vec4(vertices[gl_VertexID], 0.0, 1.0);
 }
 )";
 
-    std::string fs_source = GLES ? fragment_shader_precision_OES : "";
-    fs_source += R"(
+    std::string fs_source = R"(#version 330 core
+
 uniform samplerBuffer tbo;
 uniform vec2 tbo_size;
 uniform vec4 viewport;

@@ -23,7 +23,6 @@
 #include "video_core/regs_texturing.h"
 #include "video_core/renderer_opengl/gl_rasterizer.h"
 #include "video_core/renderer_opengl/gl_shader_gen.h"
-#include "video_core/renderer_opengl/gl_vars.h"
 #include "video_core/renderer_opengl/pica_to_gl.h"
 #include "video_core/renderer_opengl/renderer_opengl.h"
 #include "video_core/video_core.h"
@@ -43,7 +42,9 @@ MICROPROFILE_DEFINE(OpenGL_CacheManagement, "OpenGL", "Cache Mgmt", MP_RGB(100, 
 static bool IsVendorAmd() {
     std::string gpu_vendor{reinterpret_cast<char const*>(glGetString(GL_VENDOR))};
     std::string gpu_renderer{reinterpret_cast<char const*>(glGetString(GL_RENDERER))};
-    return gpu_vendor == "ATI Technologies Inc." || gpu_vendor == "Advanced Micro Devices, Inc." || gpu_renderer == "Intel(R) HD Graphics 4600" || gpu_renderer == "Intel(R) HD Graphics 4400";
+    return gpu_vendor == "ATI Technologies Inc." || gpu_vendor == "Advanced Micro Devices, Inc." ||
+           gpu_renderer == "Intel(R) HD Graphics 4600" ||
+           gpu_renderer == "Intel(R) HD Graphics 4400";
 }
 
 RasterizerOpenGL::RasterizerOpenGL(Frontend::EmuWindow& window)
@@ -485,8 +486,9 @@ bool RasterizerOpenGL::AccelerateDrawBatchInternal(bool is_indexed) {
 }
 
 void RasterizerOpenGL::DrawTriangles() {
-    if (vertex_batch.empty())
+    if (vertex_batch.empty()) {
         return;
+    }
     Draw(false, false);
 }
 
@@ -1621,7 +1623,7 @@ void RasterizerOpenGL::SamplerInfo::SyncWithConfig(
         glSamplerParameterf(s, GL_TEXTURE_MAX_LOD, lod_max);
     }
 
-    if (!GLES && lod_bias != config.lod.bias) {
+    if (lod_bias != config.lod.bias) {
         lod_bias = config.lod.bias;
         glSamplerParameterf(s, GL_TEXTURE_LOD_BIAS, lod_bias / 256.0f);
     }
