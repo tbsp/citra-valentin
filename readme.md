@@ -1,7 +1,4 @@
-# Citra
-
-[![Travis CI Build Status](https://travis-ci.com/vvanelslande/citra.svg?branch=master)](https://travis-ci.com/vvanelslande/citra)
-[![AppVeyor CI Build Status](https://ci.appveyor.com/api/projects/status/tspqx6kvgupwb4e8?svg=true)](https://ci.appveyor.com/project/vvanelslande/citra)
+# Citra ![macOS: not supported](https://img.shields.io/badge/macOS-not%20supported-red) [![Travis CI Build Status](https://travis-ci.com/vvanelslande/citra.svg?branch=master)](https://travis-ci.com/vvanelslande/citra) [![AppVeyor CI Build Status](https://ci.appveyor.com/api/projects/status/tspqx6kvgupwb4e8?svg=true)](https://ci.appveyor.com/project/vvanelslande/citra)
 
 Citra is an experimental open-source Nintendo 3DS emulator/debugger written in C++ for Linux and Windows.
 
