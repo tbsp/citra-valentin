@@ -9,4 +9,4 @@ Citra is licensed under the GPLv2 (or any later version). Refer to the license.t
 ### Building
 
 - **Windows**: [Using MSBuild](<https://github.com/vvanelslande/citra/wiki/Building-for-Windows-(MSBuild)>)
-- **Linux**: [Linux Build](https://github.com/citra-emu/citra/wiki/Building-For-Linux)
+- [Linux](https://github.com/citra-emu/citra/wiki/Building-For-Linux)
