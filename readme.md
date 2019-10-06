@@ -7,4 +7,5 @@ Citra is licensed under the GPLv2 (or any later version). Refer to the license.t
 
 ### Building
 - [Linux](https://github.com/citra-emu/citra/wiki/Building-For-Linux)
-- Windows: [Using MSBuild](<https://github.com/vvanelslande/citra/wiki/Building-for-Windows-(MSBuild)>) or [Using MSYS2](https://github.com/citra-emu/citra/wiki/Building-for-Windows#mingw-w64-build-with-msys2)
+- [Windows (Using MSBuild)](https://github.com/vvanelslande/citra/wiki/Building-for-Windows-(MSBuild))
+- [Windows (Using MSYS2)](https://github.com/citra-emu/citra/wiki/Building-for-Windows#mingw-w64-build-with-msys2)
