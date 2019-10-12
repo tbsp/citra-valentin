@@ -906,6 +906,8 @@ void GMainWindow::ShutdownGame() {
     // The emulation is stopped, so closing the window or not does not matter anymore
     disconnect(render_window, &GRenderWindow::Closed, this, &GMainWindow::OnStopGame);
 
+    disconnect(render_window, &GRenderWindow::MiddleClick, ui.action_Fullscreen, &QAction::trigger);
+
     // Update the GUI
     ui.action_Start->setEnabled(false);
     ui.action_Start->setText(tr("Start"));
