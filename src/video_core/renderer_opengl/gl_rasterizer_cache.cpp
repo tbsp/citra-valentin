@@ -78,13 +78,13 @@ static const FormatTuple& GetFormatTuple(PixelFormat pixel_format) {
 }
 
 /**
- * Hack: obtain the pixels by attaching the texture to a framebuffer.
+ * Obtain the pixels by attaching the texture to a framebuffer.
  * Originally from https://github.com/apitrace/apitrace/blob/master/retrace/glstate_images.cpp
  */
 static inline void GetTexImage(GLenum target, GLint level, GLenum format, GLenum type, GLint height,
                                GLint width, GLint depth, GLubyte* pixels) {
-
-    memset(pixels, 0x80, height * width * 4);
+    OpenGLState cur_state = OpenGLState::GetCurState();
+    OpenGLState state;
 
     GLenum texture_binding = GL_NONE;
     switch (target) {
@@ -109,11 +109,10 @@ static inline void GetTexImage(GLenum target, GLint level, GLenum format, GLenum
         return;
     }
 
-    GLint prev_fbo = 0;
     GLuint fbo = 0;
-    glGetIntegerv(GL_FRAMEBUFFER_BINDING, &prev_fbo);
     glGenFramebuffers(1, &fbo);
-    glBindFramebuffer(GL_FRAMEBUFFER, fbo);
+    state.draw.read_framebuffer = fbo;
+    state.Apply();
 
     switch (target) {
     case GL_TEXTURE_2D:
@@ -123,8 +122,9 @@ static inline void GetTexImage(GLenum target, GLint level, GLenum format, GLenum
     case GL_TEXTURE_CUBE_MAP_NEGATIVE_Y:
     case GL_TEXTURE_CUBE_MAP_POSITIVE_Z:
     case GL_TEXTURE_CUBE_MAP_NEGATIVE_Z: {
-        glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, texture, level);
-        GLenum status = glCheckFramebufferStatus(GL_FRAMEBUFFER);
+        glFramebufferTexture2D(GL_READ_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, texture,
+                               level);
+        GLenum status = glCheckFramebufferStatus(GL_READ_FRAMEBUFFER);
         if (status != GL_FRAMEBUFFER_COMPLETE) {
             LOG_DEBUG(Render_OpenGL, "Framebuffer is incomplete, status: {:X}", status);
         }
@@ -133,7 +133,8 @@ static inline void GetTexImage(GLenum target, GLint level, GLenum format, GLenum
     }
     }
 
-    glBindFramebuffer(GL_FRAMEBUFFER, prev_fbo);
+    cur_state.Apply();
+
     glDeleteFramebuffers(1, &fbo);
 }
 
@@ -843,8 +844,9 @@ bool CachedSurface::LoadCustomTexture(u64 tex_hash, Core::CustomTexInfo& tex_inf
 
 void CachedSurface::DumpTexture(GLuint target_tex, u64 tex_hash) {
     // Dump texture to RGBA8 and encode as PNG
-    const auto& image_interface = Core::System::GetInstance().GetImageInterface();
-    auto& custom_tex_cache = Core::System::GetInstance().CustomTexCache();
+    const std::shared_ptr<Frontend::ImageInterface>& image_interface =
+        Core::System::GetInstance().GetImageInterface();
+    Core::CustomTexCache& custom_tex_cache = Core::System::GetInstance().CustomTexCache();
     std::string dump_path =
         fmt::format("{}textures/{:016X}/", FileUtil::GetUserPath(FileUtil::UserPath::DumpDir),
                     Core::System::GetInstance().Kernel().GetCurrentProcess()->codeset->program_id);
@@ -859,8 +861,7 @@ void CachedSurface::DumpTexture(GLuint target_tex, u64 tex_hash) {
         custom_tex_cache.SetTextureDumped(tex_hash);
 
         LOG_INFO(Render_OpenGL, "Dumping texture to {}", dump_path);
-        std::vector<u8> decoded_texture;
-        decoded_texture.resize(width * height * 4);
+        std::vector<u8> decoded_texture(width * height * 4, 0);
         glBindTexture(GL_TEXTURE_2D, target_tex);
         /*
            GetTexImage is used to work around a small issue that
@@ -878,8 +879,9 @@ void CachedSurface::DumpTexture(GLuint target_tex, u64 tex_hash) {
                     &decoded_texture[0]);
         glBindTexture(GL_TEXTURE_2D, 0);
         Common::FlipRGBA8Texture(decoded_texture, width, height);
-        if (!image_interface->EncodePNG(dump_path, decoded_texture, width, height))
+        if (!image_interface->EncodePNG(dump_path, decoded_texture, width, height)) {
             LOG_ERROR(Render_OpenGL, "Failed to save decoded texture");
+        }
     }
 }
 
