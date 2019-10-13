@@ -1889,6 +1889,8 @@ void GMainWindow::OnCustomTicks() {
     Settings::values.custom_ticks = !Settings::values.custom_ticks;
     ui.custom_ticks->setChecked(Settings::values.custom_ticks);
     ui.ticks->setVisible(ui.custom_ticks->isChecked());
+    statusBar()->showMessage(
+        QStringLiteral("Custom ticks: %1").arg(ui.custom_ticks->isChecked() ? "on" : "off"));
     config->Save();
     Settings::LogSettings();
 }
