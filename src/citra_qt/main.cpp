@@ -1902,10 +1902,6 @@ int main(int argc, char* argv[]) {
     MicroProfileOnThreadCreate("Frontend");
     SCOPE_EXIT({ MicroProfileShutdown(); });
 
-    // Init settings params
-    QCoreApplication::setOrganizationName("Citra team");
-    QCoreApplication::setApplicationName("Citra");
-
     QSurfaceFormat format;
     format.setVersion(3, 3);
     format.setProfile(QSurfaceFormat::CoreProfile);

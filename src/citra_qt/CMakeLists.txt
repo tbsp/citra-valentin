@@ -8,7 +8,6 @@ if (POLICY CMP0071)
 endif()
 
 add_executable(citra-qt
-    Info.plist
     aboutdialog.cpp
     aboutdialog.h
     aboutdialog.ui
