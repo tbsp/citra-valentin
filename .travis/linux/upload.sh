@@ -11,8 +11,8 @@ COMPRESSION_FLAGS="-cJvf"
 
 mkdir "$REV_NAME"
 
-cp build/bin/citra "$REV_NAME"
-cp build/bin/citra-room "$REV_NAME"
-cp build/bin/citra-qt "$REV_NAME"
+cp build/bin/citra-valentin "$REV_NAME"
+cp build/bin/citra-valentin-qt "$REV_NAME"
+cp build/bin/citra-valentin-room "$REV_NAME"
 
 . .travis/common/post-upload.sh

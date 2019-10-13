@@ -132,8 +132,8 @@ after_build:
         # copy all the dll dependencies to the release folder
         . "./.appveyor/FindDependencies.ps1"
         $DLLSearchPath = "C:\msys64\mingw64\bin;$env:PATH"
-        $MingwDLLs = RecursivelyGetDeps $DLLSearchPath "$RELEASE_DIST\citra.exe"
-        $MingwDLLs += RecursivelyGetDeps $DLLSearchPath  "$RELEASE_DIST\citra-qt.exe"
+        $MingwDLLs = RecursivelyGetDeps $DLLSearchPath "$RELEASE_DIST\citra-valentin.exe"
+        $MingwDLLs += RecursivelyGetDeps $DLLSearchPath  "$RELEASE_DIST\citra-valentin-qt.exe"
         $MingwDLLs += RecursivelyGetDeps $DLLSearchPath  "$RELEASE_DIST\imageformats\qjpeg.dll"
         Write-Host "Detected the following dependencies:"
         Write-Host $MingwDLLs
