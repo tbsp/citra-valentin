@@ -1,18 +1,18 @@
 # Set-up Visual Studio Command Prompt environment for PowerShell
-pushd "C:\Program Files (x86)\Microsoft Visual Studio\2017\Community\Common7\Tools\"
-cmd /c "VsDevCmd.bat -arch=x64 & set" | foreach {
+Push-Location "C:\Program Files (x86)\Microsoft Visual Studio\2017\Community\Common7\Tools\"
+cmd /c "VsDevCmd.bat -arch=x64 & set" | ForEach-Object {
     if ($_ -match "=") {
         $v = $_.split("="); Set-Item -Force -Path "ENV:\$($v[0])" -Value "$($v[1])"
     }
 }
-popd
+Pop-Location
 
 function Which ($search_path, $name) {
-    ($search_path).Split(";") | Get-ChildItem -Filter $name | Select -First 1 -Exp FullName
+    ($search_path).Split(";") | Get-ChildItem -Filter $name | Select-Object -First 1 -Exp FullName
 }
 
 function GetDeps ($search_path, $binary) {
-    ((dumpbin /dependents $binary).Where({ $_ -match "dependencies:"}, "SkipUntil") | Select-String "[^ ]*\.dll").Matches | foreach {
+    ((dumpbin /dependents $binary).Where({ $_ -match "dependencies:"}, "SkipUntil") | Select-String "[^ ]*\.dll").Matches | ForEach-Object {
         Which $search_path $_.Value
     }
 }
@@ -33,7 +33,7 @@ function RecursivelyGetDeps ($search_path, $binary) {
 
         $final_deps += $current
         $new_deps = GetDeps $search_path $current
-        $deps_to_process += ($new_deps | ?{-not ($final_deps -contains $_)})
+        $deps_to_process += ($new_deps | Where-Object{-not ($final_deps -contains $_)})
     }
     return $final_deps
 }

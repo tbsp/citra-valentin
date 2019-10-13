@@ -14,23 +14,23 @@ $srcsrv += "SRCSRV: variables ------------------------------------------`r`n"
 $srcsrv += "SRCSRVTRG=https://raw.githubusercontent.com/%var2%/%var3%/%var4%`r`n"
 $srcsrv += "SRCSRV: source files ---------------------------------------`r`n"
 foreach ($repo in @{
-  "citra-emu/citra" = ""
-  "citra-emu/ext-boost" = "externals/boost"
-  "citra-emu/ext-soundtouch" = "externals/soundtouch"
-  "fmtlib/fmt" = "externals/fmt"
-  "herumi/xbyak" = "externals/xbyak"
-  "lsalzman/enet" = "externals/enet"
-  "MerryMage/dynarmic" = "externals/dynarmic"
-  "neobrain/nihstro" = "externals/nihstro"
-}.GetEnumerator()) {
-  pushd
-  cd $repo.Value
+    "vvanelslande/citra"       = ""
+    "citra-emu/ext-boost"      = "externals/boost"
+    "citra-emu/ext-soundtouch" = "externals/soundtouch"
+    "fmtlib/fmt"               = "externals/fmt"
+    "herumi/xbyak"             = "externals/xbyak"
+    "lsalzman/enet"            = "externals/enet"
+    "MerryMage/dynarmic"       = "externals/dynarmic"
+    "neobrain/nihstro"         = "externals/nihstro"
+  }.GetEnumerator()) {
+  Push-Location
+  Set-Location $repo.Value
   $rev = git rev-parse HEAD
   $files = git ls-tree --name-only --full-tree -r HEAD
   foreach ($file in $files) {
-    $srcsrv += "$(pwd)\$($file -replace '/','\')*$($repo.Name)*$rev*$file`r`n"
+    $srcsrv += "$(Get-Location)\$($file -replace '/','\')*$($repo.Name)*$rev*$file`r`n"
   }
-  popd
+  Pop-Location
 }
 $srcsrv += "SRCSRV: end ------------------------------------------------`r`n"
 Set-Content -Path srcsrv.ini -Value $srcsrv
