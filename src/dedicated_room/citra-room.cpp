@@ -56,9 +56,9 @@ static void PrintHelp(const char* argv0) {
 }
 
 static void PrintVersion() {
-    std::cout << "Citra: vvanelslande-" << Version::major << "." << Version::minor << "."
+    std::cout << "Citra Valentin " << Version::major << "." << Version::minor << "."
               << Version::patch << std::endl
-              << "libnetwork: " << Network::network_version << std::endl;
+              << "Network version: " << Network::network_version << std::endl;
 }
 
 /// The magic text at the beginning of a citra-room ban list file.

@@ -5,7 +5,7 @@
 export TRAVIS_TAG=$CITRA_VERSION
 git tag $TRAVIS_TAG || true
 
-REV_NAME="citra-windows-mingw-${CITRA_VERSION}"
+REV_NAME="citra-valentin-windows-${CITRA_VERSION}"
 ARCHIVE_NAME="${REV_NAME}.tar.gz"
 COMPRESSION_FLAGS="-czvf"
 

@@ -74,7 +74,7 @@ static void PrintHelp(const char* argv0) {
 }
 
 static void PrintVersion() {
-    std::cout << "vvanelslande-" << Version::major << "." << Version::minor << "." << Version::patch
+    std::cout << "Citra Valentin " << Version::major << "." << Version::minor << "." << Version::patch
               << std::endl;
 }
 

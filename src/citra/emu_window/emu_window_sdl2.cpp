@@ -136,7 +136,7 @@ EmuWindow_SDL2::EmuWindow_SDL2(bool fullscreen) {
     // Initialize the window
     if (SDL_Init(SDL_INIT_VIDEO | SDL_INIT_JOYSTICK) < 0) {
         LOG_CRITICAL(Frontend, "Failed to initialize SDL2! Exiting...");
-        exit(1);
+        std::exit(1);
     }
 
     InputCommon::Init();
@@ -157,8 +157,8 @@ EmuWindow_SDL2::EmuWindow_SDL2(bool fullscreen) {
     // Enable vsync
     SDL_GL_SetSwapInterval(1);
 
-    std::string version =
-        fmt::format("Citra vvanelslande-{}.{}.{}", Version::major, Version::minor, Version::patch);
+    const std::string version =
+        fmt::format("Citra Valentin {}.{}.{}", Version::major, Version::minor, Version::patch);
     render_window =
         SDL_CreateWindow(version.c_str(),
                          SDL_WINDOWPOS_UNDEFINED, // x position
@@ -168,7 +168,7 @@ EmuWindow_SDL2::EmuWindow_SDL2(bool fullscreen) {
 
     if (render_window == nullptr) {
         LOG_CRITICAL(Frontend, "Failed to create SDL2 window: {}", SDL_GetError());
-        exit(1);
+        std::exit(1);
     }
 
     dummy_window = SDL_CreateWindow(NULL, SDL_WINDOWPOS_UNDEFINED, SDL_WINDOWPOS_UNDEFINED, 0, 0,
@@ -183,16 +183,16 @@ EmuWindow_SDL2::EmuWindow_SDL2(bool fullscreen) {
 
     if (window_context == nullptr) {
         LOG_CRITICAL(Frontend, "Failed to create SDL2 GL context: {}", SDL_GetError());
-        exit(1);
+        std::exit(1);
     }
     if (core_context == nullptr) {
         LOG_CRITICAL(Frontend, "Failed to create shared SDL2 GL context: {}", SDL_GetError());
-        exit(1);
+        std::exit(1);
     }
 
     if (!gladLoadGLLoader(static_cast<GLADloadproc>(SDL_GL_GetProcAddress))) {
         LOG_CRITICAL(Frontend, "Failed to initialize GL functions: {}", SDL_GetError());
-        exit(1);
+        std::exit(1);
     }
 
     OnResize();
@@ -282,7 +282,7 @@ void EmuWindow_SDL2::PollEvents() {
     if (current_time > last_time + 2000) {
         const auto results = Core::System::GetInstance().GetAndResetPerfStats();
         const std::string title =
-            fmt::format("Citra vvanelslande-{}.{}.{} | FPS: {:.0f} ({:.0%})", Version::major,
+            fmt::format("Citra Valentin {}.{}.{} | FPS: {:.0f} ({:.0%})", Version::major,
                         Version::minor, Version::patch, results.game_fps, results.emulation_speed);
         SDL_SetWindowTitle(render_window, title.c_str());
         last_time = current_time;

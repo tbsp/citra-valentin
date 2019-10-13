@@ -131,7 +131,7 @@ GMainWindow::GMainWindow() : config(new Config()), emu_thread(nullptr) {
     SetupMenu();
     ConnectWidgetEvents();
 
-    LOG_INFO(Frontend, "Citra Version: vvanelslande-{}.{}.{}", Version::major, Version::minor,
+    LOG_INFO(Frontend, "Citra Valentin version: {}.{}.{}", Version::major, Version::minor,
              Version::patch);
 #ifdef ARCHITECTURE_x86_64
     LOG_INFO(Frontend, "Host CPU: {}", Common::GetCPUCaps().cpu_string);
@@ -1861,11 +1861,11 @@ void GMainWindow::OnMoviePlaybackCompleted() {
 
 void GMainWindow::UpdateWindowTitle() {
     if (game_title.isEmpty()) {
-        setWindowTitle(QStringLiteral("Citra vvanelslande-%1.%2.%3")
+        setWindowTitle(QStringLiteral("Citra Valentin %1.%2.%3")
                            .arg(QString::number(Version::major), QString::number(Version::minor),
                                 QString::number(Version::patch)));
     } else {
-        setWindowTitle(QStringLiteral("Citra vvanelslande-%1.%2.%3 | %4")
+        setWindowTitle(QStringLiteral("Citra Valentin %1.%2.%3 | %4")
                            .arg(QString::number(Version::major), QString::number(Version::minor),
                                 QString::number(Version::patch), game_title));
     }
