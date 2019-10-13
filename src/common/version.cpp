@@ -7,5 +7,5 @@
 namespace Version {
 const u16 major = 2;
 const u16 minor = 2;
-const u16 patch = 4;
+const u16 patch = 5;
 } // namespace Version
