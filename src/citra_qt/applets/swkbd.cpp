@@ -125,6 +125,7 @@ void QtKeyboard::ShowError(const std::string& error) {
 
 void QtKeyboard::OpenInputDialog() {
     QtKeyboardDialog dialog(&parent, this);
+    dialog.setWindowTitle("Keyboard");
     dialog.setWindowFlags(Qt::Dialog | Qt::CustomizeWindowHint | Qt::WindowTitleHint |
                           Qt::WindowSystemMenuHint | Qt::WindowCloseButtonHint);
     dialog.setWindowModality(Qt::WindowModal);

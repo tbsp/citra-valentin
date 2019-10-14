@@ -28,7 +28,7 @@ QtMiiSelectorDialog::QtMiiSelectorDialog(QWidget* parent, QtMiiSelector* mii_sel
     }
 
     setWindowTitle(config.title.empty() || config.title.at(0) == '\x0000'
-                       ? tr("Mii Selector")
+                       ? "Mii Selector"
                        : QString::fromStdString(config.title));
 
     miis.push_back(HLE::Applets::MiiSelector::GetStandardMiiResult().selected_mii_data);
