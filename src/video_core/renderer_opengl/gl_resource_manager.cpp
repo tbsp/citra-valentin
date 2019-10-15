@@ -16,16 +16,18 @@ MICROPROFILE_DEFINE(OpenGL_ResourceDeletion, "OpenGL", "Resource Deletion", MP_R
 namespace OpenGL {
 
 void OGLRenderbuffer::Create() {
-    if (handle != 0)
+    if (handle != 0) {
         return;
+    }
 
     MICROPROFILE_SCOPE(OpenGL_ResourceCreation);
     glGenRenderbuffers(1, &handle);
 }
 
 void OGLRenderbuffer::Release() {
-    if (handle == 0)
+    if (handle == 0) {
         return;
+    }
 
     MICROPROFILE_SCOPE(OpenGL_ResourceDeletion);
     glDeleteRenderbuffers(1, &handle);
@@ -34,16 +36,18 @@ void OGLRenderbuffer::Release() {
 }
 
 void OGLTexture::Create() {
-    if (handle != 0)
+    if (handle != 0) {
         return;
+    }
 
     MICROPROFILE_SCOPE(OpenGL_ResourceCreation);
     glGenTextures(1, &handle);
 }
 
 void OGLTexture::Release() {
-    if (handle == 0)
+    if (handle == 0) {
         return;
+    }
 
     MICROPROFILE_SCOPE(OpenGL_ResourceDeletion);
     glDeleteTextures(1, &handle);
@@ -52,16 +56,18 @@ void OGLTexture::Release() {
 }
 
 void OGLSampler::Create() {
-    if (handle != 0)
+    if (handle != 0) {
         return;
+    }
 
     MICROPROFILE_SCOPE(OpenGL_ResourceCreation);
     glGenSamplers(1, &handle);
 }
 
 void OGLSampler::Release() {
-    if (handle == 0)
+    if (handle == 0) {
         return;
+    }
 
     MICROPROFILE_SCOPE(OpenGL_ResourceDeletion);
     glDeleteSamplers(1, &handle);
@@ -70,18 +76,21 @@ void OGLSampler::Release() {
 }
 
 void OGLShader::Create(const char* source, GLenum type) {
-    if (handle != 0)
+    if (handle != 0) {
         return;
-    if (source == nullptr)
+    }
+    if (source == nullptr) {
         return;
+    }
 
     MICROPROFILE_SCOPE(OpenGL_ResourceCreation);
     handle = LoadShader(source, type);
 }
 
 void OGLShader::Release() {
-    if (handle == 0)
+    if (handle == 0) {
         return;
+    }
 
     MICROPROFILE_SCOPE(OpenGL_ResourceDeletion);
     glDeleteShader(handle);
@@ -89,8 +98,9 @@ void OGLShader::Release() {
 }
 
 void OGLProgram::Create(bool separable_program, const std::vector<GLuint>& shaders) {
-    if (handle != 0)
+    if (handle != 0) {
         return;
+    }
 
     MICROPROFILE_SCOPE(OpenGL_ResourceCreation);
     handle = LoadProgram(separable_program, shaders);
@@ -106,8 +116,9 @@ void OGLProgram::Create(const char* vert_shader, const char* frag_shader) {
 }
 
 void OGLProgram::Release() {
-    if (handle == 0)
+    if (handle == 0) {
         return;
+    }
 
     MICROPROFILE_SCOPE(OpenGL_ResourceDeletion);
     glDeleteProgram(handle);
@@ -116,16 +127,18 @@ void OGLProgram::Release() {
 }
 
 void OGLPipeline::Create() {
-    if (handle != 0)
+    if (handle != 0) {
         return;
+    }
 
     MICROPROFILE_SCOPE(OpenGL_ResourceCreation);
     glGenProgramPipelines(1, &handle);
 }
 
 void OGLPipeline::Release() {
-    if (handle == 0)
+    if (handle == 0) {
         return;
+    }
 
     MICROPROFILE_SCOPE(OpenGL_ResourceDeletion);
     glDeleteProgramPipelines(1, &handle);
@@ -134,16 +147,18 @@ void OGLPipeline::Release() {
 }
 
 void OGLBuffer::Create() {
-    if (handle != 0)
+    if (handle != 0) {
         return;
+    }
 
     MICROPROFILE_SCOPE(OpenGL_ResourceCreation);
     glGenBuffers(1, &handle);
 }
 
 void OGLBuffer::Release() {
-    if (handle == 0)
+    if (handle == 0) {
         return;
+    }
 
     MICROPROFILE_SCOPE(OpenGL_ResourceDeletion);
     glDeleteBuffers(1, &handle);
@@ -152,16 +167,18 @@ void OGLBuffer::Release() {
 }
 
 void OGLVertexArray::Create() {
-    if (handle != 0)
+    if (handle != 0) {
         return;
+    }
 
     MICROPROFILE_SCOPE(OpenGL_ResourceCreation);
     glGenVertexArrays(1, &handle);
 }
 
 void OGLVertexArray::Release() {
-    if (handle == 0)
+    if (handle == 0) {
         return;
+    }
 
     MICROPROFILE_SCOPE(OpenGL_ResourceDeletion);
     glDeleteVertexArrays(1, &handle);
@@ -170,16 +187,18 @@ void OGLVertexArray::Release() {
 }
 
 void OGLFramebuffer::Create() {
-    if (handle != 0)
+    if (handle != 0) {
         return;
+    }
 
     MICROPROFILE_SCOPE(OpenGL_ResourceCreation);
     glGenFramebuffers(1, &handle);
 }
 
 void OGLFramebuffer::Release() {
-    if (handle == 0)
+    if (handle == 0) {
         return;
+    }
 
     MICROPROFILE_SCOPE(OpenGL_ResourceDeletion);
     glDeleteFramebuffers(1, &handle);

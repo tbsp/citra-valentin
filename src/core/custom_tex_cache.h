@@ -11,6 +11,7 @@
 #include "common/common_types.h"
 
 namespace Core {
+
 struct CustomTexInfo {
     u32 width;
     u32 height;
@@ -48,4 +49,5 @@ private:
     std::unordered_map<u64, CustomTexInfo> custom_textures;
     std::unordered_map<u64, CustomTexPathInfo> custom_texture_paths;
 };
+
 } // namespace Core

@@ -57,11 +57,12 @@ u64 Timing::GetIdleTicks() const {
 void Timing::ScheduleEvent(s64 cycles_into_future, const TimingEventType* event_type,
                            u64 userdata) {
     ASSERT(event_type != nullptr);
-    s64 timeout = GetTicks() + cycles_into_future;
+    const s64 timeout = GetTicks() + cycles_into_future;
 
     // If this event needs to be scheduled before the next advance(), force one early
-    if (!is_global_timer_sane)
+    if (!is_global_timer_sane) {
         ForceExceptionCheck(cycles_into_future);
+    }
 
     event_queue.emplace_back(Event{timeout, event_fifo_id++, userdata, event_type});
     std::push_heap(event_queue.begin(), event_queue.end(), std::greater<>());
@@ -119,7 +120,7 @@ void Timing::MoveEvents() {
 void Timing::Advance() {
     MoveEvents();
 
-    s64 cycles_executed = slice_length - downcount;
+    const s64 cycles_executed = slice_length - downcount;
     global_timer += cycles_executed;
     slice_length = MAX_SLICE_LENGTH;
 

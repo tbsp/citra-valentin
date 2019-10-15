@@ -79,7 +79,7 @@ AnnounceMultiplayerSession::~AnnounceMultiplayerSession() {
 
 void AnnounceMultiplayerSession::UpdateBackendData(std::shared_ptr<Network::Room> room) {
     Network::RoomInformation room_information = room->GetRoomInformation();
-    std::vector<Network::Room::Member> memberlist = room->GetRoomMemberList();
+    const std::vector<Network::Room::Member> memberlist = room->GetRoomMemberList();
     backend->SetRoomInformation(
         room_information.name, room_information.description, room_information.port,
         room_information.member_slots, Network::network_version, room->HasPassword(),
@@ -101,7 +101,7 @@ void AnnounceMultiplayerSession::AnnounceMultiplayerLoop() {
     };
 
     if (!registered) {
-        Common::WebResult result = Register();
+        const Common::WebResult result = Register();
         if (result.result_code != Common::WebResult::Code::Success) {
             ErrorCallback(result);
             return;

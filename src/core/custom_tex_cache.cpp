@@ -9,6 +9,7 @@
 #include "core/custom_tex_cache.h"
 
 namespace Core {
+
 CustomTexCache::CustomTexCache() = default;
 
 CustomTexCache::~CustomTexCache() = default;
@@ -34,10 +35,11 @@ void CustomTexCache::CacheTexture(u64 hash, const std::vector<u8>& tex, u32 widt
 }
 
 void CustomTexCache::AddTexturePath(u64 hash, const std::string& path) {
-    if (custom_texture_paths.count(hash))
+    if (custom_texture_paths.count(hash)) {
         LOG_ERROR(Core, "Textures {} and {} conflict!", custom_texture_paths[hash].path, path);
-    else
+    } else {
         custom_texture_paths[hash] = {path, hash};
+    }
 }
 
 void CustomTexCache::FindCustomTextures() {
@@ -56,10 +58,12 @@ void CustomTexCache::FindCustomTextures() {
         FileUtil::GetAllFilesFromNestedEntries(texture_dir, textures);
 
         for (const auto& file : textures) {
-            if (file.isDirectory)
+            if (file.isDirectory) {
                 continue;
-            if (file.virtualName.substr(0, 5) != "tex1_")
+            }
+            if (file.virtualName.substr(0, 5) != "tex1_") {
                 continue;
+            }
 
             u32 width;
             u32 height;
@@ -76,8 +80,9 @@ void CustomTexCache::FindCustomTextures() {
 
 void CustomTexCache::PreloadTextures() {
     for (const auto& path : custom_texture_paths) {
-        const auto& image_interface = Core::System::GetInstance().GetImageInterface();
-        const auto& path_info = path.second;
+        const std::shared_ptr<Frontend::ImageInterface>& image_interface =
+            Core::System::GetInstance().GetImageInterface();
+        const CustomTexPathInfo& path_info = path.second;
         Core::CustomTexInfo tex_info;
         if (image_interface->DecodePNG(tex_info.tex, tex_info.width, tex_info.height,
                                        path_info.path)) {
@@ -107,4 +112,5 @@ const CustomTexPathInfo& CustomTexCache::LookupTexturePathInfo(u64 hash) const {
 bool CustomTexCache::IsTexturePathMapEmpty() const {
     return custom_texture_paths.size() == 0;
 }
+
 } // namespace Core

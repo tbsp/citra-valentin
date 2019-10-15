@@ -133,7 +133,7 @@ void FrameLimiter::DoFrameLimiting(microseconds current_system_time_us) {
     }
 
     auto now = Clock::now();
-    double sleep_scale = Settings::values.frame_limit / 100.0;
+    const double sleep_scale = Settings::values.frame_limit / 100.0;
 
     // Max lag caused by slow frames. Shouldn't be more than the length of a frame at the current
     // speed percent or it will clamp too much and prevent this from properly limiting to that
@@ -149,7 +149,7 @@ void FrameLimiter::DoFrameLimiting(microseconds current_system_time_us) {
 
     if (frame_limiting_delta_err > microseconds::zero()) {
         std::this_thread::sleep_for(frame_limiting_delta_err);
-        auto now_after_sleep = Clock::now();
+        const auto now_after_sleep = Clock::now();
         frame_limiting_delta_err -= duration_cast<microseconds>(now_after_sleep - now);
         now = now_after_sleep;
     }
