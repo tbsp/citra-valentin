@@ -30,7 +30,7 @@ bool SeedDB::Load() {
         return false;
     }
     u32 count;
-    if (!file.ReadBytes(&count, sizeof(count))) {
+    if (file.ReadBytes(&count, sizeof(count)) != sizeof(count)) {
         LOG_ERROR(Service_FS, "Failed to read seed database count fully");
         return false;
     }
@@ -40,15 +40,15 @@ bool SeedDB::Load() {
     }
     for (u32 i = 0; i < count; ++i) {
         Seed seed;
-        if (!file.ReadBytes(&seed.title_id, sizeof(seed.title_id))) {
+        if (file.ReadBytes(&seed.title_id, sizeof(seed.title_id)) != sizeof(seed.title_id)) {
             LOG_ERROR(Service_FS, "Failed to read seed {} title ID", i);
             return false;
         }
-        if (!file.ReadBytes(seed.data.data(), seed.data.size())) {
+        if (file.ReadBytes(seed.data.data(), seed.data.size()) != seed.data.size()) {
             LOG_ERROR(Service_FS, "Failed to read seed {} data", i);
             return false;
         }
-        if (!file.ReadBytes(seed.reserved.data(), seed.reserved.size())) {
+        if (file.ReadBytes(seed.reserved.data(), seed.reserved.size()) != seed.reserved.size()) {
             LOG_ERROR(Service_FS, "Failed to read seed {} reserved data", i);
             return false;
         }
