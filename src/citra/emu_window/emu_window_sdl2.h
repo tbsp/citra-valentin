@@ -10,6 +10,10 @@
 
 struct SDL_Window;
 
+namespace Core {
+class System;
+} // namespace Core
+
 class SharedContext_SDL2 : public Frontend::GraphicsContext {
 public:
     using SDL_GLContext = void*;
@@ -48,6 +52,8 @@ public:
 
     /// Creates a new context that is shared with the current context
     std::unique_ptr<GraphicsContext> CreateSharedContext() const override;
+
+    void UpdateGame(Core::System& system);
 
 private:
     /// Called by PollEvents when a key is pressed or released.
@@ -99,4 +105,6 @@ private:
 
     /// Keeps track of how often to update the title bar during gameplay
     u32 last_time = 0;
+
+    std::string game;
 };

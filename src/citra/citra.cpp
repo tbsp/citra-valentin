@@ -74,8 +74,8 @@ static void PrintHelp(const char* argv0) {
 }
 
 static void PrintVersion() {
-    std::cout << "Citra Valentin " << Version::major << "." << Version::minor << "." << Version::patch
-              << std::endl;
+    std::cout << "Citra Valentin " << Version::major << "." << Version::minor << "."
+              << Version::patch << std::endl;
 }
 
 static void OnStateChanged(const Network::RoomMember::State& state) {
@@ -382,6 +382,8 @@ int main(int argc, char** argv) {
     case Core::System::ResultStatus::Success:
         break; // Expected case
     }
+
+    emu_window->UpdateGame(system);
 
     if (use_multiplayer) {
         if (auto member = Network::GetRoomMember().lock()) {

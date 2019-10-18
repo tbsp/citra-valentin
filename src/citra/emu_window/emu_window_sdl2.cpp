@@ -282,8 +282,12 @@ void EmuWindow_SDL2::PollEvents() {
     if (current_time > last_time + 2000) {
         const auto results = Core::System::GetInstance().GetAndResetPerfStats();
         const std::string title =
-            fmt::format("Citra Valentin {}.{}.{} | FPS: {:.0f} ({:.0%})", Version::major,
-                        Version::minor, Version::patch, results.game_fps, results.emulation_speed);
+            game.empty() ? fmt::format("Citra Valentin {}.{}.{} | FPS: {:.0f} ({:.0%})",
+                                       Version::major, Version::minor, Version::patch,
+                                       results.game_fps, results.emulation_speed)
+                         : fmt::format("Citra Valentin {}.{}.{} | {} | FPS: {:.0f} ({:.0%})",
+                                       Version::major, Version::minor, Version::patch, game,
+                                       results.game_fps, results.emulation_speed);
         SDL_SetWindowTitle(render_window, title.c_str());
         last_time = current_time;
     }
@@ -299,4 +303,8 @@ void EmuWindow_SDL2::DoneCurrent() {
 
 void EmuWindow_SDL2::OnMinimalClientAreaChangeRequest(std::pair<u32, u32> minimal_size) {
     SDL_SetWindowMinimumSize(render_window, minimal_size.first, minimal_size.second);
+}
+
+void EmuWindow_SDL2::UpdateGame(Core::System& system) {
+    system.GetAppLoader().ReadTitle(game);
 }
