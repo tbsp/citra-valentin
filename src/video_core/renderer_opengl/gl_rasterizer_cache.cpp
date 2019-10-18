@@ -109,9 +109,9 @@ static inline void GetTexImage(GLenum target, GLint level, GLenum format, GLenum
         return;
     }
 
-    GLuint fbo = 0;
-    glGenFramebuffers(1, &fbo);
-    state.draw.read_framebuffer = fbo;
+    OGLFramebuffer fbo;
+    fbo.Create();
+    state.draw.read_framebuffer = fbo.handle;
     state.Apply();
 
     switch (target) {
@@ -134,8 +134,6 @@ static inline void GetTexImage(GLenum target, GLint level, GLenum format, GLenum
     }
 
     cur_state.Apply();
-
-    glDeleteFramebuffers(1, &fbo);
 }
 
 template <typename Map, typename Interval>
@@ -815,9 +813,9 @@ bool CachedSurface::LoadCustomTexture(u64 tex_hash, Core::CustomTexInfo& tex_inf
             const auto& path_info = custom_tex_cache.LookupTexturePathInfo(tex_hash);
             if (image_interface->DecodePNG(tex_info.tex, tex_info.width, tex_info.height,
                                            path_info.path)) {
-                // Make sure the texture size is a power of 2
-                if ((ceil(log2(tex_info.width)) == floor(log2(tex_info.width))) &&
-                    (ceil(log2(tex_info.height)) == floor(log2(tex_info.height)))) {
+                std::bitset<32> width_bits(tex_info.width);
+                std::bitset<32> height_bits(tex_info.height);
+                if (width_bits.count() == 1 && height_bits.count() == 1) {
                     LOG_DEBUG(Render_OpenGL, "Loaded custom texture from {}", path_info.path);
                     Common::FlipRGBA8Texture(tex_info.tex, tex_info.width, tex_info.height);
                     custom_tex_cache.CacheTexture(tex_hash, tex_info.tex, tex_info.width,
