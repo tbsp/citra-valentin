@@ -15,10 +15,11 @@
 #include "core/settings.h"
 #include "ui_configure_camera.h"
 
-const std::array<std::string, 3> ConfigureCamera::Implementations = {
+const std::array<std::string, 4> ConfigureCamera::Implementations = {
     "blank", /* Blank */
     "image", /* Image */
-    "qt"     /* System Camera */
+    "qt",    /* System Camera */
+    "pipe"   /* Named Pipe Camera */
 };
 
 ConfigureCamera::ConfigureCamera(QWidget* parent)
@@ -115,7 +116,8 @@ void ConfigureCamera::UpdateImageSourceUI() {
     int image_source = ui->image_source->currentIndex();
     switch (image_source) {
     case 0: /* blank */
-    case 2: /* system camera */
+    case 2:
+    case 3: /* system camera or named pipe camera */
         ui->prompt_before_load->setHidden(true);
         ui->prompt_before_load->setChecked(false);
         ui->camera_file_label->setHidden(true);

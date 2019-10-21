@@ -22,6 +22,9 @@
 #include "citra_qt/applets/mii_selector.h"
 #include "citra_qt/applets/swkbd.h"
 #include "citra_qt/bootmanager.h"
+#ifdef _WIN32
+#include "citra_qt/camera/pipe_camera.h"
+#endif
 #include "citra_qt/camera/qt_multimedia_camera.h"
 #include "citra_qt/camera/still_image_camera.h"
 #include "citra_qt/cheats.h"
@@ -1926,6 +1929,9 @@ int main(int argc, char* argv[]) {
     // Register CameraFactory
     Camera::RegisterFactory("image", std::make_unique<Camera::StillImageCameraFactory>());
     Camera::RegisterFactory("qt", std::make_unique<Camera::QtMultimediaCameraFactory>());
+#ifdef _WIN32
+    Camera::RegisterFactory("pipe", std::make_unique<Camera::PipeCameraFactory>());
+#endif
     Camera::QtMultimediaCameraHandler::Init();
 
     // Register frontend applets
