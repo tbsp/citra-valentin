@@ -7,7 +7,9 @@ add_executable(citra-room
 
 create_target_directory_groups(citra-room)
 
+# So Discord doesn't say it's a official build
 set_target_properties(citra-room PROPERTIES OUTPUT_NAME "citra-valentin-room")
+
 target_link_libraries(citra-room PRIVATE common core network web_service)
 target_link_libraries(citra-room PRIVATE glad)
 

@@ -153,6 +153,8 @@ file(GLOB_RECURSE ICONS ${PROJECT_SOURCE_DIR}/dist/icons/*)
 file(GLOB_RECURSE THEMES ${PROJECT_SOURCE_DIR}/dist/qt_themes/*)
 
 target_sources(citra-qt PRIVATE ${ICONS} ${THEMES})
+
+# So Discord doesn't say it's a official build
 set_target_properties(citra-qt PROPERTIES OUTPUT_NAME "citra-valentin-qt")
 
 if(WIN32)

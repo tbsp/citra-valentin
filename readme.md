@@ -6,6 +6,6 @@ Citra emulates a subset of 3DS hardware and therefore is useful for running/debu
 Citra is licensed under the GPLv2 (or any later version). Refer to the license.txt file included.
 
 ### Building
-- [Linux](https://github.com/citra-emu/citra/wiki/Building-For-Linux)
+- [Linux](https://github.com/vvanelslande/citra/wiki/Building-For-Linux)
 - [Windows (Using MSBuild)](https://github.com/vvanelslande/citra/wiki/Building-for-Windows-(MSBuild))
-- [Windows (Using MSYS2)](https://github.com/citra-emu/citra/wiki/Building-for-Windows#mingw-w64-build-with-msys2) (use `vvanelslande` when cloning instead of `citra-emu`)
+- [Windows (Using MSYS2)](https://github.com/vvanelslande/citra/wiki/Building-for-Windows-(MSYS2))
