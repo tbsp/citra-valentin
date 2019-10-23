@@ -515,72 +515,7 @@ void GMainWindow::SetupMenu() {
     connect(ui.action_Configure, &QAction::triggered, this, &GMainWindow::OnConfigure);
     connect(ui.action_Cheats, &QAction::triggered, this, &GMainWindow::OnCheats);
 
-    // Configuration: Custom Ticks
-    ui.custom_ticks->setChecked(Settings::values.custom_ticks);
-    ui.ticks->setText(QStringLiteral("Current: %1").arg(Settings::values.ticks));
-    ui.ticks->setVisible(ui.custom_ticks->isChecked());
-    connect(ui.custom_ticks, &QAction::triggered, this, &GMainWindow::OnCustomTicks);
-    connect(ui.ticks, &QAction::triggered, this, [this] {
-        bool ok;
-        const QString text = QInputDialog::getText(this, "Change ticks", "", QLineEdit::Normal,
-                                                   QString::number(Settings::values.ticks), &ok);
-        if (!ok) {
-            return;
-        }
-
-        const u64 new_ticks = text.toULongLong(&ok);
-        if (ok) {
-            Settings::values.ticks = new_ticks;
-            ui.ticks->setText(QStringLiteral("Change (current: %1)").arg(new_ticks));
-            config->Save();
-            Settings::LogSettings();
-        } else {
-            QMessageBox::critical(this, "Invalid Input", "Not a valid unsigned long long");
-            return;
-        }
-    });
-
-    // Configuration: ignore format reinterpretation
-    ui.ignore_format_reinterpretation->setChecked(Settings::values.ignore_format_reinterpretation);
-    connect(ui.ignore_format_reinterpretation, &QAction::triggered, this, [this] {
-        Settings::values.ignore_format_reinterpretation =
-            ui.ignore_format_reinterpretation->isChecked();
-        config->Save();
-        Settings::LogSettings();
-    });
-
-    // Configuration: sharper distant objects
-    ui.sharper_distant_objects->setChecked(Settings::values.sharper_distant_objects);
-    connect(ui.sharper_distant_objects, &QAction::triggered, this, [this] {
-        Settings::values.sharper_distant_objects = ui.sharper_distant_objects->isChecked();
-        config->Save();
-        Settings::LogSettings();
-    });
-
-    // Configuration: custom screen refresh rate
-    ui.custom_screen_refresh_rate->setChecked(Settings::values.custom_screen_refresh_rate);
-    ui.screen_refresh_rate->setText(QStringLiteral("Change (current: %1)")
-                                        .arg(Settings::values.screen_refresh_rate, 0, 'f', 0));
-    ui.screen_refresh_rate->setVisible(ui.custom_screen_refresh_rate->isChecked());
-    connect(ui.custom_screen_refresh_rate, &QAction::triggered, this, [this] {
-        Settings::values.custom_screen_refresh_rate = ui.custom_screen_refresh_rate->isChecked();
-        ui.screen_refresh_rate->setVisible(ui.custom_screen_refresh_rate->isChecked());
-        config->Save();
-        Settings::LogSettings();
-    });
-    connect(ui.screen_refresh_rate, &QAction::triggered, this, [this] {
-        bool ok;
-        const double new_screen_refresh_rate = QInputDialog::getDouble(
-            this, "Change screen refresh rate", "", Settings::values.screen_refresh_rate,
-            -2147483647, 2147483647, 0, &ok);
-        if (ok) {
-            Settings::values.screen_refresh_rate = new_screen_refresh_rate;
-            ui.screen_refresh_rate->setText(
-                QStringLiteral("Change (current: %1)").arg(new_screen_refresh_rate, 0, 'f', 0));
-            config->Save();
-            Settings::LogSettings();
-        }
-    });
+    SetupMenuHacks();
 
     // View
     connect(ui.action_Single_Window_Mode, &QAction::triggered, this,
@@ -1896,6 +1831,75 @@ void GMainWindow::OnCustomTicks() {
         QStringLiteral("Custom ticks: %1").arg(ui.custom_ticks->isChecked() ? "on" : "off"));
     config->Save();
     Settings::LogSettings();
+}
+
+void GMainWindow::SetupMenuHacks() {
+    // Custom Ticks
+    ui.custom_ticks->setChecked(Settings::values.custom_ticks);
+    ui.ticks->setText(QStringLiteral("Current: %1").arg(Settings::values.ticks));
+    ui.ticks->setVisible(ui.custom_ticks->isChecked());
+    connect(ui.custom_ticks, &QAction::triggered, this, &GMainWindow::OnCustomTicks);
+    connect(ui.ticks, &QAction::triggered, this, [this] {
+        bool ok;
+        const QString text = QInputDialog::getText(this, "Change ticks", "", QLineEdit::Normal,
+                                                   QString::number(Settings::values.ticks), &ok);
+        if (!ok) {
+            return;
+        }
+
+        const u64 new_ticks = text.toULongLong(&ok);
+        if (ok) {
+            Settings::values.ticks = new_ticks;
+            ui.ticks->setText(QStringLiteral("Change (current: %1)").arg(new_ticks));
+            config->Save();
+            Settings::LogSettings();
+        } else {
+            QMessageBox::critical(this, "Invalid Input", "Not a valid unsigned long long");
+            return;
+        }
+    });
+
+    // Ignore format reinterpretation
+    ui.ignore_format_reinterpretation->setChecked(Settings::values.ignore_format_reinterpretation);
+    connect(ui.ignore_format_reinterpretation, &QAction::triggered, this, [this] {
+        Settings::values.ignore_format_reinterpretation =
+            ui.ignore_format_reinterpretation->isChecked();
+        config->Save();
+        Settings::LogSettings();
+    });
+
+    // Sharper distant objects
+    ui.sharper_distant_objects->setChecked(Settings::values.sharper_distant_objects);
+    connect(ui.sharper_distant_objects, &QAction::triggered, this, [this] {
+        Settings::values.sharper_distant_objects = ui.sharper_distant_objects->isChecked();
+        config->Save();
+        Settings::LogSettings();
+    });
+
+    // Custom screen refresh rate
+    ui.custom_screen_refresh_rate->setChecked(Settings::values.custom_screen_refresh_rate);
+    ui.screen_refresh_rate->setText(QStringLiteral("Change (current: %1)")
+                                        .arg(Settings::values.screen_refresh_rate, 0, 'f', 0));
+    ui.screen_refresh_rate->setVisible(ui.custom_screen_refresh_rate->isChecked());
+    connect(ui.custom_screen_refresh_rate, &QAction::triggered, this, [this] {
+        Settings::values.custom_screen_refresh_rate = ui.custom_screen_refresh_rate->isChecked();
+        ui.screen_refresh_rate->setVisible(ui.custom_screen_refresh_rate->isChecked());
+        config->Save();
+        Settings::LogSettings();
+    });
+    connect(ui.screen_refresh_rate, &QAction::triggered, this, [this] {
+        bool ok;
+        const double new_screen_refresh_rate = QInputDialog::getDouble(
+            this, "Change screen refresh rate", "", Settings::values.screen_refresh_rate,
+            -2147483647, 2147483647, 0, &ok);
+        if (ok) {
+            Settings::values.screen_refresh_rate = new_screen_refresh_rate;
+            ui.screen_refresh_rate->setText(
+                QStringLiteral("Change (current: %1)").arg(new_screen_refresh_rate, 0, 'f', 0));
+            config->Save();
+            Settings::LogSettings();
+        }
+    });
 }
 
 #ifdef main

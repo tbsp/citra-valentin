@@ -182,6 +182,8 @@ private slots:
     /// Called whenever a user selects Help->About Citra
     void OnMenuAboutCitra();
 
+    // Hacks
+    void SetupMenuHacks();
     // Custom Ticks
     void OnCustomTicks();
 
