@@ -98,7 +98,7 @@ private:
     void RestoreUIState();
 
     void ConnectWidgetEvents();
-    void SetupMenu();
+    void ConnectMenuEvents();
 
     void PreventOSSleep();
     void AllowOSSleep();
@@ -181,11 +181,6 @@ private slots:
 
     /// Called whenever a user selects Help->About Citra
     void OnMenuAboutCitra();
-
-    // Hacks
-    void SetupMenuHacks();
-    // Custom Ticks
-    void OnCustomTicks();
 
 private:
     bool ValidateMovie(const QString& path, u64 program_id = 0);

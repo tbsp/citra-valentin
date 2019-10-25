@@ -16,10 +16,14 @@ ConfigureGraphics::ConfigureGraphics(QWidget* parent)
 
     ui->hw_renderer_group->setVisible(ui->toggle_hw_renderer->isChecked());
     connect(ui->toggle_hw_renderer, &QCheckBox::toggled, ui->hw_renderer_group,
-            &QGroupBox::setVisible);
+            &QWidget::setVisible);
+
+    ui->custom_screen_refresh_rate->setVisible(ui->toggle_custom_screen_refresh_rate->isChecked());
+    connect(ui->toggle_custom_screen_refresh_rate, &QCheckBox::toggled,
+            ui->custom_screen_refresh_rate, &QSpinBox::setVisible);
 
     ui->hw_shader_group->setVisible(ui->toggle_hw_shader->isChecked());
-    connect(ui->toggle_hw_shader, &QCheckBox::toggled, ui->hw_shader_group, &QGroupBox::setVisible);
+    connect(ui->toggle_hw_shader, &QCheckBox::toggled, ui->hw_shader_group, &QWidget::setVisible);
 }
 
 ConfigureGraphics::~ConfigureGraphics() = default;
@@ -30,6 +34,10 @@ void ConfigureGraphics::SetConfiguration() {
     ui->toggle_accurate_mul->setChecked(Settings::values.shaders_accurate_mul);
     ui->toggle_shader_jit->setChecked(Settings::values.use_shader_jit);
     ui->toggle_disk_cache->setChecked(Settings::values.use_disk_shader_cache);
+    ui->sharper_distant_objects->setChecked(Settings::values.sharper_distant_objects);
+    ui->ignore_format_reinterpretation->setChecked(Settings::values.ignore_format_reinterpretation);
+    ui->toggle_custom_screen_refresh_rate->setChecked(Settings::values.custom_screen_refresh_rate);
+    ui->custom_screen_refresh_rate->setValue(Settings::values.screen_refresh_rate);
 }
 
 void ConfigureGraphics::ApplyConfiguration() {
@@ -38,4 +46,10 @@ void ConfigureGraphics::ApplyConfiguration() {
     Settings::values.shaders_accurate_mul = ui->toggle_accurate_mul->isChecked();
     Settings::values.use_shader_jit = ui->toggle_shader_jit->isChecked();
     Settings::values.use_disk_shader_cache = ui->toggle_disk_cache->isChecked();
+    Settings::values.sharper_distant_objects = ui->sharper_distant_objects->isChecked();
+    Settings::values.ignore_format_reinterpretation =
+        ui->ignore_format_reinterpretation->isChecked();
+    Settings::values.custom_screen_refresh_rate =
+        ui->toggle_custom_screen_refresh_rate->isChecked();
+    Settings::values.screen_refresh_rate = ui->custom_screen_refresh_rate->value();
 }
