@@ -557,7 +557,7 @@ void GMainWindow::ConnectMenuEvents() {
 
     // Movie
     connect(ui.action_Record_Movie, &QAction::triggered, this, &GMainWindow::OnRecordMovie);
-    connect(ui.action_Play_Movie, &QAction::triggered, this, &GMainWindow::OnPlayMovie);
+    connect(ui.action_Play_Movie, &QAction::triggered, this, [this] { OnPlayMovie(""); });
     connect(ui.action_Stop_Recording_Playback, &QAction::triggered, this,
             &GMainWindow::OnStopRecordingPlayback);
     connect(ui.action_Enable_Frame_Advancing, &QAction::triggered, this, [this] {
@@ -1454,7 +1454,7 @@ bool GMainWindow::ValidateMovie(const QString& path, u64 program_id) {
     return true;
 }
 
-void GMainWindow::OnPlayMovie() {
+void GMainWindow::OnPlayMovie(const QString& filename) {
     if (emulation_running) {
         QMessageBox::StandardButton answer = QMessageBox::warning(
             this, tr("Play Movie"),
@@ -1465,9 +1465,11 @@ void GMainWindow::OnPlayMovie() {
             return;
     }
 
-    const QString path =
-        QFileDialog::getOpenFileName(this, tr("Play Movie"), UISettings::values.movie_playback_path,
-                                     tr("Citra TAS Movie (*.ctm)"));
+    const QString path = filename.isEmpty()
+                             ? QFileDialog::getOpenFileName(this, tr("Play Movie"),
+                                                            UISettings::values.movie_playback_path,
+                                                            tr("Citra TAS Movie (*.ctm)"))
+                             : filename;
     if (path.isEmpty())
         return;
     UISettings::values.movie_playback_path = QFileInfo(path).path();
@@ -1731,6 +1733,9 @@ void GMainWindow::dropEvent(QDropEvent* event) {
     if (emulation_running && QFileInfo(filename).suffix() == "bin") {
         // Amiibo
         LoadAmiibo(filename);
+    } else if (QFileInfo(filename).suffix() == "ctm") {
+        // Movie
+        OnPlayMovie(filename);
     } else {
         // Game
         if (ConfirmChangeGame()) {

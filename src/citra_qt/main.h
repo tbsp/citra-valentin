@@ -172,7 +172,7 @@ private slots:
     void ToggleWindowMode();
     void OnCreateGraphicsSurfaceViewer();
     void OnRecordMovie();
-    void OnPlayMovie();
+    void OnPlayMovie(const QString& filename);
     void OnStopRecordingPlayback();
     void OnCaptureScreenshot();
     void OnStartVideoDumping();
