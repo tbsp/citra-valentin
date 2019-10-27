@@ -601,6 +601,14 @@ void GMainWindow::ConnectMenuEvents() {
     // Help
     connect(ui.action_Open_Citra_Folder, &QAction::triggered, this,
             &GMainWindow::OnOpenCitraFolder);
+#ifdef _WIN32
+    connect(ui.action_Open_EXE_Location, &QAction::triggered, this, [] {
+        QDesktopServices::openUrl(
+            QUrl::fromLocalFile(QString::fromStdString(FileUtil::GetExeDirectory())));
+    });
+#else
+    ui.action_Open_EXE_Location->setVisible(false);
+#endif
     connect(ui.action_About, &QAction::triggered, this, &GMainWindow::OnMenuAboutCitra);
 }
 
