@@ -14,6 +14,7 @@ CMAKE_DEPENDENT_OPTION(CITRA_USE_BUNDLED_SDL2 "Download bundled SDL2 binaries" O
 
 option(ENABLE_QT "Enable the Qt frontend" ON)
 CMAKE_DEPENDENT_OPTION(CITRA_USE_BUNDLED_QT "Download bundled Qt binaries" ON "ENABLE_QT;MSVC" OFF)
+CMAKE_DEPENDENT_OPTION(CITRA_ENABLE_DISCORD_RP "Enable Discord Rich Presence" OFF "ENABLE_QT" OFF)
 
 option(ENABLE_CUBEB "Enables the cubeb audio backend" ON)
 option(ENABLE_FFMPEG_AUDIO_DECODER "Enable FFmpeg audio (AAC) decoder" OFF)

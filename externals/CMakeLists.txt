@@ -105,3 +105,10 @@ target_include_directories(cpp-jwt INTERFACE ./cpp-jwt/include)
 
 # lodepng
 add_subdirectory(lodepng)
+
+if(CITRA_ENABLE_DISCORD_RP)
+    # Discord RP
+    set(BUILD_EXAMPLES OFF CACHE BOOL "")
+    add_subdirectory(discord-rpc EXCLUDE_FROM_ALL)
+    target_include_directories(discord-rpc INTERFACE ./discord-rpc/include)
+endif()

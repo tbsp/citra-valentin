@@ -116,6 +116,10 @@ struct Values {
 
     // logging
     bool show_console;
+
+#ifdef CITRA_ENABLE_DISCORD_RP
+    bool enable_discord_rp;
+#endif
 };
 
 extern Values values;

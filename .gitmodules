@@ -46,3 +46,6 @@
 [submodule "zstd"]
     path = externals/zstd
     url = https://github.com/facebook/zstd.git
+[submodule "discord-rpc"]
+    path = externals/discord-rpc
+    url = https://github.com/discordapp/discord-rpc

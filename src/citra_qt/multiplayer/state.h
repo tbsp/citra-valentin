@@ -67,6 +67,9 @@ signals:
     void NetworkStateChanged(const Network::RoomMember::State&);
     void NetworkError(const Network::RoomMember::Error&);
     void AnnounceFailed(const Common::WebResult&);
+#ifdef CITRA_ENABLE_DISCORD_RP
+    void RoomInformationChanged();
+#endif
 
 private:
     Lobby* lobby = nullptr;
@@ -83,6 +86,7 @@ private:
     bool has_mod_perms = false;
     Network::RoomMember::CallbackHandle<Network::RoomMember::State> state_callback_handle;
     Network::RoomMember::CallbackHandle<Network::RoomMember::Error> error_callback_handle;
+    Network::RoomMember::CallbackHandle<Network::RoomInformation> room_information_callback_handle;
 
     bool show_notification = false;
 };

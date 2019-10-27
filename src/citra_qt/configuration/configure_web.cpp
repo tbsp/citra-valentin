@@ -14,15 +14,24 @@
 ConfigureWeb::ConfigureWeb(QWidget* parent)
     : QWidget(parent), ui(std::make_unique<Ui::ConfigureWeb>()) {
     ui->setupUi(this);
+
+    SetConfiguration();
+
     connect(ui->button_verify_login, &QPushButton::clicked, this, &ConfigureWeb::VerifyLogin);
     connect(&verify_watcher, &QFutureWatcher<bool>::finished, this, &ConfigureWeb::OnLoginVerified);
 
-    SetConfiguration();
+#ifndef CITRA_ENABLE_DISCORD_RP
+    ui->enable_discord_rp->hide();
+#endif
 }
 
 ConfigureWeb::~ConfigureWeb() = default;
 
 void ConfigureWeb::SetConfiguration() {
+#ifdef CITRA_ENABLE_DISCORD_RP
+    ui->enable_discord_rp->setChecked(UISettings::values.enable_discord_rp);
+#endif
+
     ui->web_credentials_disclaimer->setWordWrap(true);
 
     ui->web_signup_link->setOpenExternalLinks(true);
@@ -43,6 +52,10 @@ void ConfigureWeb::SetConfiguration() {
 }
 
 void ConfigureWeb::ApplyConfiguration() {
+#ifdef CITRA_ENABLE_DISCORD_RP
+    UISettings::values.enable_discord_rp = ui->enable_discord_rp->isChecked();
+#endif
+
     if (user_verified) {
         Settings::values.citra_username = ui->edit_username->text().toStdString();
         Settings::values.citra_token = ui->edit_token->text().toStdString();

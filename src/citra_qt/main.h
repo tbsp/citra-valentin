@@ -8,6 +8,11 @@
 #include <QLabel>
 #include <QMainWindow>
 #include <QTimer>
+
+#ifdef CITRA_ENABLE_DISCORD_RP
+#include "citra_qt/discord_rp.h"
+#endif
+
 #include "citra_qt/hotkeys.h"
 #include "common/announce_multiplayer_room.h"
 #include "core/core.h"
@@ -64,6 +69,7 @@ public:
 
 public slots:
     void OnAppFocusStateChanged(Qt::ApplicationState state);
+
 signals:
 
     /**
@@ -247,6 +253,10 @@ private:
     QStringList default_theme_paths;
 
     HotkeyRegistry hotkey_registry;
+
+#ifdef CITRA_ENABLE_DISCORD_RP
+    DiscordRP discord_rp;
+#endif
 
 protected:
     void dropEvent(QDropEvent* event) override;

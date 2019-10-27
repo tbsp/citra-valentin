@@ -62,6 +62,7 @@
 #ifdef ARCHITECTURE_x86_64
 #include "common/x64/cpu_detect.h"
 #endif
+#include "citra_qt/game_list_p.h"
 #include "core/core.h"
 #include "core/dumping/backend.h"
 #include "core/file_sys/archive_extsavedata.h"
@@ -74,7 +75,6 @@
 #include "core/loader/loader.h"
 #include "core/movie.h"
 #include "core/settings.h"
-#include "game_list_p.h"
 #include "video_core/renderer_base.h"
 #include "video_core/video_core.h"
 
@@ -104,7 +104,13 @@ static void InitializeLogging() {
 #endif
 }
 
-GMainWindow::GMainWindow() : config(new Config()), emu_thread(nullptr) {
+GMainWindow::GMainWindow()
+    : config(new Config()), emu_thread(nullptr)
+#ifdef CITRA_ENABLE_DISCORD_RP
+      ,
+      discord_rp(Core::System::GetInstance())
+#endif
+{
     InitializeLogging();
     Debugger::ToggleConsole();
     Settings::LogSettings();
@@ -175,6 +181,10 @@ void GMainWindow::InitializeWidgets() {
     multiplayer_state = new MultiplayerState(this, game_list->GetModel(), ui.action_Leave_Room,
                                              ui.action_Show_Room);
     multiplayer_state->setVisible(false);
+#ifdef CITRA_ENABLE_DISCORD_RP
+    connect(multiplayer_state, &MultiplayerState::RoomInformationChanged, this,
+            [this] { discord_rp.Update(); });
+#endif
 
     // Create status bar
     message_label = new QLabel();
@@ -1151,6 +1161,10 @@ void GMainWindow::OnStartGame() {
     ui.action_Load_Amiibo->setEnabled(true);
     ui.action_Enable_Frame_Advancing->setEnabled(true);
     ui.action_Capture_Screenshot->setEnabled(true);
+
+#ifdef CITRA_ENABLE_DISCORD_RP
+    discord_rp.Update();
+#endif
 }
 
 void GMainWindow::OnPauseGame() {
@@ -1166,6 +1180,10 @@ void GMainWindow::OnPauseGame() {
 
 void GMainWindow::OnStopGame() {
     ShutdownGame();
+
+#ifdef CITRA_ENABLE_DISCORD_RP
+    discord_rp.Update();
+#endif
 }
 
 void GMainWindow::ToggleFullscreen() {
@@ -1290,14 +1308,24 @@ void GMainWindow::OnConfigure() {
     auto old_theme = UISettings::values.theme;
     const int old_input_profile_index = Settings::values.current_input_profile_index;
     const auto old_input_profiles = Settings::values.input_profiles;
+#ifdef CITRA_ENABLE_DISCORD_RP
+    const bool enable_discord_rp = UISettings::values.enable_discord_rp;
+#endif
     auto result = configureDialog.exec();
     if (result == QDialog::Accepted) {
         configureDialog.ApplyConfiguration();
         InitializeHotkeys();
-        if (UISettings::values.theme != old_theme)
+        if (UISettings::values.theme != old_theme) {
             UpdateUITheme();
-        if (!multiplayer_state->IsHostingPublicRoom())
+        }
+        if (!multiplayer_state->IsHostingPublicRoom()) {
             multiplayer_state->UpdateCredentials();
+        }
+#ifdef CITRA_ENABLE_DISCORD_RP
+        if (UISettings::values.enable_discord_rp != enable_discord_rp) {
+            discord_rp.Update();
+        }
+#endif
         emit UpdateThemedIcons();
         SyncMenuUISettings();
         game_list->RefreshGameDirectory();

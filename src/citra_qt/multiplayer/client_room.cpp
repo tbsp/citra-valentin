@@ -27,7 +27,7 @@ ClientRoomWindow::ClientRoomWindow(QWidget* parent)
     // setup the callbacks for network updates
     if (auto member = Network::GetRoomMember().lock()) {
         member->BindOnRoomInformationChanged(
-            [this](const Network::RoomInformation& info) { emit RoomInformationChanged(info); });
+            [this](const Network::RoomInformation& /*info*/) { emit RoomInformationChanged(); });
         member->BindOnStateChanged(
             [this](const Network::RoomMember::State& state) { emit StateChanged(state); });
 
@@ -62,7 +62,7 @@ void ClientRoomWindow::SetModPerms(bool is_mod) {
     ui->moderation->setAutoDefault(false);
 }
 
-void ClientRoomWindow::OnRoomUpdate(const Network::RoomInformation& info) {
+void ClientRoomWindow::OnRoomUpdate() {
     UpdateView();
 }
 

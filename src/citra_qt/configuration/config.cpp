@@ -252,6 +252,9 @@ void Config::ReadValues() {
 
     qt_config->beginGroup("Miscellaneous");
     Settings::values.log_filter = ReadSetting("log_filter", "*:Info").toString().toStdString();
+#ifdef CITRA_ENABLE_DISCORD_RP
+    UISettings::values.enable_discord_rp = ReadSetting("enable_discord_rp", true).toBool();
+#endif
     qt_config->endGroup();
 
     qt_config->beginGroup("Debugging");
@@ -557,6 +560,9 @@ void Config::SaveValues() {
 
     qt_config->beginGroup("Miscellaneous");
     WriteSetting("log_filter", QString::fromStdString(Settings::values.log_filter), "*:Info");
+#ifdef CITRA_ENABLE_DISCORD_RP
+    WriteSetting("enable_discord_rp", UISettings::values.enable_discord_rp, true);
+#endif
     qt_config->endGroup();
 
     qt_config->beginGroup("Debugging");

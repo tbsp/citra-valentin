@@ -60,14 +60,12 @@ MultiplayerState::MultiplayerState(QWidget* parent, QStandardItemModel* game_lis
 }
 
 MultiplayerState::~MultiplayerState() {
-    if (state_callback_handle) {
-        if (auto member = Network::GetRoomMember().lock()) {
+    if (auto member = Network::GetRoomMember().lock()) {
+        if (state_callback_handle) {
             member->Unbind(state_callback_handle);
         }
-    }
 
-    if (error_callback_handle) {
-        if (auto member = Network::GetRoomMember().lock()) {
+        if (error_callback_handle) {
             member->Unbind(error_callback_handle);
         }
     }
@@ -170,8 +168,9 @@ void MultiplayerState::UpdateThemedIcons() {
     } else {
         status_icon->setPixmap(QIcon::fromTheme("disconnected").pixmap(16));
     }
-    if (client_room)
+    if (client_room) {
         client_room->UpdateIconDisplay();
+    }
 }
 
 static void BringWidgetToFront(QWidget* widget) {
@@ -202,6 +201,7 @@ bool MultiplayerState::OnCloseRoom() {
         if (auto member = Network::GetRoomMember().lock()) {
             member->Leave();
             LOG_DEBUG(Frontend, "Left the room (as a client)");
+            emit RoomInformationChanged();
         }
 
         // if you are hosting a room, also stop hosting
@@ -242,6 +242,11 @@ void MultiplayerState::OnOpenNetworkRoom() {
                 client_room = new ClientRoomWindow(this);
                 connect(client_room, &ClientRoomWindow::ShowNotification, this,
                         &MultiplayerState::ShowNotification);
+#ifdef CITRA_ENABLE_DISCORD_RP
+                connect(client_room, &ClientRoomWindow::RoomInformationChanged, this,
+                        [this] { emit RoomInformationChanged(); });
+                emit RoomInformationChanged();
+#endif
             }
             BringWidgetToFront(client_room);
             return;

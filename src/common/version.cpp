@@ -1,4 +1,4 @@
-// Copyright 2019 Citra Emulator Project
+// Copyright 2019 Citra Valentin Emulator Project
 // Licensed under GPLv2 or any later version
 // Refer to the license.txt file included.
 
@@ -6,6 +6,6 @@
 
 namespace Version {
 const u16 major = 2;
-const u16 minor = 4;
+const u16 minor = 5;
 const u16 patch = 0;
 } // namespace Version

@@ -154,6 +154,16 @@ file(GLOB_RECURSE THEMES ${PROJECT_SOURCE_DIR}/dist/qt_themes/*)
 
 target_sources(citra-qt PRIVATE ${ICONS} ${THEMES})
 
+if(CITRA_ENABLE_DISCORD_RP)
+    target_sources(citra-qt PRIVATE
+        discord_rp.cpp
+        discord_rp.h
+    )
+
+    target_link_libraries(citra-qt PRIVATE discord-rpc)
+    target_compile_definitions(citra-qt PRIVATE -DCITRA_ENABLE_DISCORD_RP)
+endif()
+
 # So Discord doesn't say it's a official build
 set_target_properties(citra-qt PROPERTIES OUTPUT_NAME "citra-valentin-qt")
 
