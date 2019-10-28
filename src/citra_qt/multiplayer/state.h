@@ -86,7 +86,6 @@ private:
     bool has_mod_perms = false;
     Network::RoomMember::CallbackHandle<Network::RoomMember::State> state_callback_handle;
     Network::RoomMember::CallbackHandle<Network::RoomMember::Error> error_callback_handle;
-    Network::RoomMember::CallbackHandle<Network::RoomInformation> room_information_callback_handle;
 
     bool show_notification = false;
 };
