@@ -122,10 +122,6 @@ bool OpenGLWindow::event(QEvent* event) {
     case QEvent::UpdateRequest:
         Present();
         return true;
-    case QEvent::DragEnter:
-    case QEvent::DragMove:
-    case QEvent::Drop:
-        return QCoreApplication::sendEvent(parent(), event);
     case QEvent::MouseButtonPress:
     case QEvent::MouseButtonRelease:
     case QEvent::MouseButtonDblClick:

@@ -257,11 +257,6 @@ private:
 #ifdef CITRA_ENABLE_DISCORD_RP
     DiscordRP discord_rp;
 #endif
-
-protected:
-    void dropEvent(QDropEvent* event) override;
-    void dragEnterEvent(QDragEnterEvent* event) override;
-    void dragMoveEvent(QDragMoveEvent* event) override;
 };
 
 Q_DECLARE_METATYPE(std::size_t);

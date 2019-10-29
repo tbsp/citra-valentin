@@ -120,7 +120,6 @@ GMainWindow::GMainWindow()
     qRegisterMetaType<Service::AM::InstallStatus>("Service::AM::InstallStatus");
 
     Pica::g_debug_context = Pica::DebugContext::Construct();
-    setAcceptDrops(true);
     ui.setupUi(this);
     statusBar()->hide();
 
@@ -1751,43 +1750,6 @@ void GMainWindow::closeEvent(QCloseEvent* event) {
     render_window->close();
     multiplayer_state->Close();
     QWidget::closeEvent(event);
-}
-
-static bool IsSingleFileDropEvent(QDropEvent* event) {
-    const QMimeData* mimeData = event->mimeData();
-    return mimeData->hasUrls() && mimeData->urls().length() == 1;
-}
-
-void GMainWindow::dropEvent(QDropEvent* event) {
-    if (!IsSingleFileDropEvent(event)) {
-        return;
-    }
-
-    const QMimeData* mime_data = event->mimeData();
-    const QString& filename = mime_data->urls().at(0).toLocalFile();
-
-    if (emulation_running && QFileInfo(filename).suffix() == "bin") {
-        // Amiibo
-        LoadAmiibo(filename);
-    } else if (QFileInfo(filename).suffix() == "ctm") {
-        // Movie
-        OnPlayMovie(filename);
-    } else {
-        // Game
-        if (ConfirmChangeGame()) {
-            BootGame(filename);
-        }
-    }
-}
-
-void GMainWindow::dragEnterEvent(QDragEnterEvent* event) {
-    if (IsSingleFileDropEvent(event)) {
-        event->acceptProposedAction();
-    }
-}
-
-void GMainWindow::dragMoveEvent(QDragMoveEvent* event) {
-    event->acceptProposedAction();
 }
 
 bool GMainWindow::ConfirmChangeGame() {
