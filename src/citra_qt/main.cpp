@@ -1757,7 +1757,7 @@ bool GMainWindow::ConfirmChangeGame() {
         return true;
     }
 
-    auto answer = QMessageBox::question(
+    const QMessageBox::StandardButton answer = QMessageBox::question(
         this, "Citra", "The game is still running. Would you like to stop emulation?",
         QMessageBox::Yes | QMessageBox::No, QMessageBox::No);
     return answer != QMessageBox::No;

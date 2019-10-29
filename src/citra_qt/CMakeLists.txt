@@ -30,6 +30,26 @@ add_executable(citra-qt
     cheats.ui
     citra-qt.rc
     configuration/config.cpp
+    configuration/groups/config_controls.cpp
+    configuration/groups/config_core.cpp
+    configuration/groups/config_renderer.cpp
+    configuration/groups/config_layout.cpp
+    configuration/groups/config_utility.cpp
+    configuration/groups/config_audio.cpp
+    configuration/groups/config_camera.cpp
+    configuration/groups/config_data_storage.cpp
+    configuration/groups/config_system.cpp
+    configuration/groups/config_miscellaneous.cpp
+    configuration/groups/config_debugging.cpp
+    configuration/groups/config_lle.cpp
+    configuration/groups/config_web_service.cpp
+    configuration/groups/config_ui.cpp
+    configuration/groups/config_ui_layout.cpp
+    configuration/groups/config_game_list.cpp
+    configuration/groups/config_paths.cpp
+    configuration/groups/config_shortcuts.cpp
+    configuration/groups/config_multiplayer.cpp
+    configuration/groups/config_hacks.cpp
     configuration/config.h
     configuration/configure.ui
     configuration/configure_audio.cpp
