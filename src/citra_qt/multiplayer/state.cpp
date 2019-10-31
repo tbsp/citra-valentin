@@ -201,7 +201,9 @@ bool MultiplayerState::OnCloseRoom() {
         if (auto member = Network::GetRoomMember().lock()) {
             member->Leave();
             LOG_DEBUG(Frontend, "Left the room (as a client)");
+#ifdef CITRA_ENABLE_DISCORD_RP
             emit RoomInformationChanged();
+#endif
         }
 
         // if you are hosting a room, also stop hosting
