@@ -24,7 +24,7 @@ struct CubebInput::Impl {
 };
 
 CubebInput::CubebInput(std::string_view device_id)
-    : device_id(device_id), impl(std::make_unique<Impl>()) {
+    : impl(std::make_unique<Impl>()), device_id(device_id) {
     if (cubeb_init(&impl->ctx, "Citra Input", nullptr) != CUBEB_OK) {
         LOG_ERROR(Audio, "cubeb_init failed! Mic will not work properly");
         return;
