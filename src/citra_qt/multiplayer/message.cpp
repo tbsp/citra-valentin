@@ -51,13 +51,12 @@ const ConnectionError NO_SUCH_USER(QT_TR_NOOP(
     "The user you are trying to kick/ban could not be found.\nThey may have left the room."));
 
 static bool WarnMessage(const std::string& title, const std::string& text) {
-    return QMessageBox::Ok == QMessageBox::warning(nullptr, QObject::tr(title.c_str()),
-                                                   QObject::tr(text.c_str()),
+    return QMessageBox::Ok == QMessageBox::warning(nullptr, title.c_str(), text.c_str(),
                                                    QMessageBox::Ok | QMessageBox::Cancel);
 }
 
 void ShowError(const ConnectionError& e) {
-    QMessageBox::critical(nullptr, QObject::tr("Error"), QObject::tr(e.GetString().c_str()));
+    QMessageBox::critical(nullptr, QStringLiteral("Error"), e.GetString().c_str());
 }
 
 bool WarnCloseRoom() {

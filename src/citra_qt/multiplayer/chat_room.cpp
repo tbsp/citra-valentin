@@ -128,7 +128,7 @@ public:
         setData(QString::fromStdString(username), UsernameRole);
         setData(QString::fromStdString(avatar_url), AvatarUrlRole);
         if (game_name.empty()) {
-            setData(QObject::tr("Not playing a game"), GameNameRole);
+            setData(QStringLiteral("Not playing a game"), GameNameRole);
         } else {
             setData(QString::fromStdString(game_name), GameNameRole);
         }
@@ -160,7 +160,7 @@ ChatRoom::ChatRoom(QWidget* parent) : QWidget(parent), ui(std::make_unique<Ui::C
     ui->player_view->setContextMenuPolicy(Qt::CustomContextMenu);
     // set a header to make it look better though there is only one column
     player_list->insertColumns(0, 1);
-    player_list->setHeaderData(0, Qt::Horizontal, tr("Members"));
+    player_list->setHeaderData(0, Qt::Horizontal, QStringLiteral("Members"));
 
     ui->chat_history->document()->setMaximumBlockCount(max_chat_lines);
 
@@ -288,19 +288,19 @@ void ChatRoom::OnStatusMessageReceive(const Network::StatusMessageEntry& status_
     QString message;
     switch (status_message.type) {
     case Network::IdMemberJoin:
-        message = tr("%1 has joined").arg(name);
+        message = QStringLiteral("%1 has joined").arg(name);
         break;
     case Network::IdMemberLeave:
-        message = tr("%1 has left").arg(name);
+        message = QStringLiteral("%1 has left").arg(name);
         break;
     case Network::IdMemberKicked:
-        message = tr("%1 has been kicked").arg(name);
+        message = QStringLiteral("%1 has been kicked").arg(name);
         break;
     case Network::IdMemberBanned:
-        message = tr("%1 has been banned").arg(name);
+        message = QStringLiteral("%1 has been banned").arg(name);
         break;
     case Network::IdAddressUnbanned:
-        message = tr("%1 has been unbanned").arg(name);
+        message = QStringLiteral("%1 has been unbanned").arg(name);
         break;
     }
     if (!message.isEmpty())
@@ -415,7 +415,7 @@ void ChatRoom::PopupContextMenu(const QPoint& menu_location) {
 
     QString username = player_list->item(item.row())->data(PlayerListItem::UsernameRole).toString();
     if (!username.isEmpty()) {
-        QAction* view_profile_action = context_menu.addAction(tr("View Profile"));
+        QAction* view_profile_action = context_menu.addAction(QStringLiteral("View Profile"));
         connect(view_profile_action, &QAction::triggered, [username] {
             QDesktopServices::openUrl(
                 QUrl(QString("https://community.citra-emu.org/u/%1").arg(username)));
@@ -428,7 +428,7 @@ void ChatRoom::PopupContextMenu(const QPoint& menu_location) {
     }
 
     if (nickname != cur_nickname) { // You can't block yourself
-        QAction* block_action = context_menu.addAction(tr("Block Player"));
+        QAction* block_action = context_menu.addAction(QStringLiteral("Block Player"));
 
         block_action->setCheckable(true);
         block_action->setChecked(block_list.count(nickname) > 0);
@@ -438,9 +438,10 @@ void ChatRoom::PopupContextMenu(const QPoint& menu_location) {
                 block_list.erase(nickname);
             } else {
                 QMessageBox::StandardButton result = QMessageBox::question(
-                    this, tr("Block Player"),
-                    tr("When you block a player, you will no longer receive chat messages from "
-                       "them.<br><br>Are you sure you would like to block %1?")
+                    this, QStringLiteral("Block Player"),
+                    QStringLiteral(
+                        "When you block a player, you will no longer receive chat messages from "
+                        "them.<br><br>Are you sure you would like to block %1?")
                         .arg(QString::fromStdString(nickname)),
                     QMessageBox::Yes | QMessageBox::No);
                 if (result == QMessageBox::Yes)
@@ -452,23 +453,24 @@ void ChatRoom::PopupContextMenu(const QPoint& menu_location) {
     if (has_mod_perms && nickname != cur_nickname) { // You can't kick or ban yourself
         context_menu.addSeparator();
 
-        QAction* kick_action = context_menu.addAction(tr("Kick"));
-        QAction* ban_action = context_menu.addAction(tr("Ban"));
+        QAction* kick_action = context_menu.addAction(QStringLiteral("Kick"));
+        QAction* ban_action = context_menu.addAction(QStringLiteral("Ban"));
 
         connect(kick_action, &QAction::triggered, [this, nickname] {
-            QMessageBox::StandardButton result =
-                QMessageBox::question(this, tr("Kick Player"),
-                                      tr("Are you sure you would like to <b>kick</b> %1?")
-                                          .arg(QString::fromStdString(nickname)),
-                                      QMessageBox::Yes | QMessageBox::No);
+            QMessageBox::StandardButton result = QMessageBox::question(
+                this, QStringLiteral("Kick Player"),
+                QStringLiteral("Are you sure you would like to <b>kick</b> %1?")
+                    .arg(QString::fromStdString(nickname)),
+                QMessageBox::Yes | QMessageBox::No);
             if (result == QMessageBox::Yes)
                 SendModerationRequest(Network::IdModKick, nickname);
         });
         connect(ban_action, &QAction::triggered, [this, nickname] {
             QMessageBox::StandardButton result = QMessageBox::question(
-                this, tr("Ban Player"),
-                tr("Are you sure you would like to <b>kick and ban</b> %1?\n\nThis would "
-                   "ban both their forum username and their IP address.")
+                this, QStringLiteral("Ban Player"),
+                QStringLiteral(
+                    "Are you sure you would like to <b>kick and ban</b> %1?\n\nThis would "
+                    "ban both their forum username and their IP address.")
                     .arg(QString::fromStdString(nickname)),
                 QMessageBox::Yes | QMessageBox::No);
             if (result == QMessageBox::Yes)

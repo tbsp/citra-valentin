@@ -128,8 +128,8 @@ frame_limit =
 # The clear color for the renderer. What shows up on the sides of the bottom screen.
 # Must be in range of 0.0-1.0. Defaults to 0.0 for all.
 bg_red =
-bg_blue =
 bg_green =
+bg_blue =
 
 # Whether and how Stereoscopic 3D should be rendered
 # 0 (default): Off, 1: Side by Side, 2: Anaglyph

@@ -229,7 +229,7 @@ ConfigureSystem::ConfigureSystem(QWidget* parent) : QWidget(parent), ui(new Ui::
             &ConfigureSystem::RefreshConsoleID);
     for (u8 i = 0; i < country_names.size(); i++) {
         if (std::strcmp(country_names.at(i), "") != 0) {
-            ui->combo_country->addItem(tr(country_names.at(i)), i);
+            ui->combo_country->addItem(country_names.at(i), i);
         }
     }
 
@@ -291,7 +291,7 @@ void ConfigureSystem::ReadSystemSettings() {
     // set the console id
     u64 console_id = cfg->GetConsoleUniqueId();
     ui->label_console_id->setText(
-        tr("Console ID: 0x%1").arg(QString::number(console_id, 16).toUpper()));
+        QStringLiteral("Console ID: 0x%1").arg(QString::number(console_id, 16).toUpper()));
 
     // set play coin
     play_coin = Service::PTM::Module::GetPlayCoins();
@@ -406,11 +406,12 @@ void ConfigureSystem::UpdateInitTime(int init_clock) {
 
 void ConfigureSystem::RefreshConsoleID() {
     QMessageBox::StandardButton reply;
-    QString warning_text = tr("This will replace your current virtual 3DS with a new one. "
-                              "Your current virtual 3DS will not be recoverable. "
-                              "This might have unexpected effects in games. This might fail, "
-                              "if you use an outdated config savegame. Continue?");
-    reply = QMessageBox::critical(this, tr("Warning"), warning_text,
+    QString warning_text =
+        QStringLiteral("This will replace your current virtual 3DS with a new one. "
+                       "Your current virtual 3DS will not be recoverable. "
+                       "This might have unexpected effects in games. This might fail, "
+                       "if you use an outdated config savegame. Continue?");
+    reply = QMessageBox::critical(this, QStringLiteral("Warning"), warning_text,
                                   QMessageBox::No | QMessageBox::Yes);
     if (reply == QMessageBox::No) {
         return;
@@ -422,5 +423,5 @@ void ConfigureSystem::RefreshConsoleID() {
     cfg->SetConsoleUniqueId(random_number, console_id);
     cfg->UpdateConfigNANDSavegame();
     ui->label_console_id->setText(
-        tr("Console ID: 0x%1").arg(QString::number(console_id, 16).toUpper()));
+        QStringLiteral("Console ID: 0x%1").arg(QString::number(console_id, 16).toUpper()));
 }

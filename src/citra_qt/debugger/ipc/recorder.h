@@ -29,7 +29,7 @@ signals:
     void EntryUpdated(IPCDebugger::RequestRecord record);
 
 private:
-    QString GetStatusStr(const IPCDebugger::RequestRecord& record) const;
+    QString GetStatusSQStringLiteral(const IPCDebugger::RequestRecord& record) const;
     void OnEntryUpdated(IPCDebugger::RequestRecord record);
     void SetEnabled(bool enabled);
     void Clear();

@@ -76,10 +76,10 @@ void ConfigureDialog::PopulateSelectionList() {
     ui->selectorList->clear();
 
     const std::array<std::pair<QString, QList<QWidget*>>, 4> items{
-        {{tr("General"), {ui->generalTab, ui->webTab, ui->debugTab, ui->uiTab}},
-         {tr("System"), {ui->systemTab, ui->audioTab, ui->cameraTab}},
-         {tr("Graphics"), {ui->enhancementsTab, ui->graphicsTab}},
-         {tr("Controls"), {ui->inputTab, ui->hotkeysTab}}}};
+        {{QStringLiteral("General"), {ui->generalTab, ui->webTab, ui->debugTab, ui->uiTab}},
+         {QStringLiteral("System"), {ui->systemTab, ui->audioTab, ui->cameraTab}},
+         {QStringLiteral("Graphics"), {ui->enhancementsTab, ui->graphicsTab}},
+         {QStringLiteral("Controls"), {ui->inputTab, ui->hotkeysTab}}}};
 
     for (const auto& entry : items) {
         auto* const item = new QListWidgetItem(entry.first);
@@ -94,17 +94,17 @@ void ConfigureDialog::UpdateVisibleTabs() {
     if (items.isEmpty())
         return;
 
-    const std::map<QWidget*, QString> widgets = {{ui->generalTab, tr("General")},
-                                                 {ui->systemTab, tr("System")},
-                                                 {ui->inputTab, tr("Input")},
-                                                 {ui->hotkeysTab, tr("Hotkeys")},
-                                                 {ui->graphicsTab, tr("Advanced")},
-                                                 {ui->enhancementsTab, tr("Enhancements")},
-                                                 {ui->audioTab, tr("Audio")},
-                                                 {ui->cameraTab, tr("Camera")},
-                                                 {ui->debugTab, tr("Debug")},
-                                                 {ui->webTab, tr("Web")},
-                                                 {ui->uiTab, tr("UI")}};
+    const std::map<QWidget*, QString> widgets = {{ui->generalTab, QStringLiteral("General")},
+                                                 {ui->systemTab, QStringLiteral("System")},
+                                                 {ui->inputTab, QStringLiteral("Input")},
+                                                 {ui->hotkeysTab, QStringLiteral("Hotkeys")},
+                                                 {ui->graphicsTab, QStringLiteral("Advanced")},
+                                                 {ui->enhancementsTab, QStringLiteral("Enhancements")},
+                                                 {ui->audioTab, QStringLiteral("Audio")},
+                                                 {ui->cameraTab, QStringLiteral("Camera")},
+                                                 {ui->debugTab, QStringLiteral("Debug")},
+                                                 {ui->webTab, QStringLiteral("Web")},
+                                                 {ui->uiTab, QStringLiteral("UI")}};
 
     ui->tabWidget->clear();
 

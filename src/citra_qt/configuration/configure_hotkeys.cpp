@@ -17,7 +17,7 @@ ConfigureHotkeys::ConfigureHotkeys(QWidget* parent)
 
     model = new QStandardItemModel(this);
     model->setColumnCount(3);
-    model->setHorizontalHeaderLabels({tr("Action"), tr("Hotkey"), tr("Context")});
+    model->setHorizontalHeaderLabels({QStringLiteral("Action"), QStringLiteral("Hotkey"), QStringLiteral("Context")});
 
     connect(ui->hotkey_list, &QTreeView::doubleClicked, this, &ConfigureHotkeys::Configure);
     ui->hotkey_list->setModel(model);
@@ -87,8 +87,8 @@ void ConfigureHotkeys::Configure(QModelIndex index) {
     }
 
     if (IsUsedKey(key_sequence) && key_sequence != QKeySequence(previous_key.toString())) {
-        QMessageBox::warning(this, tr("Conflicting Key Sequence"),
-                             tr("The entered key sequence is already assigned to another hotkey."));
+        QMessageBox::warning(this, QStringLiteral("Conflicting Key Sequence"),
+                             QStringLiteral("The entered key sequence is already assigned to another hotkey."));
     } else {
         model->setData(index, key_sequence.toString(QKeySequence::NativeText));
         EmitHotkeysChanged();

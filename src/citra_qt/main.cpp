@@ -314,7 +314,7 @@ void GMainWindow::InitializeRecentFileMenuActions() {
     }
     ui.menu_recent_files->addSeparator();
     QAction* action_clear_recent_files = new QAction(this);
-    action_clear_recent_files->setText(tr("Clear Recent Files"));
+    action_clear_recent_files->setText(QStringLiteral("Clear Recent Files"));
     connect(action_clear_recent_files, &QAction::triggered, this, [this] {
         UISettings::values.recent_files.clear();
         UpdateRecentFiles();
@@ -652,8 +652,8 @@ bool GMainWindow::LoadROM(const QString& filename) {
 
     Frontend::ScopeAcquireContext scope(*render_window);
 
-    const QString below_gl33_title = tr("OpenGL 3.3 Unsupported");
-    const QString below_gl33_message = tr("Your GPU may not support OpenGL 3.3, or you do not "
+    const QString below_gl33_title = QStringLiteral("OpenGL 3.3 Unsupported");
+    const QString below_gl33_message = QStringLiteral("Your GPU may not support OpenGL 3.3, or you do not "
                                           "have the latest graphics driver.");
 
     if (!QOpenGLContext::globalShareContext()->versionFunctions<QOpenGLFunctions_3_3_Core>()) {
@@ -670,8 +670,8 @@ bool GMainWindow::LoadROM(const QString& filename) {
         case Core::System::ResultStatus::ErrorGetLoader:
             LOG_CRITICAL(Frontend, "Failed to obtain loader for {}!", filename.toStdString());
             QMessageBox::critical(
-                this, tr("Invalid ROM Format"),
-                tr("Your ROM format is not supported.<br/>Please follow the guides to redump your "
+                this, QStringLiteral("Invalid ROM Format"),
+                QStringLiteral("Your ROM format is not supported.<br/>Please follow the guides to redump your "
                    "<a href='https://citra-emu.org/wiki/dumping-game-cartridges/'>game "
                    "cartridges</a> or "
                    "<a href='https://citra-emu.org/wiki/dumping-installed-titles/'>installed "
@@ -681,8 +681,8 @@ bool GMainWindow::LoadROM(const QString& filename) {
         case Core::System::ResultStatus::ErrorSystemMode:
             LOG_CRITICAL(Frontend, "Failed to load ROM!");
             QMessageBox::critical(
-                this, tr("ROM Corrupted"),
-                tr("Your ROM is corrupted. <br/>Please follow the guides to redump your "
+                this, QStringLiteral("ROM Corrupted"),
+                QStringLiteral("Your ROM is corrupted. <br/>Please follow the guides to redump your "
                    "<a href='https://citra-emu.org/wiki/dumping-game-cartridges/'>game "
                    "cartridges</a> or "
                    "<a href='https://citra-emu.org/wiki/dumping-installed-titles/'>installed "
@@ -691,8 +691,8 @@ bool GMainWindow::LoadROM(const QString& filename) {
 
         case Core::System::ResultStatus::ErrorLoader_ErrorEncrypted: {
             QMessageBox::critical(
-                this, tr("ROM Encrypted"),
-                tr("Your ROM is encrypted. <br/>Please follow the guides to redump your "
+                this, QStringLiteral("ROM Encrypted"),
+                QStringLiteral("Your ROM is encrypted. <br/>Please follow the guides to redump your "
                    "<a href='https://citra-emu.org/wiki/dumping-game-cartridges/'>game "
                    "cartridges</a> or "
                    "<a href='https://citra-emu.org/wiki/dumping-installed-titles/'>installed "
@@ -701,8 +701,8 @@ bool GMainWindow::LoadROM(const QString& filename) {
         }
         case Core::System::ResultStatus::ErrorLoader_ErrorInvalidFormat:
             QMessageBox::critical(
-                this, tr("Invalid ROM Format"),
-                tr("Your ROM format is not supported.<br/>Please follow the guides to redump your "
+                this, QStringLiteral("Invalid ROM Format"),
+                QStringLiteral("Your ROM format is not supported.<br/>Please follow the guides to redump your "
                    "<a href='https://citra-emu.org/wiki/dumping-game-cartridges/'>game "
                    "cartridges</a> or "
                    "<a href='https://citra-emu.org/wiki/dumping-installed-titles/'>installed "
@@ -711,8 +711,8 @@ bool GMainWindow::LoadROM(const QString& filename) {
 
         case Core::System::ResultStatus::ErrorVideoCore:
             QMessageBox::critical(
-                this, tr("Video Core Error"),
-                tr("An error has occured. Please <a "
+                this, QStringLiteral("Video Core Error"),
+                QStringLiteral("An error has occured. Please <a "
                    "href='https://community.citra-emu.org/t/how-to-upload-the-log-file/296'>see "
                    "the "
                    "log</a> for more details. "
@@ -721,8 +721,8 @@ bool GMainWindow::LoadROM(const QString& filename) {
 
         case Core::System::ResultStatus::ErrorVideoCore_ErrorGenericDrivers:
             QMessageBox::critical(
-                this, tr("Video Core Error"),
-                tr("You are running default Windows drivers "
+                this, QStringLiteral("Video Core Error"),
+                QStringLiteral("You are running default Windows drivers "
                    "for your GPU. You need to install the "
                    "proper drivers for your graphics card from the manufacturer's website."));
             break;
@@ -733,8 +733,8 @@ bool GMainWindow::LoadROM(const QString& filename) {
 
         default:
             QMessageBox::critical(
-                this, tr("Error while loading ROM!"),
-                tr("An unknown error occured. Please see the log for more details."));
+                this, QStringLiteral("Error while loading ROM!"),
+                QStringLiteral("An unknown error occured. Please see the log for more details."));
             break;
         }
         return false;
@@ -753,8 +753,8 @@ bool GMainWindow::LoadROM(const QString& filename) {
 void GMainWindow::BootGame(const QString& filename) {
     if (filename.endsWith(".cia")) {
         const auto answer = QMessageBox::question(
-            this, tr("CIA must be installed before usage"),
-            tr("Before using this CIA, you must install it. Do you want to install it now?"),
+            this, QStringLiteral("CIA must be installed before usage"),
+            QStringLiteral("Before using this CIA, you must install it. Do you want to install it now?"),
             QMessageBox::Yes | QMessageBox::No);
 
         if (answer == QMessageBox::Yes)
@@ -864,7 +864,7 @@ void GMainWindow::ShutdownGame() {
 
     // Update the GUI
     ui.action_Start->setEnabled(false);
-    ui.action_Start->setText(tr("Start"));
+    ui.action_Start->setText(QStringLiteral("Start"));
     ui.action_Pause->setEnabled(false);
     ui.action_Stop->setEnabled(false);
     ui.action_Restart->setEnabled(false);
@@ -979,8 +979,8 @@ void GMainWindow::OnGameListOpenFolder(u64 data_id, GameListOpenTarget target) {
     QDir dir(qpath);
     if (!dir.exists()) {
         QMessageBox::critical(
-            this, tr("Error Opening %1 Folder").arg(QString::fromStdString(open_target)),
-            tr("Folder does not exist!"));
+            this, QStringLiteral("Error Opening %1 Folder").arg(QString::fromStdString(open_target)),
+            QStringLiteral("Folder does not exist!"));
         return;
     }
 
@@ -1003,14 +1003,14 @@ void GMainWindow::OnGameListOpenDirectory(const QString& directory) {
         path = directory;
     }
     if (!QFileInfo::exists(path)) {
-        QMessageBox::critical(this, tr("Error Opening %1").arg(path), tr("Folder does not exist!"));
+        QMessageBox::critical(this, QStringLiteral("Error Opening %1").arg(path), QStringLiteral("Folder does not exist!"));
         return;
     }
     QDesktopServices::openUrl(QUrl::fromLocalFile(path));
 }
 
 void GMainWindow::OnGameListAddDirectory() {
-    const QString dir_path = QFileDialog::getExistingDirectory(this, tr("Select Directory"));
+    const QString dir_path = QFileDialog::getExistingDirectory(this, QStringLiteral("Select Directory"));
     if (dir_path.isEmpty())
         return;
     UISettings::GameDir game_dir{dir_path, false, true};
@@ -1134,7 +1134,7 @@ void GMainWindow::OnMenuRecentFile() {
         BootGame(filename);
     } else {
         // Display an error message and remove the file from the list.
-        QMessageBox::information(this, tr("File not found"),
+        QMessageBox::information(this, QStringLiteral("File not found"),
                                  QStringLiteral("File \"%1\" not found").arg(filename));
 
         UISettings::values.recent_files.removeOne(filename);
@@ -1159,7 +1159,7 @@ void GMainWindow::OnStartGame() {
     connect(emu_thread.get(), &EmuThread::ErrorThrown, this, &GMainWindow::OnCoreError);
 
     ui.action_Start->setEnabled(false);
-    ui.action_Start->setText(tr("Continue"));
+    ui.action_Start->setText(QStringLiteral("Continue"));
 
     ui.action_Pause->setEnabled(true);
     ui.action_Stop->setEnabled(true);
@@ -1345,8 +1345,8 @@ void GMainWindow::OnConfigure() {
 
 void GMainWindow::OnLoadAmiibo() {
     const QString extensions{"*.bin"};
-    const QString file_filter = tr("Amiibo File (%1);; All Files (*.*)").arg(extensions);
-    const QString filename = QFileDialog::getOpenFileName(this, tr("Load Amiibo"), "", file_filter);
+    const QString file_filter = QStringLiteral("Amiibo File (%1);; All Files (*.*)").arg(extensions);
+    const QString filename = QFileDialog::getOpenFileName(this, QStringLiteral("Load Amiibo"), "", file_filter);
 
     if (filename.isEmpty()) {
         return;
@@ -1365,8 +1365,8 @@ void GMainWindow::LoadAmiibo(const QString& filename) {
 
     QFile nfc_file{filename};
     if (!nfc_file.open(QIODevice::ReadOnly)) {
-        QMessageBox::warning(this, tr("Error opening Amiibo data file"),
-                             tr("Unable to open Amiibo file \"%1\" for reading.").arg(filename));
+        QMessageBox::warning(this, QStringLiteral("Error opening Amiibo data file"),
+                             QStringLiteral("Unable to open Amiibo file \"%1\" for reading.").arg(filename));
         return;
     }
 
@@ -1374,8 +1374,8 @@ void GMainWindow::LoadAmiibo(const QString& filename) {
     const u64 read_size =
         nfc_file.read(reinterpret_cast<char*>(&amiibo_data), sizeof(Service::NFC::AmiiboData));
     if (read_size != sizeof(Service::NFC::AmiiboData)) {
-        QMessageBox::warning(this, tr("Error reading Amiibo data file"),
-                             tr("Unable to fully read Amiibo data. Expected to read %1 bytes, but "
+        QMessageBox::warning(this, QStringLiteral("Error reading Amiibo data file"),
+                             QStringLiteral("Unable to fully read Amiibo data. Expected to read %1 bytes, but "
                                 "was only able to read %2 bytes.")
                                  .arg(sizeof(Service::NFC::AmiiboData))
                                  .arg(read_size));
@@ -1422,16 +1422,16 @@ void GMainWindow::OnCreateGraphicsSurfaceViewer() {
 void GMainWindow::OnRecordMovie() {
     if (emulation_running) {
         QMessageBox::StandardButton answer = QMessageBox::warning(
-            this, tr("Record Movie"),
-            tr("To keep consistency with the RNG, it is recommended to record the movie from game "
+            this, QStringLiteral("Record Movie"),
+            QStringLiteral("To keep consistency with the RNG, it is recommended to record the movie from game "
                "start.<br>Are you sure you still want to record movies now?"),
             QMessageBox::Yes | QMessageBox::No);
         if (answer == QMessageBox::No)
             return;
     }
     const QString path =
-        QFileDialog::getSaveFileName(this, tr("Record Movie"), UISettings::values.movie_record_path,
-                                     tr("Citra TAS Movie (*.ctm)"));
+        QFileDialog::getSaveFileName(this, QStringLiteral("Record Movie"), UISettings::values.movie_record_path,
+                                     QStringLiteral("Citra TAS Movie (*.ctm)"));
     if (path.isEmpty())
         return;
     UISettings::values.movie_record_path = QFileInfo(path).path();
@@ -1440,8 +1440,8 @@ void GMainWindow::OnRecordMovie() {
     } else {
         movie_record_on_start = true;
         movie_record_path = path;
-        QMessageBox::information(this, tr("Record Movie"),
-                                 tr("Recording will start once you boot a game."));
+        QMessageBox::information(this, QStringLiteral("Record Movie"),
+                                 QStringLiteral("Recording will start once you boot a game."));
     }
     ui.action_Record_Movie->setEnabled(false);
     ui.action_Play_Movie->setEnabled(false);
@@ -1453,35 +1453,35 @@ bool GMainWindow::ValidateMovie(const QString& path, u64 program_id) {
     Movie::ValidationResult result =
         Core::Movie::GetInstance().ValidateMovie(path.toStdString(), program_id);
     const QString revision_dismatch_text =
-        tr("The movie file you are trying to load was created on a different revision of Citra."
+        QStringLiteral("The movie file you are trying to load was created on a different revision of Citra."
            "<br/>Citra has had some changes during the time, and the playback may desync or not "
            "work as expected."
            "<br/><br/>Are you sure you still want to load the movie file?");
     const QString game_dismatch_text =
-        tr("The movie file you are trying to load was recorded with a different game."
+        QStringLiteral("The movie file you are trying to load was recorded with a different game."
            "<br/>The playback may not work as expected, and it may cause unexpected results."
            "<br/><br/>Are you sure you still want to load the movie file?");
     const QString invalid_movie_text =
-        tr("The movie file you are trying to load is invalid."
+        QStringLiteral("The movie file you are trying to load is invalid."
            "<br/>Either the file is corrupted, or Citra has had made some major changes to the "
            "Movie module."
            "<br/>Please choose a different movie file and try again.");
     int answer;
     switch (result) {
     case Movie::ValidationResult::RevisionDismatch:
-        answer = QMessageBox::question(this, tr("Revision Dismatch"), revision_dismatch_text,
+        answer = QMessageBox::question(this, QStringLiteral("Revision Dismatch"), revision_dismatch_text,
                                        QMessageBox::Yes | QMessageBox::No, QMessageBox::No);
         if (answer != QMessageBox::Yes)
             return false;
         break;
     case Movie::ValidationResult::GameDismatch:
-        answer = QMessageBox::question(this, tr("Game Dismatch"), game_dismatch_text,
+        answer = QMessageBox::question(this, QStringLiteral("Game Dismatch"), game_dismatch_text,
                                        QMessageBox::Yes | QMessageBox::No, QMessageBox::No);
         if (answer != QMessageBox::Yes)
             return false;
         break;
     case Movie::ValidationResult::Invalid:
-        QMessageBox::critical(this, tr("Invalid Movie File"), invalid_movie_text);
+        QMessageBox::critical(this, QStringLiteral("Invalid Movie File"), invalid_movie_text);
         return false;
     default:
         break;
@@ -1492,8 +1492,8 @@ bool GMainWindow::ValidateMovie(const QString& path, u64 program_id) {
 void GMainWindow::OnPlayMovie(const QString& filename) {
     if (emulation_running) {
         QMessageBox::StandardButton answer = QMessageBox::warning(
-            this, tr("Play Movie"),
-            tr("To keep consistency with the RNG, it is recommended to play the movie from game "
+            this, QStringLiteral("Play Movie"),
+            QStringLiteral("To keep consistency with the RNG, it is recommended to play the movie from game "
                "start.<br>Are you sure you still want to play movies now?"),
             QMessageBox::Yes | QMessageBox::No);
         if (answer == QMessageBox::No)
@@ -1501,9 +1501,9 @@ void GMainWindow::OnPlayMovie(const QString& filename) {
     }
 
     const QString path = filename.isEmpty()
-                             ? QFileDialog::getOpenFileName(this, tr("Play Movie"),
+                             ? QFileDialog::getOpenFileName(this, QStringLiteral("Play Movie"),
                                                             UISettings::values.movie_playback_path,
-                                                            tr("Citra TAS Movie (*.ctm)"))
+                                                            QStringLiteral("Citra TAS Movie (*.ctm)"))
                              : filename;
     if (path.isEmpty())
         return;
@@ -1514,19 +1514,19 @@ void GMainWindow::OnPlayMovie(const QString& filename) {
             return;
     } else {
         const QString invalid_movie_text =
-            tr("The movie file you are trying to load is invalid."
+            QStringLiteral("The movie file you are trying to load is invalid."
                "<br/>Either the file is corrupted, or Citra has had made some major changes to the "
                "Movie module."
                "<br/>Please choose a different movie file and try again.");
         u64 program_id = Core::Movie::GetInstance().GetMovieProgramID(path.toStdString());
         if (!program_id) {
-            QMessageBox::critical(this, tr("Invalid Movie File"), invalid_movie_text);
+            QMessageBox::critical(this, QStringLiteral("Invalid Movie File"), invalid_movie_text);
             return;
         }
         QString game_path = game_list->FindGameByProgramID(program_id);
         if (game_path.isEmpty()) {
-            QMessageBox::warning(this, tr("Game Not Found"),
-                                 tr("The movie you are trying to play is from a game that is not "
+            QMessageBox::warning(this, QStringLiteral("Game Not Found"),
+                                 QStringLiteral("The movie you are trying to play is from a game that is not "
                                     "in the game list. If you own the game, please add the game "
                                     "folder to the game list and try to play the movie again."));
             return;
@@ -1546,15 +1546,15 @@ void GMainWindow::OnPlayMovie(const QString& filename) {
 
 void GMainWindow::OnStopRecordingPlayback() {
     if (movie_record_on_start) {
-        QMessageBox::information(this, tr("Record Movie"), tr("Movie recording cancelled."));
+        QMessageBox::information(this, QStringLiteral("Record Movie"), QStringLiteral("Movie recording cancelled."));
         movie_record_on_start = false;
         movie_record_path.clear();
     } else {
         const bool was_recording = Core::Movie::GetInstance().IsRecordingInput();
         Core::Movie::GetInstance().Shutdown();
         if (was_recording) {
-            QMessageBox::information(this, tr("Movie Saved"),
-                                     tr("The movie is successfully saved."));
+            QMessageBox::information(this, QStringLiteral("Movie Saved"),
+                                     QStringLiteral("The movie is successfully saved."));
         }
     }
     ui.action_Record_Movie->setEnabled(true);
@@ -1564,8 +1564,8 @@ void GMainWindow::OnStopRecordingPlayback() {
 
 void GMainWindow::OnCaptureScreenshot() {
     OnPauseGame();
-    QFileDialog png_dialog(this, tr("Capture Screenshot"), UISettings::values.screenshot_path,
-                           tr("PNG Image (*.png)"));
+    QFileDialog png_dialog(this, QStringLiteral("Capture Screenshot"), UISettings::values.screenshot_path,
+                           QStringLiteral("PNG Image (*.png)"));
     png_dialog.setAcceptMode(QFileDialog::AcceptSave);
     png_dialog.setDefaultSuffix("png");
     if (png_dialog.exec()) {
@@ -1580,7 +1580,7 @@ void GMainWindow::OnCaptureScreenshot() {
 
 void GMainWindow::OnStartVideoDumping() {
     const QString path = QFileDialog::getSaveFileName(
-        this, tr("Save Video"), UISettings::values.video_dumping_path, tr("WebM Videos (*.webm)"));
+        this, QStringLiteral("Save Video"), UISettings::values.video_dumping_path, QStringLiteral("WebM Videos (*.webm)"));
     if (path.isEmpty()) {
         ui.action_Dump_Video->setChecked(false);
         return;
@@ -1654,7 +1654,7 @@ void GMainWindow::OnCoreError(Core::System::ResultStatus result, std::string det
     QString title, message;
     if (result == Core::System::ResultStatus::ErrorSystemFiles) {
         const QString common_message =
-            tr("%1 is missing. Please <a "
+            QStringLiteral("%1 is missing. Please <a "
                "href='https://citra-emu.org/wiki/"
                "dumping-system-archives-and-the-shared-fonts-from-a-3ds-console/'>dump your "
                "system archives</a>.<br/>Continuing emulation may result in crashes and bugs.");
@@ -1665,12 +1665,12 @@ void GMainWindow::OnCoreError(Core::System::ResultStatus result, std::string det
             message = common_message.arg("A system archive");
         }
 
-        title = tr("System Archive Not Found");
+        title = QStringLiteral("System Archive Not Found");
         status_message = "System Archive Missing";
     } else {
-        title = tr("Fatal Error");
+        title = QStringLiteral("Fatal Error");
         message =
-            tr("A fatal error occured. "
+            QStringLiteral("A fatal error occured. "
                "<a href='https://community.citra-emu.org/t/how-to-upload-the-log-file/296'>Check "
                "the log</a> for details."
                "<br/>Continuing emulation may result in crashes and bugs.");
@@ -1681,8 +1681,8 @@ void GMainWindow::OnCoreError(Core::System::ResultStatus result, std::string det
     message_box.setWindowTitle(title);
     message_box.setText(message);
     message_box.setIcon(QMessageBox::Icon::Critical);
-    message_box.addButton(tr("Continue"), QMessageBox::RejectRole);
-    QPushButton* abort_button = message_box.addButton(tr("Abort"), QMessageBox::AcceptRole);
+    message_box.addButton(QStringLiteral("Continue"), QMessageBox::RejectRole);
+    QPushButton* abort_button = message_box.addButton(QStringLiteral("Abort"), QMessageBox::AcceptRole);
     if (result != Core::System::ResultStatus::ShutdownRequested)
         message_box.exec();
 

@@ -22,9 +22,9 @@ QtMiiSelectorDialog::QtMiiSelectorDialog(QWidget* parent, QtMiiSelector* mii_sel
     combobox = new QComboBox;
     buttons = new QDialogButtonBox;
     // Initialize buttons
-    buttons->addButton(tr(MII_BUTTON_OKAY), QDialogButtonBox::ButtonRole::AcceptRole);
+    buttons->addButton(MII_BUTTON_OKAY, QDialogButtonBox::ButtonRole::AcceptRole);
     if (config.enable_cancel_button) {
-        buttons->addButton(tr(MII_BUTTON_CANCEL), QDialogButtonBox::ButtonRole::RejectRole);
+        buttons->addButton(MII_BUTTON_CANCEL, QDialogButtonBox::ButtonRole::RejectRole);
     }
 
     setWindowTitle(config.title.empty() || config.title.at(0) == '\x0000'
@@ -32,7 +32,7 @@ QtMiiSelectorDialog::QtMiiSelectorDialog(QWidget* parent, QtMiiSelector* mii_sel
                        : QString::fromStdString(config.title));
 
     miis.push_back(HLE::Applets::MiiSelector::GetStandardMiiResult().selected_mii_data);
-    combobox->addItem(tr("Standard Mii"));
+    combobox->addItem(QStringLiteral("Standard Mii"));
 
     std::string nand_directory{FileUtil::GetUserPath(FileUtil::UserPath::NANDDir)};
     FileSys::ArchiveFactory_ExtSaveData extdata_archive_factory(nand_directory, true);

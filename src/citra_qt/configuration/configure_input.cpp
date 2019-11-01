@@ -26,11 +26,11 @@ const std::array<std::string, ConfigureInput::ANALOG_SUB_BUTTONS_NUM>
 static QString GetKeyName(int key_code) {
     switch (key_code) {
     case Qt::Key_Shift:
-        return QObject::tr("Shift");
+        return QStringLiteral("Shift");
     case Qt::Key_Control:
-        return QObject::tr("Ctrl");
+        return QStringLiteral("Ctrl");
     case Qt::Key_Alt:
-        return QObject::tr("Alt");
+        return QStringLiteral("Alt");
     case Qt::Key_Meta:
         return QString{};
     default:
@@ -51,7 +51,7 @@ static void SetAnalogButton(const Common::ParamPackage& input_param,
 
 static QString ButtonToText(const Common::ParamPackage& param) {
     if (!param.Has("engine")) {
-        return QObject::tr("[not set]");
+        return QStringLiteral("[not set]");
     }
 
     if (param.Get("engine", "") == "keyboard") {
@@ -63,31 +63,31 @@ static QString ButtonToText(const Common::ParamPackage& param) {
             const QString hat_str = QString::fromStdString(param.Get("hat", ""));
             const QString direction_str = QString::fromStdString(param.Get("direction", ""));
 
-            return QObject::tr("Hat %1 %2").arg(hat_str, direction_str);
+            return QStringLiteral("Hat %1 %2").arg(hat_str, direction_str);
         }
 
         if (param.Has("axis")) {
             const QString axis_str = QString::fromStdString(param.Get("axis", ""));
             const QString direction_str = QString::fromStdString(param.Get("direction", ""));
 
-            return QObject::tr("Axis %1%2").arg(axis_str, direction_str);
+            return QStringLiteral("Axis %1%2").arg(axis_str, direction_str);
         }
 
         if (param.Has("button")) {
             const QString button_str = QString::fromStdString(param.Get("button", ""));
 
-            return QObject::tr("Button %1").arg(button_str);
+            return QStringLiteral("Button %1").arg(button_str);
         }
 
         return {};
     }
 
-    return QObject::tr("[unknown]");
+    return QStringLiteral("[unknown]");
 }
 
 static QString AnalogToText(const Common::ParamPackage& param, const std::string& dir) {
     if (!param.Has("engine")) {
-        return QObject::tr("[not set]");
+        return QStringLiteral("[not set]");
     }
 
     if (param.Get("engine", "") == "analog_from_button") {
@@ -96,25 +96,25 @@ static QString AnalogToText(const Common::ParamPackage& param, const std::string
 
     if (param.Get("engine", "") == "sdl") {
         if (dir == "modifier") {
-            return QObject::tr("[unused]");
+            return QStringLiteral("[unused]");
         }
 
         if (dir == "left" || dir == "right") {
             const QString axis_x_str = QString::fromStdString(param.Get("axis_x", ""));
 
-            return QObject::tr("Axis %1").arg(axis_x_str);
+            return QStringLiteral("Axis %1").arg(axis_x_str);
         }
 
         if (dir == "up" || dir == "down") {
             const QString axis_y_str = QString::fromStdString(param.Get("axis_y", ""));
 
-            return QObject::tr("Axis %1").arg(axis_y_str);
+            return QStringLiteral("Axis %1").arg(axis_y_str);
         }
 
         return {};
     }
 
-    return QObject::tr("[unknown]");
+    return QStringLiteral("[unknown]");
 }
 
 ConfigureInput::ConfigureInput(QWidget* parent)
@@ -174,13 +174,13 @@ ConfigureInput::ConfigureInput(QWidget* parent)
         connect(button_map[button_id], &QPushButton::customContextMenuRequested,
                 [=](const QPoint& menu_location) {
                     QMenu context_menu;
-                    context_menu.addAction(tr("Clear"), [&] {
+                    context_menu.addAction(QStringLiteral("Clear"), [&] {
                         buttons_param[button_id].Clear();
-                        button_map[button_id]->setText(tr("[not set]"));
+                        button_map[button_id]->setText(QStringLiteral("[not set]"));
                         ApplyConfiguration();
                         Settings::SaveProfile(ui->profile->currentIndex());
                     });
-                    context_menu.addAction(tr("Restore Default"), [&] {
+                    context_menu.addAction(QStringLiteral("Restore Default"), [&] {
                         buttons_param[button_id] = Common::ParamPackage{
                             InputCommon::GenerateKeyboardParam(Config::default_buttons[button_id])};
                         button_map[button_id]->setText(ButtonToText(buttons_param[button_id]));
@@ -210,13 +210,14 @@ ConfigureInput::ConfigureInput(QWidget* parent)
             connect(analog_map_buttons[analog_id][sub_button_id],
                     &QPushButton::customContextMenuRequested, [=](const QPoint& menu_location) {
                         QMenu context_menu;
-                        context_menu.addAction(tr("Clear"), [&] {
+                        context_menu.addAction(QStringLiteral("Clear"), [&] {
                             analogs_param[analog_id].Erase(analog_sub_buttons[sub_button_id]);
-                            analog_map_buttons[analog_id][sub_button_id]->setText(tr("[not set]"));
+                            analog_map_buttons[analog_id][sub_button_id]->setText(
+                                QStringLiteral("[not set]"));
                             ApplyConfiguration();
                             Settings::SaveProfile(ui->profile->currentIndex());
                         });
-                        context_menu.addAction(tr("Restore Default"), [&] {
+                        context_menu.addAction(QStringLiteral("Restore Default"), [&] {
                             Common::ParamPackage params{InputCommon::GenerateKeyboardParam(
                                 Config::default_analogs[analog_id][sub_button_id])};
                             SetAnalogButton(params, analogs_param[analog_id],
@@ -232,9 +233,9 @@ ConfigureInput::ConfigureInput(QWidget* parent)
         }
         connect(analog_map_stick[analog_id], &QPushButton::clicked, [=]() {
             if (QMessageBox::information(
-                    this, tr("Information"),
-                    tr("After pressing OK, first move your joystick horizontally, "
-                       "and then vertically."),
+                    this, QStringLiteral("Information"),
+                    QStringLiteral("After pressing OK, first move your joystick horizontally, "
+                                   "and then vertically."),
                     QMessageBox::Ok | QMessageBox::Cancel) == QMessageBox::Ok) {
                 HandleClick(analog_map_stick[analog_id],
                             [=](const Common::ParamPackage& params) {
@@ -382,7 +383,7 @@ void ConfigureInput::UpdateButtonLabels() {
                     AnalogToText(analogs_param[analog_id], analog_sub_buttons[sub_button_id]));
             }
         }
-        analog_map_stick[analog_id]->setText(tr("Set Analog Stick"));
+        analog_map_stick[analog_id]->setText(QStringLiteral("Set Analog Stick"));
     }
 
     EmitInputKeysChanged();
@@ -392,7 +393,7 @@ void ConfigureInput::HandleClick(QPushButton* button,
                                  std::function<void(const Common::ParamPackage&)> new_input_setter,
                                  InputCommon::Polling::DeviceType type) {
     previous_key_code = QKeySequence(button->text())[0];
-    button->setText(tr("[press key]"));
+    button->setText(QStringLiteral("[press key]"));
     button->setFocus();
 
     input_setter = new_input_setter;
@@ -439,8 +440,8 @@ void ConfigureInput::keyPressEvent(QKeyEvent* event) {
             if (hotkey_list.contains(QKeySequence(event->key())) ||
                 GetUsedKeyboardKeys().contains(QKeySequence(event->key()))) {
                 SetPollingResult({}, true);
-                QMessageBox::critical(this, tr("Error!"),
-                                      tr("You're using a key that's already bound."));
+                QMessageBox::critical(this, QStringLiteral("Error!"),
+                                      QStringLiteral("You're using a key that's already bound."));
                 return;
             }
             SetPollingResult(Common::ParamPackage{InputCommon::GenerateKeyboardParam(event->key())},
@@ -455,10 +456,9 @@ void ConfigureInput::keyPressEvent(QKeyEvent* event) {
     previous_key_code = 0;
 }
 
-
 void ConfigureInput::NewProfile() {
-    const QString name =
-        QInputDialog::getText(this, tr("New Profile"), tr("Enter the name for the new profile."));
+    const QString name = QInputDialog::getText(
+        this, QStringLiteral("New Profile"), QStringLiteral("Enter the name for the new profile."));
     if (name.isEmpty()) {
         return;
     }
@@ -477,8 +477,9 @@ void ConfigureInput::NewProfile() {
 }
 
 void ConfigureInput::DeleteProfile() {
-    const auto answer = QMessageBox::question(
-        this, tr("Delete Profile"), tr("Delete profile %1?").arg(ui->profile->currentText()));
+    const auto answer =
+        QMessageBox::question(this, QStringLiteral("Delete Profile"),
+                              QStringLiteral("Delete profile %1?").arg(ui->profile->currentText()));
     if (answer != QMessageBox::Yes) {
         return;
     }
@@ -491,7 +492,8 @@ void ConfigureInput::DeleteProfile() {
 }
 
 void ConfigureInput::RenameProfile() {
-    const QString new_name = QInputDialog::getText(this, tr("Rename Profile"), tr("New name:"));
+    const QString new_name =
+        QInputDialog::getText(this, QStringLiteral("Rename Profile"), QStringLiteral("New name:"));
     if (new_name.isEmpty()) {
         return;
     }
@@ -509,6 +511,7 @@ bool ConfigureInput::IsProfileNameDuplicate(const QString& name) const {
 }
 
 void ConfigureInput::WarnProposedProfileNameIsDuplicate() {
-    QMessageBox::warning(this, tr("Duplicate profile name"),
-                         tr("Profile name already exists. Please choose a different name."));
+    QMessageBox::warning(
+        this, QStringLiteral("Duplicate profile name"),
+        QStringLiteral("Profile name already exists. Please choose a different name."));
 }

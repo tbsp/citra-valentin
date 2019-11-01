@@ -94,13 +94,13 @@ QVariant GPUCommandListModel::headerData(int section, Qt::Orientation orientatio
     case Qt::DisplayRole: {
         switch (section) {
         case 0:
-            return tr("Command Name");
+            return QStringLiteral("Command Name");
         case 1:
-            return tr("Register");
+            return QStringLiteral("Register");
         case 2:
-            return tr("Mask");
+            return QStringLiteral("Mask");
         case 3:
-            return tr("New Value");
+            return QStringLiteral("New Value");
         }
 
         break;
@@ -183,7 +183,7 @@ void GPUCommandListWidget::SetCommandInfo(const QModelIndex& index) {
 #undef COMMAND_IN_RANGE
 
 GPUCommandListWidget::GPUCommandListWidget(QWidget* parent)
-    : QDockWidget(tr("Pica Command List"), parent) {
+    : QDockWidget(QStringLiteral("Pica Command List"), parent) {
     setObjectName(QStringLiteral("Pica Command List"));
     GPUCommandListModel* model = new GPUCommandListModel(this);
 
@@ -201,8 +201,8 @@ GPUCommandListWidget::GPUCommandListWidget(QWidget* parent)
     connect(list_widget, &QTreeView::doubleClicked, this,
             &GPUCommandListWidget::OnCommandDoubleClicked);
 
-    toggle_tracing = new QPushButton(tr("Start Tracing"));
-    QPushButton* copy_all = new QPushButton(tr("Copy All"));
+    toggle_tracing = new QPushButton(QStringLiteral("Start Tracing"));
+    QPushButton* copy_all = new QPushButton(QStringLiteral("Copy All"));
 
     connect(toggle_tracing, &QPushButton::clicked, this, &GPUCommandListWidget::OnToggleTracing);
     connect(this, &GPUCommandListWidget::TracingFinished, model,
@@ -228,11 +228,11 @@ GPUCommandListWidget::GPUCommandListWidget(QWidget* parent)
 void GPUCommandListWidget::OnToggleTracing() {
     if (!Pica::DebugUtils::IsPicaTracing()) {
         Pica::DebugUtils::StartPicaTracing();
-        toggle_tracing->setText(tr("Finish Tracing"));
+        toggle_tracing->setText(QStringLiteral("Finish Tracing"));
     } else {
         pica_trace = Pica::DebugUtils::FinishPicaTracing();
         emit TracingFinished(*pica_trace);
-        toggle_tracing->setText(tr("Start Tracing"));
+        toggle_tracing->setText(QStringLiteral("Start Tracing"));
     }
 }
 

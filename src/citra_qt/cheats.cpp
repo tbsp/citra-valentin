@@ -28,7 +28,7 @@ CheatDialog::CheatDialog(QWidget* parent)
     ui->textNotes->setEnabled(false);
     const auto game_id = fmt::format(
         "{:016X}", Core::System::GetInstance().Kernel().GetCurrentProcess()->codeset->program_id);
-    ui->labelTitle->setText(tr("Title ID: %1").arg(QString::fromStdString(game_id)));
+    ui->labelTitle->setText(QStringLiteral("Title ID: %1").arg(QString::fromStdString(game_id)));
 
     connect(ui->buttonClose, &QPushButton::clicked, this, &CheatDialog::OnCancel);
     connect(ui->buttonAddCheat, &QPushButton::clicked, this, &CheatDialog::OnAddCheat);
@@ -69,7 +69,7 @@ void CheatDialog::LoadCheats() {
 
 bool CheatDialog::CheckSaveCheat() {
     auto answer = QMessageBox::warning(
-        this, tr("Cheats"), tr("Would you like to save the current cheat?"),
+        this, QStringLiteral("Cheats"), QStringLiteral("Would you like to save the current cheat?"),
         QMessageBox::Yes | QMessageBox::No | QMessageBox::Cancel, QMessageBox::Cancel);
 
     if (answer == QMessageBox::Yes) {
@@ -81,11 +81,13 @@ bool CheatDialog::CheckSaveCheat() {
 
 bool CheatDialog::SaveCheat(int row) {
     if (ui->lineName->text().isEmpty()) {
-        QMessageBox::critical(this, tr("Save Cheat"), tr("Please enter a cheat name."));
+        QMessageBox::critical(this, QStringLiteral("Save Cheat"),
+                              QStringLiteral("Please enter a cheat name."));
         return false;
     }
     if (ui->textCode->toPlainText().isEmpty()) {
-        QMessageBox::critical(this, tr("Save Cheat"), tr("Please enter the cheat code."));
+        QMessageBox::critical(this, QStringLiteral("Save Cheat"),
+                              QStringLiteral("Please enter the cheat code."));
         return false;
     }
 
@@ -96,11 +98,12 @@ bool CheatDialog::SaveCheat(int row) {
         if (cheat_line.valid)
             continue;
 
-        auto answer = QMessageBox::warning(
-            this, tr("Save Cheat"),
-            tr("Cheat code line %1 is not valid.\nWould you like to ignore the error and continue?")
-                .arg(i + 1),
-            QMessageBox::Yes | QMessageBox::No, QMessageBox::No);
+        auto answer =
+            QMessageBox::warning(this, QStringLiteral("Save Cheat"),
+                                 QStringLiteral("Cheat code line %1 is not valid.\nWould you like "
+                                                "to ignore the error and continue?")
+                                     .arg(i + 1),
+                                 QMessageBox::Yes | QMessageBox::No, QMessageBox::No);
         if (answer == QMessageBox::No)
             return false;
     }
@@ -195,9 +198,9 @@ void CheatDialog::OnDeleteCheat() {
 
     LoadCheats();
     if (cheats.empty()) {
-        ui->lineName->setText("");
-        ui->textCode->setPlainText("");
-        ui->textNotes->setPlainText("");
+        ui->lineName->setText(QStringLiteral());
+        ui->textCode->setPlainText(QStringLiteral());
+        ui->textNotes->setPlainText(QStringLiteral());
         ui->lineName->setEnabled(false);
         ui->textCode->setEnabled(false);
         ui->textNotes->setEnabled(false);
@@ -230,12 +233,12 @@ void CheatDialog::OnAddCheat() {
     ui->tableCheats->setCurrentCell(row, 1);
 
     // create a dummy item
-    ui->tableCheats->setItem(row, 1, new QTableWidgetItem(tr("[new cheat]")));
-    ui->tableCheats->setItem(row, 2, new QTableWidgetItem(""));
-    ui->lineName->setText("");
-    ui->lineName->setPlaceholderText(tr("[new cheat]"));
-    ui->textCode->setPlainText("");
-    ui->textNotes->setPlainText("");
+    ui->tableCheats->setItem(row, 1, new QTableWidgetItem(QStringLiteral("[new cheat]")));
+    ui->tableCheats->setItem(row, 2, new QTableWidgetItem(QStringLiteral()));
+    ui->lineName->setText(QStringLiteral());
+    ui->lineName->setPlaceholderText(QStringLiteral("[new cheat]"));
+    ui->textCode->setPlainText(QStringLiteral());
+    ui->textNotes->setPlainText(QStringLiteral());
     ui->lineName->setEnabled(true);
     ui->textCode->setEnabled(true);
     ui->textNotes->setEnabled(true);

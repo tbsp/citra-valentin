@@ -49,9 +49,9 @@ std::unique_ptr<CameraInterface> QtCameraFactory::CreatePreview(const std::strin
         return camera;
     }
     QMessageBox::critical(
-        nullptr, QObject::tr("Error"),
-        (config.empty() ? QObject::tr("Couldn't load the camera")
-                        : QObject::tr("Couldn't load %1").arg(QString::fromStdString(config))));
+        nullptr, QStringLiteral("Error"),
+        (config.empty() ? QStringLiteral("Couldn't load the camera")
+                        : QStringLiteral("Couldn't load %1").arg(QString::fromStdString(config))));
     return nullptr;
 }
 

@@ -22,14 +22,14 @@
 
 GraphicsTracingWidget::GraphicsTracingWidget(std::shared_ptr<Pica::DebugContext> debug_context,
                                              QWidget* parent)
-    : BreakPointObserverDock(debug_context, tr("CiTrace Recorder"), parent) {
+    : BreakPointObserverDock(debug_context, QStringLiteral("CiTrace Recorder"), parent) {
 
     setObjectName(QStringLiteral("CiTracing"));
 
-    QPushButton* start_recording = new QPushButton(tr("Start Recording"));
+    QPushButton* start_recording = new QPushButton(QStringLiteral("Start Recording"));
     QPushButton* stop_recording =
-        new QPushButton(QIcon::fromTheme(QStringLiteral("document-save")), tr("Stop and Save"));
-    QPushButton* abort_recording = new QPushButton(tr("Abort Recording"));
+        new QPushButton(QIcon::fromTheme(QStringLiteral("document-save")), QStringLiteral("Stop and Save"));
+    QPushButton* abort_recording = new QPushButton(QStringLiteral("Abort Recording"));
 
     connect(this, &GraphicsTracingWidget::SetStartTracingButtonEnabled, start_recording,
             &QPushButton::setVisible);
@@ -110,7 +110,7 @@ void GraphicsTracingWidget::StopRecording() {
         return;
 
     QString filename = QFileDialog::getSaveFileName(
-        this, tr("Save CiTrace"), QStringLiteral("citrace.ctf"), tr("CiTrace File (*.ctf)"));
+        this, QStringLiteral("Save CiTrace"), QStringLiteral("citrace.ctf"), QStringLiteral("CiTrace File (*.ctf)"));
 
     if (filename.isEmpty()) {
         // If the user canceled the dialog, keep recording
@@ -159,8 +159,8 @@ void GraphicsTracingWidget::OnEmulationStopping() {
 
     if (context->recorder) {
         auto reply =
-            QMessageBox::question(this, tr("CiTracing still active"),
-                                  tr("A CiTrace is still being recorded. Do you want to save it? "
+            QMessageBox::question(this, QStringLiteral("CiTracing still active"),
+                                  QStringLiteral("A CiTrace is still being recorded. Do you want to save it? "
                                      "If not, all recorded data will be discarded."),
                                   QMessageBox::Yes | QMessageBox::No, QMessageBox::Yes);
 

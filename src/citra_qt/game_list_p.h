@@ -100,7 +100,7 @@ static QString GetRegionFromSMDH(const Loader::SMDH& smdh) {
     std::vector<GameRegion> regions = smdh.GetRegions();
 
     if (regions.empty()) {
-        return QObject::tr("Invalid region");
+        return QStringLiteral("Invalid region");
     }
 
     const bool region_free =
@@ -108,14 +108,14 @@ static QString GetRegionFromSMDH(const Loader::SMDH& smdh) {
             return std::find(regions.begin(), regions.end(), it.first) != regions.end();
         });
     if (region_free) {
-        return QObject::tr("Region free");
+        return QStringLiteral("Region free");
     }
 
     const QString separator =
         UISettings::values.game_list_single_line_mode ? QStringLiteral(", ") : QStringLiteral("\n");
-    QString result = QObject::tr(regions_map.at(regions.front()));
+    QString result = regions_map.at(regions.front());
     for (auto region = ++regions.begin(); region != regions.end(); ++region) {
-        result += separator + QObject::tr(regions_map.at(*region));
+        result += separator + regions_map.at(*region);
     }
     return result;
 }
@@ -239,7 +239,7 @@ public:
         setData(type(), TypeRole);
 
         if (!Loader::IsValidSMDH(smdh_data)) {
-            setText(QObject::tr("Invalid region"));
+            setText(QStringLiteral("Invalid region"));
             return;
         }
 
@@ -313,11 +313,11 @@ public:
         case GameListItemType::InstalledDir:
             setData(QIcon::fromTheme(QStringLiteral("sd_card")).pixmap(icon_size),
                     Qt::DecorationRole);
-            setData(QObject::tr("Installed Titles"), Qt::DisplayRole);
+            setData(QStringLiteral("Installed Titles"), Qt::DisplayRole);
             break;
         case GameListItemType::SystemDir:
             setData(QIcon::fromTheme(QStringLiteral("chip")).pixmap(icon_size), Qt::DecorationRole);
-            setData(QObject::tr("System Titles"), Qt::DisplayRole);
+            setData(QStringLiteral("System Titles"), Qt::DisplayRole);
             break;
         case GameListItemType::CustomDir:
             QString icon_name = QFileInfo::exists(game_dir->path) ? QStringLiteral("folder")
@@ -350,7 +350,7 @@ public:
 
         int icon_size = IconSizes.at(UISettings::values.game_list_icon_size);
         setData(QIcon::fromTheme(QStringLiteral("plus")).pixmap(icon_size), Qt::DecorationRole);
-        setData(QObject::tr("Add New Game Directory"), Qt::DisplayRole);
+        setData(QStringLiteral("Add New Game Directory"), Qt::DisplayRole);
     }
 
     int type() const override {

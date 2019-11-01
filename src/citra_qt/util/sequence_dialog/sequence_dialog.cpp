@@ -8,7 +8,7 @@
 #include "citra_qt/util/sequence_dialog/sequence_dialog.h"
 
 SequenceDialog::SequenceDialog(QWidget* parent) : QDialog(parent) {
-    setWindowTitle(tr("Enter a hotkey"));
+    setWindowTitle(QStringLiteral("Enter a hotkey"));
     setWindowFlags(windowFlags() & ~Qt::WindowContextHelpButtonHint);
 
     key_sequence = new QKeySequenceEdit;

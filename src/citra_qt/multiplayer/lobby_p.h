@@ -228,9 +228,10 @@ public:
                 out += '\n';
             const auto& m = member.value<LobbyMember>();
             if (m.GetGameName().isEmpty()) {
-                out += QString(QObject::tr("%1 is not playing a game")).arg(m.GetName());
+                out += QString(QStringLiteral("%1 is not playing a game")).arg(m.GetName());
             } else {
-                out += QString(QObject::tr("%1 is playing %2")).arg(m.GetName(), m.GetGameName());
+                out +=
+                    QString(QStringLiteral("%1 is playing %2")).arg(m.GetName(), m.GetGameName());
             }
             first = false;
         }

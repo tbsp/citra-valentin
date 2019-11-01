@@ -326,7 +326,7 @@ struct MIC_U::Impl {
             break;
         case Settings::MicInputType::Real:
 #if HAVE_CUBEB
-            new_mic = std::make_unique<AudioCore::CubebInput>();
+            new_mic = std::make_unique<AudioCore::CubebInput>(Settings::values.mic_input_device);
 #else
             new_mic = std::make_unique<Frontend::Mic::NullMic>();
 #endif
@@ -335,7 +335,7 @@ struct MIC_U::Impl {
             new_mic = std::make_unique<Frontend::Mic::StaticMic>();
             break;
         default:
-            LOG_CRITICAL(Audio, "Mic type not found. Defaulting to null mic");
+            LOG_ERROR(Audio, "Unknown mic type. Defaulting to null mic");
             new_mic = std::make_unique<Frontend::Mic::NullMic>();
         }
         // If theres already a mic, copy over any data to the new mic impl

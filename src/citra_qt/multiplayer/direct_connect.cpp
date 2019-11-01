@@ -106,12 +106,12 @@ void DirectConnectWindow::Connect() {
 
 void DirectConnectWindow::BeginConnecting() {
     ui->connect->setEnabled(false);
-    ui->connect->setText(tr("Connecting"));
+    ui->connect->setText(QStringLiteral("Connecting"));
 }
 
 void DirectConnectWindow::EndConnecting() {
     ui->connect->setEnabled(true);
-    ui->connect->setText(tr("Connect"));
+    ui->connect->setText(QStringLiteral("Connect"));
 }
 
 void DirectConnectWindow::OnConnection() {

@@ -10,7 +10,7 @@
 
 QString RecordDialog::FormatObject(const IPCDebugger::ObjectInfo& object) const {
     if (object.id == -1) {
-        return tr("null");
+        return QStringLiteral("null");
     }
 
     return QStringLiteral("%1 (0x%2)")

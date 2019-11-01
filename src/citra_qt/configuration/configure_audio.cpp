@@ -24,21 +24,14 @@ ConfigureAudio::ConfigureAudio(QWidget* parent)
         ui->output_sink_combo_box->addItem(QString::fromUtf8(id));
     }
 
-    ui->emulation_combo_box->addItem(tr("HLE (fast)"));
-    ui->emulation_combo_box->addItem(tr("LLE (accurate)"));
-    ui->emulation_combo_box->addItem(tr("LLE multi-core"));
+    ui->emulation_combo_box->addItem(QStringLiteral("HLE (fast)"));
+    ui->emulation_combo_box->addItem(QStringLiteral("LLE (accurate)"));
+    ui->emulation_combo_box->addItem(QStringLiteral("LLE multi-core"));
     ui->emulation_combo_box->setEnabled(!Core::System::GetInstance().IsPoweredOn());
 
     connect(ui->volume_slider, &QSlider::valueChanged, this,
             &ConfigureAudio::SetVolumeIndicatorText);
 
-    ui->input_device_combo_box->clear();
-    ui->input_device_combo_box->addItem(tr("Default"));
-#ifdef HAVE_CUBEB
-    for (const auto& device : AudioCore::ListCubebInputDevices()) {
-        ui->input_device_combo_box->addItem(QString::fromStdString(device));
-    }
-#endif
     connect(ui->input_type_combo_box, qOverload<int>(&QComboBox::currentIndexChanged), this,
             &ConfigureAudio::UpdateAudioInputDevices);
 
@@ -75,8 +68,6 @@ void ConfigureAudio::SetConfiguration() {
 
     int index = static_cast<int>(Settings::values.mic_input_type);
     ui->input_type_combo_box->setCurrentIndex(index);
-    ui->input_device_combo_box->setCurrentText(
-        QString::fromStdString(Settings::values.mic_input_device));
     UpdateAudioInputDevices(index);
 }
 
@@ -109,7 +100,7 @@ void ConfigureAudio::SetAudioDeviceFromDeviceID() {
 }
 
 void ConfigureAudio::SetVolumeIndicatorText(int percentage) {
-    ui->volume_indicator->setText(tr("%1%", "Volume percentage (e.g. 50%)").arg(percentage));
+    ui->volume_indicator->setText(QStringLiteral("%1%").arg(percentage));
 }
 
 void ConfigureAudio::ApplyConfiguration() {
@@ -139,4 +130,24 @@ void ConfigureAudio::UpdateAudioOutputDevices(int sink_index) {
     }
 }
 
-void ConfigureAudio::UpdateAudioInputDevices(int index) {}
+void ConfigureAudio::UpdateAudioInputDevices(int index) {
+    // 1: Real Device
+    ui->label_3->setVisible(index == 1);
+    ui->input_device_combo_box->setVisible(index == 1);
+
+    if (index != 1) {
+        return;
+    }
+
+#ifdef HAVE_CUBEB
+    ui->input_device_combo_box->clear();
+    ui->input_device_combo_box->addItem(QStringLiteral("Default"));
+
+    for (const auto& device : AudioCore::ListCubebInputDevices()) {
+        ui->input_device_combo_box->addItem(QString::fromStdString(device));
+    }
+
+    ui->input_device_combo_box->setCurrentText(
+        QString::fromStdString(Settings::values.mic_input_device));
+#endif
+}

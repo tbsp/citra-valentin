@@ -23,7 +23,8 @@ struct CubebInput::Impl {
     static void StateCallback(cubeb_stream* stream, void* user_data, cubeb_state state);
 };
 
-CubebInput::CubebInput() : impl(std::make_unique<Impl>()) {
+CubebInput::CubebInput(std::string_view device_id)
+    : device_id(device_id), impl(std::make_unique<Impl>()) {
     if (cubeb_init(&impl->ctx, "Citra Input", nullptr) != CUBEB_OK) {
         LOG_ERROR(Audio, "cubeb_init failed! Mic will not work properly");
         return;
@@ -46,8 +47,8 @@ void CubebInput::StartSampling(const Frontend::Mic::Parameters& params) {
     // Cubeb apparently only supports signed 16 bit PCM (and float32 which the 3ds doesn't support)
     // TODO resample the input stream
     if (params.sign == Frontend::Mic::Signedness::Unsigned) {
-        LOG_ERROR(Audio,
-                  "Application requested unsupported unsigned pcm format. Falling back to signed");
+        LOG_WARNING(
+            Audio, "Application requested unsupported unsigned PCM format. Falling back to signed");
     }
 
     impl->sample_size_in_bytes = params.sample_size / 8;
@@ -56,6 +57,21 @@ void CubebInput::StartSampling(const Frontend::Mic::Parameters& params) {
     is_sampling = true;
 
     cubeb_devid input_device = nullptr;
+    cubeb_device_collection collection;
+    if (cubeb_enumerate_devices(impl->ctx, CUBEB_DEVICE_TYPE_INPUT, &collection) != CUBEB_OK) {
+        LOG_WARNING(Audio, "Audio input device enumeration not supported");
+    } else {
+        const auto collection_end = collection.device + collection.count;
+        const auto device =
+            std::find_if(collection.device, collection_end, [&](const cubeb_device_info& info) {
+                return info.friendly_name != nullptr && device_id == info.friendly_name;
+            });
+        if (device != collection_end) {
+            input_device = device->devid;
+        }
+        cubeb_device_collection_destroy(impl->ctx, &collection);
+    }
+
     cubeb_stream_params input_params;
     input_params.channels = 1;
     input_params.layout = CUBEB_LAYOUT_UNDEFINED;

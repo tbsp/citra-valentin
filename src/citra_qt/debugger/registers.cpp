@@ -12,10 +12,10 @@ RegistersWidget::RegistersWidget(QWidget* parent) : QDockWidget(parent) {
     cpu_regs_ui.setupUi(this);
 
     tree = cpu_regs_ui.treeWidget;
-    tree->addTopLevelItem(core_registers = new QTreeWidgetItem(QStringList(tr("Registers"))));
-    tree->addTopLevelItem(vfp_registers = new QTreeWidgetItem(QStringList(tr("VFP Registers"))));
+    tree->addTopLevelItem(core_registers = new QTreeWidgetItem(QStringList(QStringLiteral("Registers"))));
+    tree->addTopLevelItem(vfp_registers = new QTreeWidgetItem(QStringList(QStringLiteral("VFP Registers"))));
     tree->addTopLevelItem(vfp_system_registers =
-                              new QTreeWidgetItem(QStringList(tr("VFP System Registers"))));
+                              new QTreeWidgetItem(QStringList(QStringLiteral("VFP System Registers"))));
     tree->addTopLevelItem(cpsr = new QTreeWidgetItem(QStringList(QStringLiteral("CPSR"))));
 
     for (int i = 0; i < 16; ++i) {
@@ -164,9 +164,9 @@ void RegistersWidget::CreateVFPSystemRegisterChildren() {
     fpscr->addChild(new QTreeWidgetItem(QStringList(QStringLiteral("UFE"))));
     fpscr->addChild(new QTreeWidgetItem(QStringList(QStringLiteral("IXE"))));
     fpscr->addChild(new QTreeWidgetItem(QStringList(QStringLiteral("IDE"))));
-    fpscr->addChild(new QTreeWidgetItem(QStringList(tr("Vector Length"))));
-    fpscr->addChild(new QTreeWidgetItem(QStringList(tr("Vector Stride"))));
-    fpscr->addChild(new QTreeWidgetItem(QStringList(tr("Rounding Mode"))));
+    fpscr->addChild(new QTreeWidgetItem(QStringList(QStringLiteral("Vector Length"))));
+    fpscr->addChild(new QTreeWidgetItem(QStringList(QStringLiteral("Vector Stride"))));
+    fpscr->addChild(new QTreeWidgetItem(QStringList(QStringLiteral("Rounding Mode"))));
     fpscr->addChild(new QTreeWidgetItem(QStringList(QStringLiteral("FZ"))));
     fpscr->addChild(new QTreeWidgetItem(QStringList(QStringLiteral("DN"))));
     fpscr->addChild(new QTreeWidgetItem(QStringList(QStringLiteral("V"))));
@@ -179,7 +179,7 @@ void RegistersWidget::CreateVFPSystemRegisterChildren() {
     fpexc->addChild(new QTreeWidgetItem(QStringList(QStringLiteral("OFC"))));
     fpexc->addChild(new QTreeWidgetItem(QStringList(QStringLiteral("UFC"))));
     fpexc->addChild(new QTreeWidgetItem(QStringList(QStringLiteral("INV"))));
-    fpexc->addChild(new QTreeWidgetItem(QStringList(tr("Vector Iteration Count"))));
+    fpexc->addChild(new QTreeWidgetItem(QStringList(QStringLiteral("Vector Iteration Count"))));
     fpexc->addChild(new QTreeWidgetItem(QStringList(QStringLiteral("FP2V"))));
     fpexc->addChild(new QTreeWidgetItem(QStringList(QStringLiteral("EN"))));
     fpexc->addChild(new QTreeWidgetItem(QStringList(QStringLiteral("EX"))));

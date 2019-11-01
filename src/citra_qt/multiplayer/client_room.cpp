@@ -71,7 +71,7 @@ void ClientRoomWindow::OnStateChange(const Network::RoomMember::State& state) {
         state == Network::RoomMember::State::Moderator) {
 
         ui->chat->Clear();
-        ui->chat->AppendStatusMessage(tr("Connected"));
+        ui->chat->AppendStatusMessage(QStringLiteral("Connected"));
         SetModPerms(state == Network::RoomMember::State::Moderator);
     }
     UpdateView();
@@ -80,7 +80,7 @@ void ClientRoomWindow::OnStateChange(const Network::RoomMember::State& state) {
 void ClientRoomWindow::Disconnect() {
     auto parent = static_cast<MultiplayerState*>(parentWidget());
     if (parent->OnCloseRoom()) {
-        ui->chat->AppendStatusMessage(tr("Disconnected"));
+        ui->chat->AppendStatusMessage(QStringLiteral("Disconnected"));
         close();
     }
 }
@@ -93,7 +93,7 @@ void ClientRoomWindow::UpdateView() {
             auto memberlist = member->GetMemberInformation();
             ui->chat->SetPlayerList(memberlist);
             const auto information = member->GetRoomInformation();
-            setWindowTitle(QString(tr("%1 (%2/%3 members) - connected"))
+            setWindowTitle(QString(QStringLiteral("%1 (%2/%3 members) - connected"))
                                .arg(QString::fromStdString(information.name))
                                .arg(memberlist.size())
                                .arg(information.member_slots));

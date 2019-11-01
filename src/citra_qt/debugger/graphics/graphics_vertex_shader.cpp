@@ -42,11 +42,11 @@ QVariant GraphicsVertexShaderModel::headerData(int section, Qt::Orientation orie
     switch (role) {
     case Qt::DisplayRole: {
         if (section == 0) {
-            return tr("Offset");
+            return QStringLiteral("Offset");
         } else if (section == 1) {
-            return tr("Raw");
+            return QStringLiteral("Raw");
         } else if (section == 2) {
-            return tr("Disassembly");
+            return QStringLiteral("Disassembly");
         }
 
         break;
@@ -342,9 +342,9 @@ QVariant GraphicsVertexShaderModel::data(const QModelIndex& index, int role) con
 }
 
 void GraphicsVertexShaderWidget::DumpShader() {
-    QString filename = QFileDialog::getSaveFileName(this, tr("Save Shader Dump"),
+    QString filename = QFileDialog::getSaveFileName(this, QStringLiteral("Save Shader Dump"),
                                                     QStringLiteral("shader_dump.shbin"),
-                                                    tr("Shader Binary (*.shbin)"));
+                                                    QStringLiteral("Shader Binary (*.shbin)"));
 
     if (filename.isEmpty()) {
         // If the user canceled the dialog, don't dump anything.
@@ -360,7 +360,7 @@ void GraphicsVertexShaderWidget::DumpShader() {
 
 GraphicsVertexShaderWidget::GraphicsVertexShaderWidget(
     std::shared_ptr<Pica::DebugContext> debug_context, QWidget* parent)
-    : BreakPointObserverDock(debug_context, tr("Pica Vertex Shader"), parent) {
+    : BreakPointObserverDock(debug_context, QStringLiteral("Pica Vertex Shader"), parent) {
     setObjectName(QStringLiteral("PicaVertexShader"));
 
     // Clear input vertex data so that it contains valid float values in case a debug shader
@@ -379,7 +379,7 @@ GraphicsVertexShaderWidget::GraphicsVertexShaderWidget(
     }
 
     breakpoint_warning =
-        new QLabel(tr("(data only available at vertex shader invocation breakpoints)"));
+        new QLabel(QStringLiteral("(data only available at vertex shader invocation breakpoints)"));
 
     // TODO: Add some button for jumping to the shader entry point
 
@@ -390,7 +390,7 @@ GraphicsVertexShaderWidget::GraphicsVertexShaderWidget(
     binary_list->setAlternatingRowColors(true);
 
     auto dump_shader =
-        new QPushButton(QIcon::fromTheme(QStringLiteral("document-save")), tr("Dump"));
+        new QPushButton(QIcon::fromTheme(QStringLiteral("document-save")), QStringLiteral("Dump"));
 
     instruction_description = new QLabel;
 
@@ -412,7 +412,7 @@ GraphicsVertexShaderWidget::GraphicsVertexShaderWidget(
     auto main_widget = new QWidget;
     auto main_layout = new QVBoxLayout;
     {
-        auto input_data_group = new QGroupBox(tr("Input Data"));
+        auto input_data_group = new QGroupBox(QStringLiteral("Input Data"));
 
         // For each vertex attribute, add a QHBoxLayout consisting of:
         // - A QLabel denoting the source attribute index
@@ -426,7 +426,7 @@ GraphicsVertexShaderWidget::GraphicsVertexShaderWidget(
             // Remove unnecessary padding between rows
             row_layout->setContentsMargins(0, 0, 0, 0);
 
-            row_layout->addWidget(new QLabel(tr("Attribute %1").arg(i, 2)));
+            row_layout->addWidget(new QLabel(QStringLiteral("Attribute %1").arg(i, 2)));
             for (unsigned comp = 0; comp < 4; ++comp)
                 row_layout->addWidget(input_data[4 * i + comp]);
 
@@ -453,7 +453,7 @@ GraphicsVertexShaderWidget::GraphicsVertexShaderWidget(
     main_layout->addWidget(dump_shader);
     {
         auto sub_layout = new QFormLayout;
-        sub_layout->addRow(tr("Cycle Index:"), cycle_index);
+        sub_layout->addRow(QStringLiteral("Cycle Index:"), cycle_index);
 
         main_layout->addLayout(sub_layout);
     }
@@ -560,64 +560,67 @@ void GraphicsVertexShaderWidget::OnCycleIndexChanged(int index) {
 
     auto& record = debug_data.records[index];
     if (record.mask & Pica::Shader::DebugDataRecord::SRC1)
-        text += tr("SRC1: %1, %2, %3, %4\n")
+        text += QStringLiteral("SRC1: %1, %2, %3, %4\n")
                     .arg(record.src1.x.ToFloat32())
                     .arg(record.src1.y.ToFloat32())
                     .arg(record.src1.z.ToFloat32())
                     .arg(record.src1.w.ToFloat32());
     if (record.mask & Pica::Shader::DebugDataRecord::SRC2)
-        text += tr("SRC2: %1, %2, %3, %4\n")
+        text += QStringLiteral("SRC2: %1, %2, %3, %4\n")
                     .arg(record.src2.x.ToFloat32())
                     .arg(record.src2.y.ToFloat32())
                     .arg(record.src2.z.ToFloat32())
                     .arg(record.src2.w.ToFloat32());
     if (record.mask & Pica::Shader::DebugDataRecord::SRC3)
-        text += tr("SRC3: %1, %2, %3, %4\n")
+        text += QStringLiteral("SRC3: %1, %2, %3, %4\n")
                     .arg(record.src3.x.ToFloat32())
                     .arg(record.src3.y.ToFloat32())
                     .arg(record.src3.z.ToFloat32())
                     .arg(record.src3.w.ToFloat32());
     if (record.mask & Pica::Shader::DebugDataRecord::DEST_IN)
-        text += tr("DEST_IN: %1, %2, %3, %4\n")
+        text += QStringLiteral("DEST_IN: %1, %2, %3, %4\n")
                     .arg(record.dest_in.x.ToFloat32())
                     .arg(record.dest_in.y.ToFloat32())
                     .arg(record.dest_in.z.ToFloat32())
                     .arg(record.dest_in.w.ToFloat32());
     if (record.mask & Pica::Shader::DebugDataRecord::DEST_OUT)
-        text += tr("DEST_OUT: %1, %2, %3, %4\n")
+        text += QStringLiteral("DEST_OUT: %1, %2, %3, %4\n")
                     .arg(record.dest_out.x.ToFloat32())
                     .arg(record.dest_out.y.ToFloat32())
                     .arg(record.dest_out.z.ToFloat32())
                     .arg(record.dest_out.w.ToFloat32());
 
     if (record.mask & Pica::Shader::DebugDataRecord::ADDR_REG_OUT)
-        text += tr("Address Registers: %1, %2\n")
+        text += QStringLiteral("Address Registers: %1, %2\n")
                     .arg(record.address_registers[0])
                     .arg(record.address_registers[1]);
     if (record.mask & Pica::Shader::DebugDataRecord::CMP_RESULT)
-        text += tr("Compare Result: %1, %2\n")
+        text += QStringLiteral("Compare Result: %1, %2\n")
                     .arg(record.conditional_code[0] ? true_string : false_string)
                     .arg(record.conditional_code[1] ? true_string : false_string);
 
     if (record.mask & Pica::Shader::DebugDataRecord::COND_BOOL_IN)
-        text += tr("Static Condition: %1\n").arg(record.cond_bool ? true_string : false_string);
+        text += QStringLiteral("Static Condition: %1\n")
+                    .arg(record.cond_bool ? true_string : false_string);
     if (record.mask & Pica::Shader::DebugDataRecord::COND_CMP_IN)
-        text += tr("Dynamic Conditions: %1, %2\n")
+        text += QStringLiteral("Dynamic Conditions: %1, %2\n")
                     .arg(record.cond_cmp[0] ? true_string : false_string)
                     .arg(record.cond_cmp[1] ? true_string : false_string);
     if (record.mask & Pica::Shader::DebugDataRecord::LOOP_INT_IN)
-        text += tr("Loop Parameters: %1 (repeats), %2 (initializer), %3 (increment), %4\n")
-                    .arg(record.loop_int.x)
-                    .arg(record.loop_int.y)
-                    .arg(record.loop_int.z)
-                    .arg(record.loop_int.w);
+        text +=
+            QStringLiteral("Loop Parameters: %1 (repeats), %2 (initializer), %3 (increment), %4\n")
+                .arg(record.loop_int.x)
+                .arg(record.loop_int.y)
+                .arg(record.loop_int.z)
+                .arg(record.loop_int.w);
 
-    text +=
-        tr("Instruction offset: 0x%1").arg(4 * record.instruction_offset, 4, 16, QLatin1Char('0'));
+    text += QStringLiteral("Instruction offset: 0x%1")
+                .arg(4 * record.instruction_offset, 4, 16, QLatin1Char('0'));
     if (record.mask & Pica::Shader::DebugDataRecord::NEXT_INSTR) {
-        text += tr(" -> 0x%2").arg(4 * record.next_instruction, 4, 16, QLatin1Char('0'));
+        text +=
+            QStringLiteral(" -> 0x%2").arg(4 * record.next_instruction, 4, 16, QLatin1Char('0'));
     } else {
-        text += tr(" (last instruction)");
+        text += QStringLiteral(" (last instruction)");
     }
 
     instruction_description->setText(text);

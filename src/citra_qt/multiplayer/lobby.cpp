@@ -93,8 +93,9 @@ void Lobby::UpdateGameList(QStandardItemModel* list) {
 
 QString Lobby::PasswordPrompt() {
     bool ok;
-    const QString text = QInputDialog::getText(this, tr("Password Required to Join"),
-                                               tr("Password:"), QLineEdit::Password, "", &ok);
+    const QString text =
+        QInputDialog::getText(this, QStringLiteral("Password Required to Join"),
+                              QStringLiteral("Password:"), QLineEdit::Password, "", &ok);
     return ok ? text : QString();
 }
 
@@ -174,17 +175,20 @@ void Lobby::ResetModel() {
     model->clear();
     model->insertColumns(0, Column::TOTAL);
     model->setHeaderData(Column::EXPAND, Qt::Horizontal, "", Qt::DisplayRole);
-    model->setHeaderData(Column::ROOM_NAME, Qt::Horizontal, tr("Room Name"), Qt::DisplayRole);
-    model->setHeaderData(Column::GAME_NAME, Qt::Horizontal, tr("Preferred Game"), Qt::DisplayRole);
-    model->setHeaderData(Column::HOST, Qt::Horizontal, tr("Host"), Qt::DisplayRole);
-    model->setHeaderData(Column::MEMBER, Qt::Horizontal, tr("Players"), Qt::DisplayRole);
+    model->setHeaderData(Column::ROOM_NAME, Qt::Horizontal, QStringLiteral("Room Name"),
+                         Qt::DisplayRole);
+    model->setHeaderData(Column::GAME_NAME, Qt::Horizontal, QStringLiteral("Preferred Game"),
+                         Qt::DisplayRole);
+    model->setHeaderData(Column::HOST, Qt::Horizontal, QStringLiteral("Host"), Qt::DisplayRole);
+    model->setHeaderData(Column::MEMBER, Qt::Horizontal, QStringLiteral("Players"),
+                         Qt::DisplayRole);
 }
 
 void Lobby::RefreshLobby() {
     if (auto session = announce_multiplayer_session.lock()) {
         ResetModel();
         ui->refresh_list->setEnabled(false);
-        ui->refresh_list->setText(tr("Refreshing"));
+        ui->refresh_list->setText(QStringLiteral("Refreshing"));
         room_list_watcher.setFuture(
             QtConcurrent::run([session]() { return session->GetRoomList(); }));
     } else {
@@ -239,7 +243,7 @@ void Lobby::OnRefreshLobby() {
 
     // Reenable the refresh button and resize the columns
     ui->refresh_list->setEnabled(true);
-    ui->refresh_list->setText(tr("Refresh List"));
+    ui->refresh_list->setText(QStringLiteral("Refresh List"));
     ui->room_list->header()->stretchLastSection();
     for (int i = 0; i < Column::TOTAL - 1; ++i) {
         ui->room_list->resizeColumnToContents(i);

@@ -38,8 +38,8 @@ ModerationDialog::ModerationDialog(QWidget* parent)
     // Initialize the UI
     model = new QStandardItemModel(ui->ban_list_view);
     model->insertColumns(0, Column::COUNT);
-    model->setHeaderData(Column::SUBJECT, Qt::Horizontal, tr("Subject"));
-    model->setHeaderData(Column::TYPE, Qt::Horizontal, tr("Type"));
+    model->setHeaderData(Column::SUBJECT, Qt::Horizontal, QStringLiteral("Subject"));
+    model->setHeaderData(Column::TYPE, Qt::Horizontal, QStringLiteral("Type"));
 
     ui->ban_list_view->setModel(model);
 
@@ -71,7 +71,7 @@ ModerationDialog::~ModerationDialog() {
 void ModerationDialog::LoadBanList() {
     if (auto room = Network::GetRoomMember().lock()) {
         ui->refresh->setEnabled(false);
-        ui->refresh->setText(tr("Refreshing"));
+        ui->refresh->setText(QStringLiteral("Refreshing"));
         ui->unban->setEnabled(false);
         room->RequestBanList();
     }
@@ -81,19 +81,19 @@ void ModerationDialog::PopulateBanList(const Network::Room::BanList& ban_list) {
     model->removeRows(0, model->rowCount());
     for (const auto& username : ban_list.first) {
         QStandardItem* subject_item = new QStandardItem(QString::fromStdString(username));
-        QStandardItem* type_item = new QStandardItem(tr("Forum Username"));
+        QStandardItem* type_item = new QStandardItem(QStringLiteral("Forum Username"));
         model->invisibleRootItem()->appendRow({subject_item, type_item});
     }
     for (const auto& ip : ban_list.second) {
         QStandardItem* subject_item = new QStandardItem(QString::fromStdString(ip));
-        QStandardItem* type_item = new QStandardItem(tr("IP Address"));
+        QStandardItem* type_item = new QStandardItem(QStringLiteral("IP Address"));
         model->invisibleRootItem()->appendRow({subject_item, type_item});
     }
     for (int i = 0; i < Column::COUNT - 1; ++i) {
         ui->ban_list_view->resizeColumnToContents(i);
     }
     ui->refresh->setEnabled(true);
-    ui->refresh->setText(tr("Refresh"));
+    ui->refresh->setText(QStringLiteral("Refresh"));
     ui->unban->setEnabled(false);
 }
 

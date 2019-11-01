@@ -87,12 +87,12 @@ void GameListSearchField::setFilterResult(int visible, int total) {
     this->visible = visible;
     this->total = total;
 
-    QString result_of_text = tr("of");
+    QString result_of_text = QStringLiteral("of");
     QString result_text;
     if (total == 1) {
-        result_text = tr("result");
+        result_text = QStringLiteral("result");
     } else {
-        result_text = tr("results");
+        result_text = QStringLiteral("results");
     }
     label_filter_result->setText(
         QString("%1 %2 %3 %4").arg(visible).arg(result_of_text).arg(total).arg(result_text));
@@ -132,10 +132,10 @@ GameListSearchField::GameListSearchField(GameList* parent) : QWidget{parent} {
     layout_filter = new QHBoxLayout;
     layout_filter->setMargin(8);
     label_filter = new QLabel;
-    label_filter->setText(tr("Filter:"));
+    label_filter->setText(QStringLiteral("Filter:"));
     edit_filter = new QLineEdit;
     edit_filter->setText("");
-    edit_filter->setPlaceholderText(tr("Enter pattern to filter"));
+    edit_filter->setPlaceholderText(QStringLiteral("Enter pattern to filter"));
     edit_filter->installEventFilter(keyReleaseEater);
     edit_filter->setClearButtonEnabled(true);
     connect(edit_filter, &QLineEdit::textChanged, parent, &GameList::onTextChanged);
@@ -288,10 +288,10 @@ GameList::GameList(GMainWindow* parent) : QWidget{parent} {
     tree_view->setStyleSheet("QTreeView{ border: none; }");
 
     item_model->insertColumns(0, COLUMN_COUNT);
-    item_model->setHeaderData(COLUMN_NAME, Qt::Horizontal, tr("Name"));
-    item_model->setHeaderData(COLUMN_REGION, Qt::Horizontal, tr("Region"));
-    item_model->setHeaderData(COLUMN_FILE_TYPE, Qt::Horizontal, tr("File type"));
-    item_model->setHeaderData(COLUMN_SIZE, Qt::Horizontal, tr("Size"));
+    item_model->setHeaderData(COLUMN_NAME, Qt::Horizontal, QStringLiteral("Name"));
+    item_model->setHeaderData(COLUMN_REGION, Qt::Horizontal, QStringLiteral("Region"));
+    item_model->setHeaderData(COLUMN_FILE_TYPE, Qt::Horizontal, QStringLiteral("File type"));
+    item_model->setHeaderData(COLUMN_SIZE, Qt::Horizontal, QStringLiteral("Size"));
     item_model->setSortRole(GameListItemPath::SortRole);
 
     connect(main_window, &GMainWindow::UpdateThemedIcons, this, &GameList::onUpdateThemedIcons);
@@ -446,13 +446,17 @@ void GameList::PopupContextMenu(const QPoint& menu_location) {
 
 void GameList::AddGamePopup(QMenu& context_menu, const QString& path, u64 program_id,
                             u64 extdata_id) {
-    QAction* open_save_location = context_menu.addAction(tr("Open Save Data Location"));
-    QAction* open_extdata_location = context_menu.addAction(tr("Open Extra Data Location"));
-    QAction* open_application_location = context_menu.addAction(tr("Open Application Location"));
-    QAction* open_update_location = context_menu.addAction(tr("Open Update Data Location"));
-    QAction* open_texture_dump_location = context_menu.addAction(tr("Open Texture Dump Location"));
+    QAction* open_save_location = context_menu.addAction(QStringLiteral("Open Save Data Location"));
+    QAction* open_extdata_location =
+        context_menu.addAction(QStringLiteral("Open Extra Data Location"));
+    QAction* open_application_location =
+        context_menu.addAction(QStringLiteral("Open Application Location"));
+    QAction* open_update_location =
+        context_menu.addAction(QStringLiteral("Open Update Data Location"));
+    QAction* open_texture_dump_location =
+        context_menu.addAction(QStringLiteral("Open Texture Dump Location"));
     QAction* open_texture_load_location =
-        context_menu.addAction(tr("Open Custom Texture Location"));
+        context_menu.addAction(QStringLiteral("Open Custom Texture Location"));
 
     const bool is_application =
         0x0004000000000000 <= program_id && program_id <= 0x00040000FFFFFFFF;
@@ -513,8 +517,8 @@ void GameList::AddCustomDirPopup(QMenu& context_menu, QModelIndex selected) {
     UISettings::GameDir& game_dir =
         *selected.data(GameListDir::GameDirRole).value<UISettings::GameDir*>();
 
-    QAction* deep_scan = context_menu.addAction(tr("Scan Subfolders"));
-    QAction* delete_dir = context_menu.addAction(tr("Remove Game Directory"));
+    QAction* deep_scan = context_menu.addAction(QStringLiteral("Scan Subfolders"));
+    QAction* delete_dir = context_menu.addAction(QStringLiteral("Remove Game Directory"));
 
     deep_scan->setCheckable(true);
     deep_scan->setChecked(game_dir.deep_scan);
@@ -533,9 +537,10 @@ void GameList::AddPermDirPopup(QMenu& context_menu, QModelIndex selected) {
     UISettings::GameDir& game_dir =
         *selected.data(GameListDir::GameDirRole).value<UISettings::GameDir*>();
 
-    QAction* move_up = context_menu.addAction(tr(u8"\U000025b2 Move Up"));
-    QAction* move_down = context_menu.addAction(tr(u8"\U000025bc Move Down "));
-    QAction* open_directory_location = context_menu.addAction(tr("Open Directory Location"));
+    QAction* move_up = context_menu.addAction(u8"\U000025b2 Move Up");
+    QAction* move_down = context_menu.addAction(u8"\U000025bc Move Down ");
+    QAction* open_directory_location =
+        context_menu.addAction(QStringLiteral("Open Directory Location"));
 
     const int row = selected.row();
 
@@ -653,7 +658,7 @@ GameListPlaceholder::GameListPlaceholder(GMainWindow* parent) : QWidget{parent} 
     layout->setAlignment(Qt::AlignCenter);
     image->setPixmap(QIcon::fromTheme("plus_folder").pixmap(200));
 
-    text->setText(tr("Double-click to add a new folder to the game list"));
+    text->setText(QStringLiteral("Double-click to add a new folder to the game list"));
     QFont font = text->font();
     font.setPointSize(20);
     text->setFont(font);

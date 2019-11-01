@@ -116,35 +116,35 @@ void BreakPointModel::OnResumed() {
 QString BreakPointModel::DebugContextEventToString(Pica::DebugContext::Event event) {
     switch (event) {
     case Pica::DebugContext::Event::PicaCommandLoaded:
-        return tr("Pica command loaded");
+        return QStringLiteral("Pica command loaded");
     case Pica::DebugContext::Event::PicaCommandProcessed:
-        return tr("Pica command processed");
+        return QStringLiteral("Pica command processed");
     case Pica::DebugContext::Event::IncomingPrimitiveBatch:
-        return tr("Incoming primitive batch");
+        return QStringLiteral("Incoming primitive batch");
     case Pica::DebugContext::Event::FinishedPrimitiveBatch:
-        return tr("Finished primitive batch");
+        return QStringLiteral("Finished primitive batch");
     case Pica::DebugContext::Event::VertexShaderInvocation:
-        return tr("Vertex shader invocation");
+        return QStringLiteral("Vertex shader invocation");
     case Pica::DebugContext::Event::IncomingDisplayTransfer:
-        return tr("Incoming display transfer");
+        return QStringLiteral("Incoming display transfer");
     case Pica::DebugContext::Event::GSPCommandProcessed:
-        return tr("GSP command processed");
+        return QStringLiteral("GSP command processed");
     case Pica::DebugContext::Event::BufferSwapped:
-        return tr("Buffers swapped");
+        return QStringLiteral("Buffers swapped");
     case Pica::DebugContext::Event::NumEvents:
         break;
     }
-    return tr("Unknown debug context event");
+    return QStringLiteral("Unknown debug context event");
 }
 
 GraphicsBreakPointsWidget::GraphicsBreakPointsWidget(
     std::shared_ptr<Pica::DebugContext> debug_context, QWidget* parent)
-    : QDockWidget(tr("Pica Breakpoints"), parent), Pica::DebugContext::BreakPointObserver(
+    : QDockWidget(QStringLiteral("Pica Breakpoints"), parent), Pica::DebugContext::BreakPointObserver(
                                                        debug_context) {
     setObjectName(QStringLiteral("PicaBreakPointsWidget"));
 
-    status_text = new QLabel(tr("Emulation running"));
-    resume_button = new QPushButton(tr("Resume"));
+    status_text = new QLabel(QStringLiteral("Emulation running"));
+    resume_button = new QPushButton(QStringLiteral("Resume"));
     resume_button->setEnabled(false);
 
     breakpoint_model = new BreakPointModel(debug_context, this);
@@ -195,7 +195,7 @@ void GraphicsBreakPointsWidget::OnPicaBreakPointHit(Event event, void* data) {
 }
 
 void GraphicsBreakPointsWidget::OnBreakPointHit(Pica::DebugContext::Event event, void* data) {
-    status_text->setText(tr("Emulation halted at breakpoint"));
+    status_text->setText(QStringLiteral("Emulation halted at breakpoint"));
     resume_button->setEnabled(true);
 }
 
@@ -205,7 +205,7 @@ void GraphicsBreakPointsWidget::OnPicaResume() {
 }
 
 void GraphicsBreakPointsWidget::OnResumed() {
-    status_text->setText(tr("Emulation running"));
+    status_text->setText(QStringLiteral("Emulation running"));
     resume_button->setEnabled(false);
 }
 

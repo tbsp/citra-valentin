@@ -49,18 +49,18 @@ void SurfacePicture::mouseMoveEvent(QMouseEvent* event) {
 
 GraphicsSurfaceWidget::GraphicsSurfaceWidget(std::shared_ptr<Pica::DebugContext> debug_context,
                                              QWidget* parent)
-    : BreakPointObserverDock(debug_context, tr("Pica Surface Viewer"), parent),
+    : BreakPointObserverDock(debug_context, QStringLiteral("Pica Surface Viewer"), parent),
       surface_source(Source::ColorBuffer) {
     setObjectName(QStringLiteral("PicaSurface"));
 
     surface_source_list = new QComboBox;
-    surface_source_list->addItem(tr("Color Buffer"));
-    surface_source_list->addItem(tr("Depth Buffer"));
-    surface_source_list->addItem(tr("Stencil Buffer"));
-    surface_source_list->addItem(tr("Texture 0"));
-    surface_source_list->addItem(tr("Texture 1"));
-    surface_source_list->addItem(tr("Texture 2"));
-    surface_source_list->addItem(tr("Custom"));
+    surface_source_list->addItem(QStringLiteral("Color Buffer"));
+    surface_source_list->addItem(QStringLiteral("Depth Buffer"));
+    surface_source_list->addItem(QStringLiteral("Stencil Buffer"));
+    surface_source_list->addItem(QStringLiteral("Texture 0"));
+    surface_source_list->addItem(QStringLiteral("Texture 1"));
+    surface_source_list->addItem(QStringLiteral("Texture 2"));
+    surface_source_list->addItem(QStringLiteral("Custom"));
     surface_source_list->setCurrentIndex(static_cast<int>(surface_source));
 
     surface_address_control = new CSpinBox;
@@ -102,7 +102,7 @@ GraphicsSurfaceWidget::GraphicsSurfaceWidget(std::shared_ptr<Pica::DebugContext>
         QStringLiteral("D24"),
         QStringLiteral("D24X8"),
         QStringLiteral("X24S8"),
-        tr("Unknown"),
+        QStringLiteral("Unknown"),
     };
 
     surface_format_control = new QComboBox;
@@ -121,7 +121,7 @@ GraphicsSurfaceWidget::GraphicsSurfaceWidget(std::shared_ptr<Pica::DebugContext>
     scroll_area->setWidgetResizable(false);
     scroll_area->setWidget(surface_picture_label);
 
-    save_surface = new QPushButton(QIcon::fromTheme(QStringLiteral("document-save")), tr("Save"));
+    save_surface = new QPushButton(QIcon::fromTheme(QStringLiteral("document-save")), QStringLiteral("Save"));
 
     // Connections
     connect(this, &GraphicsSurfaceWidget::Update, this, &GraphicsSurfaceWidget::OnUpdate);
@@ -145,31 +145,31 @@ GraphicsSurfaceWidget::GraphicsSurfaceWidget(std::shared_ptr<Pica::DebugContext>
     auto main_layout = new QVBoxLayout;
     {
         auto sub_layout = new QHBoxLayout;
-        sub_layout->addWidget(new QLabel(tr("Source:")));
+        sub_layout->addWidget(new QLabel(QStringLiteral("Source:")));
         sub_layout->addWidget(surface_source_list);
         main_layout->addLayout(sub_layout);
     }
     {
         auto sub_layout = new QHBoxLayout;
-        sub_layout->addWidget(new QLabel(tr("Physical Address:")));
+        sub_layout->addWidget(new QLabel(QStringLiteral("Physical Address:")));
         sub_layout->addWidget(surface_address_control);
         main_layout->addLayout(sub_layout);
     }
     {
         auto sub_layout = new QHBoxLayout;
-        sub_layout->addWidget(new QLabel(tr("Width:")));
+        sub_layout->addWidget(new QLabel(QStringLiteral("Width:")));
         sub_layout->addWidget(surface_width_control);
         main_layout->addLayout(sub_layout);
     }
     {
         auto sub_layout = new QHBoxLayout;
-        sub_layout->addWidget(new QLabel(tr("Height:")));
+        sub_layout->addWidget(new QLabel(QStringLiteral("Height:")));
         sub_layout->addWidget(surface_height_control);
         main_layout->addLayout(sub_layout);
     }
     {
         auto sub_layout = new QHBoxLayout;
-        sub_layout->addWidget(new QLabel(tr("Format:")));
+        sub_layout->addWidget(new QLabel(QStringLiteral("Format:")));
         sub_layout->addWidget(surface_format_control);
         main_layout->addLayout(sub_layout);
     }
@@ -181,13 +181,13 @@ GraphicsSurfaceWidget::GraphicsSurfaceWidget(std::shared_ptr<Pica::DebugContext>
         {
             {
                 auto sub_layout = new QHBoxLayout;
-                sub_layout->addWidget(new QLabel(tr("X:")));
+                sub_layout->addWidget(new QLabel(QStringLiteral("X:")));
                 sub_layout->addWidget(surface_picker_x_control);
                 xy_layout->addLayout(sub_layout);
             }
             {
                 auto sub_layout = new QHBoxLayout;
-                sub_layout->addWidget(new QLabel(tr("Y:")));
+                sub_layout->addWidget(new QLabel(QStringLiteral("Y:")));
                 sub_layout->addWidget(surface_picker_y_control);
                 xy_layout->addLayout(sub_layout);
             }
@@ -281,14 +281,14 @@ void GraphicsSurfaceWidget::Pick(int x, int y) {
 
     if (x < 0 || x >= static_cast<int>(surface_width) || y < 0 ||
         y >= static_cast<int>(surface_height)) {
-        surface_info_label->setText(tr("Pixel out of bounds"));
+        surface_info_label->setText(QStringLiteral("Pixel out of bounds"));
         surface_info_label->setAlignment(Qt::AlignLeft | Qt::AlignVCenter);
         return;
     }
 
     u8* buffer = Core::System::GetInstance().Memory().GetPhysicalPointer(surface_address);
     if (buffer == nullptr) {
-        surface_info_label->setText(tr("(unable to access pixel data)"));
+        surface_info_label->setText(QStringLiteral("(unable to access pixel data)"));
         surface_info_label->setAlignment(Qt::AlignCenter);
         return;
     }
@@ -559,7 +559,7 @@ void GraphicsSurfaceWidget::OnUpdate() {
 
     if (buffer == nullptr) {
         surface_picture_label->hide();
-        surface_info_label->setText(tr("(invalid surface address)"));
+        surface_info_label->setText(QStringLiteral("(invalid surface address)"));
         surface_info_label->setAlignment(Qt::AlignCenter);
         surface_picker_x_control->setEnabled(false);
         surface_picker_y_control->setEnabled(false);
@@ -569,7 +569,7 @@ void GraphicsSurfaceWidget::OnUpdate() {
 
     if (surface_format == Format::Unknown) {
         surface_picture_label->hide();
-        surface_info_label->setText(tr("(unknown surface format)"));
+        surface_info_label->setText(QStringLiteral("(unknown surface format)"));
         surface_info_label->setAlignment(Qt::AlignCenter);
         surface_picker_x_control->setEnabled(false);
         surface_picker_y_control->setEnabled(false);
@@ -662,12 +662,12 @@ void GraphicsSurfaceWidget::OnUpdate() {
 }
 
 void GraphicsSurfaceWidget::SaveSurface() {
-    const QString png_filter = tr("Portable Network Graphic (*.png)");
-    const QString bin_filter = tr("Binary data (*.bin)");
+    const QString png_filter = QStringLiteral("Portable Network Graphic (*.png)");
+    const QString bin_filter = QStringLiteral("Binary data (*.bin)");
 
     QString selected_filter;
     const QString filename = QFileDialog::getSaveFileName(
-        this, tr("Save Surface"),
+        this, QStringLiteral("Save Surface"),
         QStringLiteral("texture-0x%1.png").arg(QString::number(surface_address, 16)),
         QStringLiteral("%1;;%2").arg(png_filter, bin_filter), &selected_filter);
 
@@ -682,13 +682,13 @@ void GraphicsSurfaceWidget::SaveSurface() {
 
         QFile file{filename};
         if (!file.open(QIODevice::WriteOnly)) {
-            QMessageBox::warning(this, tr("Error"), tr("Failed to open file '%1'").arg(filename));
+            QMessageBox::warning(this, QStringLiteral("Error"), QStringLiteral("Failed to open file '%1'").arg(filename));
             return;
         }
 
         if (!pixmap->save(&file, "PNG")) {
-            QMessageBox::warning(this, tr("Error"),
-                                 tr("Failed to save surface data to file '%1'").arg(filename));
+            QMessageBox::warning(this, QStringLiteral("Error"),
+                                 QStringLiteral("Failed to save surface data to file '%1'").arg(filename));
         }
     } else if (selected_filter == bin_filter) {
         const u8* const buffer =
@@ -697,7 +697,7 @@ void GraphicsSurfaceWidget::SaveSurface() {
 
         QFile file{filename};
         if (!file.open(QIODevice::WriteOnly)) {
-            QMessageBox::warning(this, tr("Error"), tr("Failed to open file '%1'").arg(filename));
+            QMessageBox::warning(this, QStringLiteral("Error"), QStringLiteral("Failed to open file '%1'").arg(filename));
             return;
         }
 
@@ -705,8 +705,8 @@ void GraphicsSurfaceWidget::SaveSurface() {
         const QByteArray data(reinterpret_cast<const char*>(buffer), size);
         if (file.write(data) != data.size()) {
             QMessageBox::warning(
-                this, tr("Error"),
-                tr("Failed to completely write surface data to file. The saved data will "
+                this, QStringLiteral("Error"),
+                QStringLiteral("Failed to completely write surface data to file. The saved data will "
                    "likely be corrupt."));
         }
     } else {
