@@ -34,6 +34,12 @@ DiscordRP::~DiscordRP() {
 
 void DiscordRP::Update() {
     if (UISettings::values.enable_discord_rp && !discord_initialized) {
+        start_timestamp = std::chrono::duration_cast<std::chrono::seconds>(
+                              std::chrono::system_clock::now().time_since_epoch())
+                              .count();
+        version = fmt::format("Citra Valentin Nintendo 3DS Emulator version {}.{}.{}",
+                              Version::major, Version::minor, Version::patch);
+
         Discord_Initialize("633487273413050418", NULL, 0, NULL);
         discord_initialized = true;
     }

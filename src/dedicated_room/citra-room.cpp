@@ -145,8 +145,12 @@ static void InitializeLogging(const std::string& log_file) {
 
 /// Application entry point
 int main(int argc, char** argv) {
+    Common::DetachedTasks detached_tasks;
     int option_index = 0;
     char* endarg;
+
+    // This is just to be able to link against core
+    gladLoadGL();
 
     std::string room_name;
     std::string room_description;
@@ -174,7 +178,7 @@ int main(int argc, char** argv) {
         {"token", required_argument, 0, 't'},
         {"web-api-url", required_argument, 0, 'a'},
         {"ban-list-file", required_argument, 0, 'b'},
-        {"log-file", required_argument, 0, 'f'},
+        {"log-file", required_argument, 0, 'l'},
         {"enable-citra-mods", no_argument, 0, 'e'},
         {"help", no_argument, 0, 'h'},
         {"version", no_argument, 0, 'v'},
@@ -182,7 +186,7 @@ int main(int argc, char** argv) {
     };
 
     while (optind < argc) {
-        int arg = getopt_long(argc, argv, "n:d:p:m:w:g:u:t:a:i:f:hv", long_options, &option_index);
+        int arg = getopt_long(argc, argv, "n:d:p:m:w:g:u:t:a:i:l:hv", long_options, &option_index);
         if (arg != -1) {
             switch (static_cast<char>(arg)) {
             case 'n':
@@ -218,7 +222,7 @@ int main(int argc, char** argv) {
             case 'b':
                 ban_list_file.assign(optarg);
                 break;
-            case 'f':
+            case 'l':
                 log_file.assign(optarg);
                 break;
             case 'e':
@@ -288,11 +292,6 @@ int main(int argc, char** argv) {
     }
 
     InitializeLogging(log_file);
-
-    Common::DetachedTasks detached_tasks;
-
-    // This is just to be able to link against core
-    gladLoadGL();
 
     // Load the ban list
     Network::Room::BanList ban_list;
