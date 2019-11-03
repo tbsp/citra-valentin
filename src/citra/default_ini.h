@@ -211,8 +211,15 @@ enable_audio_stretching =
 output_device =
 
 # Output volume.
-# 1.0 (default): 100%, 0.0; mute
+# 1.0 (default): 100%, 0.0: mute
 volume =
+
+# Microphone device name.
+mic_input_device =
+
+# Microphone implementation.
+# 0 (default): None, 1: Real Device, 2: Static Noise
+mic_input_type = 0
 
 [Data Storage]
 # Whether to create a virtual SD card.

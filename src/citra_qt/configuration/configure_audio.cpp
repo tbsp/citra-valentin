@@ -141,7 +141,7 @@ void ConfigureAudio::UpdateAudioInputDevices(int index) {
 
 #ifdef HAVE_CUBEB
     ui->input_device_combo_box->clear();
-    ui->input_device_combo_box->addItem(QStringLiteral("Default"));
+    ui->input_device_combo_box->addItem(Frontend::Mic::default_device_name);
 
     for (const auto& device : AudioCore::ListCubebInputDevices()) {
         ui->input_device_combo_box->addItem(QString::fromStdString(device));

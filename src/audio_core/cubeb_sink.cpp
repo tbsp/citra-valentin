@@ -26,7 +26,7 @@ struct CubebSink::Impl {
     static void LogCallback(char const* fmt, ...);
 };
 
-CubebSink::CubebSink(std::string_view target_device_name) : impl(std::make_unique<Impl>()) {
+CubebSink::CubebSink(std::string_view device_id) : impl(std::make_unique<Impl>()) {
     if (cubeb_init(&impl->ctx, "Citra Output", nullptr) != CUBEB_OK) {
         LOG_CRITICAL(Audio_Sink, "cubeb_init failed");
         return;
@@ -48,17 +48,16 @@ CubebSink::CubebSink(std::string_view target_device_name) : impl(std::make_uniqu
     }
 
     cubeb_devid output_device = nullptr;
-    if (target_device_name != auto_device_name && !target_device_name.empty()) {
+    if (device_id != auto_device_name && !device_id.empty()) {
         cubeb_device_collection collection;
         if (cubeb_enumerate_devices(impl->ctx, CUBEB_DEVICE_TYPE_OUTPUT, &collection) != CUBEB_OK) {
             LOG_WARNING(Audio_Sink, "Audio output device enumeration not supported");
         } else {
-            const auto collection_end{collection.device + collection.count};
-            const auto device{
+            const auto collection_end = collection.device + collection.count;
+            const auto device =
                 std::find_if(collection.device, collection_end, [&](const cubeb_device_info& info) {
-                    return info.friendly_name != nullptr &&
-                           target_device_name == info.friendly_name;
-                })};
+                    return info.friendly_name != nullptr && device_id == info.friendly_name;
+                });
             if (device != collection_end) {
                 output_device = device->devid;
             }

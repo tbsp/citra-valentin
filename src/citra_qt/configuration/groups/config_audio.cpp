@@ -4,6 +4,7 @@
 
 #include <QSettings>
 #include "citra_qt/configuration/config.h"
+#include "core/frontend/mic.h"
 
 void Config::ReadAudioValues() {
     qt_config->beginGroup("Audio");
@@ -19,7 +20,9 @@ void Config::ReadAudioValues() {
     Settings::values.mic_input_type =
         static_cast<Settings::MicInputType>(ReadSetting("mic_input_type", 0).toInt());
     Settings::values.mic_input_device =
-        ReadSetting("mic_input_device", "Default").toString().toStdString();
+        ReadSetting("mic_input_device", Frontend::Mic::default_device_name)
+            .toString()
+            .toStdString();
     qt_config->endGroup();
 }
 
@@ -32,7 +35,7 @@ void Config::SaveAudioValues() {
     WriteSetting("output_device", QString::fromStdString(Settings::values.audio_device_id), "auto");
     WriteSetting("volume", Settings::values.volume, 1.0f);
     WriteSetting("mic_input_device", QString::fromStdString(Settings::values.mic_input_device),
-                 "Default");
+                 Frontend::Mic::default_device_name);
     WriteSetting("mic_input_type", static_cast<int>(Settings::values.mic_input_type), 0);
     qt_config->endGroup();
 }

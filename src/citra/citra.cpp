@@ -179,7 +179,7 @@ static void InitializeLogging() {
 
     const std::string& log_dir = FileUtil::GetUserPath(FileUtil::UserPath::LogDir);
     FileUtil::CreateFullPath(log_dir);
-    Log::AddBackend(std::make_unique<Log::FileBackend>(log_dir + LOG_FILE));
+    Log::AddBackend(std::make_unique<Log::FileBackend>(log_dir + "citra-valentin.log"));
 #ifdef _WIN32
     Log::AddBackend(std::make_unique<Log::DebuggerBackend>());
 #endif

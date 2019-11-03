@@ -200,11 +200,7 @@ endif()
 # Platform-specific library requirements
 # ======================================
 
-if (APPLE)
-    # Umbrella framework for everything GUI-related
-    find_library(COCOA_LIBRARY Cocoa)
-    set(PLATFORM_LIBRARIES ${COCOA_LIBRARY} ${IOKIT_LIBRARY} ${COREVIDEO_LIBRARY})
-elseif (WIN32)
+if (WIN32)
     # WSAPoll and SHGetKnownFolderPath (AppData/Roaming) didn't exist before WinNT 6.x (Vista)
     add_definitions(-D_WIN32_WINNT=0x0600 -DWINVER=0x0600)
     set(PLATFORM_LIBRARIES winmm ws2_32)
@@ -249,13 +245,6 @@ add_definitions(-DBOOST_ERROR_CODE_HEADER_ONLY
     -DBOOST_DATE_TIME_NO_LIB
     -DBOOST_REGEX_NO_LIB
 )
-
-# generate git/build information
-include(GetGitRevisionDescription)
-get_git_head_revision(GIT_REF_SPEC GIT_REV)
-git_describe(GIT_DESC --always --long --dirty)
-git_branch_name(GIT_BRANCH)
-get_timestamp(BUILD_DATE)
 
 enable_testing()
 add_subdirectory(externals)

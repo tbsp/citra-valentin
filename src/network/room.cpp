@@ -776,6 +776,44 @@ void Room::RoomImpl::SendStatusMessage(StatusMessageTypes type, const std::strin
         }
     }
     enet_host_flush(server);
+
+    switch (type) {
+    case IdMemberJoin:
+        if (username.empty()) {
+            LOG_INFO(Network, "{} joined.", nickname);
+        } else {
+            LOG_INFO(Network, "{} (username: {}) joined.", nickname, username);
+        }
+        break;
+    case IdMemberLeave:
+        if (username.empty()) {
+            LOG_INFO(Network, "{} left.", nickname);
+        } else {
+            LOG_INFO(Network, "{} (username: {}) left.", nickname, username);
+        }
+        break;
+    case IdMemberKicked:
+        if (username.empty()) {
+            LOG_INFO(Network, "{} kicked.", nickname);
+        } else {
+            LOG_INFO(Network, "{} (username: {}) kicked.", nickname, username);
+        }
+        break;
+    case IdMemberBanned:
+        if (username.empty()) {
+            LOG_INFO(Network, "{} banned.", nickname);
+        } else {
+            LOG_INFO(Network, "{} (username: {}) banned.", nickname, username);
+        }
+        break;
+    case IdAddressUnbanned:
+        if (username.empty()) {
+            LOG_INFO(Network, "{} unbanned.", nickname);
+        } else {
+            LOG_INFO(Network, "{} (username: {}) unbanned.", nickname, username);
+        }
+        break;
+    }
 }
 
 void Room::RoomImpl::BroadcastRoomInformation() {
@@ -869,13 +907,6 @@ void Room::RoomImpl::HandleWifiPacket(const ENetEvent* event) {
 }
 
 void Room::RoomImpl::HandleChatPacket(const ENetEvent* event) {
-    Packet in_packet;
-    in_packet.Append(event->packet->data, event->packet->dataLength);
-
-    in_packet.IgnoreBytes(sizeof(u8)); // Ignore the message type
-    std::string message;
-    in_packet >> message;
-
     std::lock_guard lock(member_mutex);
     const auto sending_member =
         std::find_if(members.begin(), members.end(),
@@ -883,6 +914,13 @@ void Room::RoomImpl::HandleChatPacket(const ENetEvent* event) {
     if (sending_member == members.end()) {
         return; // Received a chat message from a unknown sender
     }
+
+    Packet in_packet;
+    in_packet.Append(event->packet->data, event->packet->dataLength);
+
+    in_packet.IgnoreBytes(sizeof(u8)); // Ignore the message type
+    std::string message;
+    in_packet >> message;
 
     // Limit the size of chat messages to MaxMessageSize
     message.resize(MaxMessageSize);
@@ -907,6 +945,13 @@ void Room::RoomImpl::HandleChatPacket(const ENetEvent* event) {
     }
 
     enet_host_flush(server);
+
+    if (sending_member->user_data.username.empty()) {
+        LOG_INFO(Network, "Chat message from {}: {}", sending_member->nickname, message);
+    } else {
+        LOG_INFO(Network, "Chat message from {} (username: {}): {}", sending_member->nickname,
+                 sending_member->user_data.username, message);
+    }
 }
 
 void Room::RoomImpl::HandleGameNamePacket(const ENetEvent* event) {

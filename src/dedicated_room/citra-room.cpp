@@ -18,8 +18,13 @@
 #include <shellapi.h>
 #endif
 
+#include "common/common_paths.h"
 #include "common/common_types.h"
 #include "common/detached_tasks.h"
+#include "common/file_util.h"
+#include "common/logging/backend.h"
+#include "common/logging/filter.h"
+#include "common/logging/log.h"
 #include "common/string_util.h"
 #include "common/version.h"
 #include "core/announce_multiplayer_session.h"
@@ -126,8 +131,21 @@ static void SaveBanList(const Network::Room::BanList& ban_list, const std::strin
     file.flush();
 }
 
+static void InitializeLogging() {
+    Log::AddBackend(std::make_unique<Log::ColorConsoleBackend>());
+
+    const std::string& log_dir = FileUtil::GetUserPath(FileUtil::UserPath::LogDir);
+    FileUtil::CreateFullPath(log_dir);
+    Log::AddBackend(std::make_unique<Log::FileBackend>(log_dir + "citra-valentin-room.log"));
+#ifdef _WIN32
+    Log::AddBackend(std::make_unique<Log::DebuggerBackend>());
+#endif
+}
+
 /// Application entry point
 int main(int argc, char** argv) {
+    InitializeLogging();
+
     Common::DetachedTasks detached_tasks;
     int option_index = 0;
     char* endarg;

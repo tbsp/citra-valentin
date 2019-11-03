@@ -36,16 +36,12 @@
 #define SDMC_DIR "sdmc"
 #define NAND_DIR "nand"
 #define SYSDATA_DIR "sysdata"
-#define LOG_DIR "vvanelslande-log"
+#define LOG_DIR "log"
 #define CHEATS_DIR "cheats"
 #define DLL_DIR "external_dlls"
 #define DUMP_DIR "dump"
 #define LOAD_DIR "load"
 #define SHADER_DIR "vvanelslande-shaders"
-
-// Filenames
-// Files in the directory returned by GetUserPath(UserPath::LogDir)
-#define LOG_FILE "citra_log.txt"
 
 // Sys files
 #define SHARED_FONT "shared_font.bin"
