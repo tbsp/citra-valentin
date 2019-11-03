@@ -122,7 +122,7 @@ void Lobby::OnJoinRoom(const QModelIndex& source) {
         index = source.parent();
     }
     if (!ui->nickname->hasAcceptableInput()) {
-        NetworkMessage::ShowError(NetworkMessage::USERNAME_NOT_VALID);
+        NetworkMessage::ShowError(NetworkMessage::NICKNAME_NOT_VALID);
         return;
     }
 

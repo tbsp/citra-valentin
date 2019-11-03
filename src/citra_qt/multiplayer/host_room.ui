@@ -7,7 +7,7 @@
     <x>0</x>
     <y>0</y>
     <width>607</width>
-    <height>211</height>
+    <height>236</height>
    </rect>
   </property>
   <property name="windowTitle">
@@ -83,12 +83,12 @@
          <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
         </property>
         <item row="0" column="1">
-         <widget class="QLineEdit" name="username"/>
+         <widget class="QLineEdit" name="nickname"/>
         </item>
         <item row="0" column="0">
          <widget class="QLabel" name="label_6">
           <property name="text">
-           <string>Username</string>
+           <string>Nickname</string>
           </property>
          </widget>
         </item>

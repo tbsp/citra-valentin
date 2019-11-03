@@ -33,7 +33,7 @@ HostRoomWindow::HostRoomWindow(QWidget* parent, QStandardItemModel* list,
 
     // set up validation for all of the fields
     ui->room_name->setValidator(validation.GetRoomName());
-    ui->username->setValidator(validation.GetNickname());
+    ui->nickname->setValidator(validation.GetNickname());
     ui->port->setValidator(validation.GetPort());
     ui->port->setPlaceholderText(QString::number(Network::DefaultRoomPort));
 
@@ -50,10 +50,10 @@ HostRoomWindow::HostRoomWindow(QWidget* parent, QStandardItemModel* list,
     connect(ui->host, &QPushButton::clicked, this, &HostRoomWindow::Host);
 
     // Restore the settings:
-    ui->username->setText(UISettings::values.room_nickname);
-    if (ui->username->text().isEmpty() && !Settings::values.citra_username.empty()) {
+    ui->nickname->setText(UISettings::values.room_nickname);
+    if (ui->nickname->text().isEmpty() && !Settings::values.citra_username.empty()) {
         // Use Citra Web Service user name as nickname by default
-        ui->username->setText(QString::fromStdString(Settings::values.citra_username));
+        ui->nickname->setText(QString::fromStdString(Settings::values.citra_username));
     }
     ui->room_name->setText(UISettings::values.room_name);
     ui->port->setText(UISettings::values.room_port);
@@ -93,8 +93,8 @@ std::unique_ptr<Network::VerifyUser::Backend> HostRoomWindow::CreateVerifyBacken
 }
 
 void HostRoomWindow::Host() {
-    if (!ui->username->hasAcceptableInput()) {
-        NetworkMessage::ShowError(NetworkMessage::USERNAME_NOT_VALID);
+    if (!ui->nickname->hasAcceptableInput()) {
+        NetworkMessage::ShowError(NetworkMessage::NICKNAME_NOT_VALID);
         return;
     }
     if (!ui->room_name->hasAcceptableInput()) {
@@ -151,10 +151,12 @@ void HostRoomWindow::Host() {
                 if (result.result_code != Common::WebResult::Code::Success) {
                     QMessageBox::warning(
                         this, QStringLiteral("Error"),
-                        QStringLiteral("Failed to announce the room to the public lobby. In order to host a "
-                           "room publicly, you must have a valid Citra account configured in "
-                           "Emulation -> Configure -> Web. If you do not want to publish a room in "
-                           "the public lobby, then select Unlisted instead.\nDebug Message: ") +
+                        QStringLiteral(
+                            "Failed to announce the room to the public lobby. In order to host a "
+                            "room publicly, you must have a valid Citra account configured in "
+                            "Emulation -> Configure -> Web. If you do not want to publish a room "
+                            "in "
+                            "the public lobby, then select Unlisted instead.\nDebug Message: ") +
                             QString::fromStdString(result.result_string),
                         QMessageBox::Ok);
                     ui->host->setEnabled(true);
@@ -181,12 +183,12 @@ void HostRoomWindow::Host() {
                 LOG_INFO(WebService, "Successfully requested external JWT: size={}", token.size());
             }
         }
-        member->Join(ui->username->text().toStdString(),
+        member->Join(ui->nickname->text().toStdString(),
                      Service::CFG::GetConsoleIdHash(Core::System::GetInstance()), "127.0.0.1", port,
                      0, Network::NoPreferredMac, password, token);
 
         // Store settings
-        UISettings::values.room_nickname = ui->username->text();
+        UISettings::values.room_nickname = ui->nickname->text();
         UISettings::values.room_name = ui->room_name->text();
         UISettings::values.game_id =
             ui->game_list->currentData(GameListItemPath::ProgramIdRole).toLongLong();

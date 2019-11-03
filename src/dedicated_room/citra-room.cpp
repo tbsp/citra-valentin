@@ -23,7 +23,6 @@
 #include "common/detached_tasks.h"
 #include "common/file_util.h"
 #include "common/logging/backend.h"
-#include "common/logging/filter.h"
 #include "common/logging/log.h"
 #include "common/string_util.h"
 #include "common/version.h"
@@ -43,11 +42,11 @@
 
 static void PrintHelp(const char* argv0) {
     std::cout << "Usage: " << argv0
-              << " [options] <filename>\n"
+              << " [options]\n"
                  "--room-name         The name of the room\n"
                  "--room-description  The room description\n"
                  "--port              The port used for the room\n"
-                 "--max_members       The maximum number of players for this room\n"
+                 "--max-members       The maximum number of players for this room\n"
                  "--password          The password for the room\n"
                  "--preferred-game    The preferred game for this room\n"
                  "--preferred-game-id The preferred game-id for this room\n"
@@ -55,6 +54,7 @@ static void PrintHelp(const char* argv0) {
                  "--token             The token used for announce\n"
                  "--web-api-url       Citra Web API url\n"
                  "--ban-list-file     The file for storing the room ban list\n"
+                 "--log-file          The file for storing the room log\n"
                  "--enable-citra-mods Allow Citra Community Moderators to moderate on your room\n"
                  "-h, --help          Display this help and exit\n"
                  "-v, --version       Output version information and exit\n";
@@ -131,12 +131,13 @@ static void SaveBanList(const Network::Room::BanList& ban_list, const std::strin
     file.flush();
 }
 
-static void InitializeLogging() {
+static void InitializeLogging(const std::string& log_file) {
     Log::AddBackend(std::make_unique<Log::ColorConsoleBackend>());
 
     const std::string& log_dir = FileUtil::GetUserPath(FileUtil::UserPath::LogDir);
     FileUtil::CreateFullPath(log_dir);
-    Log::AddBackend(std::make_unique<Log::FileBackend>(log_dir + "citra-valentin-room.log"));
+    Log::AddBackend(std::make_unique<Log::FileBackend>(log_dir + log_file));
+
 #ifdef _WIN32
     Log::AddBackend(std::make_unique<Log::DebuggerBackend>());
 #endif
@@ -144,14 +145,8 @@ static void InitializeLogging() {
 
 /// Application entry point
 int main(int argc, char** argv) {
-    InitializeLogging();
-
-    Common::DetachedTasks detached_tasks;
     int option_index = 0;
     char* endarg;
-
-    // This is just to be able to link against core
-    gladLoadGL();
 
     std::string room_name;
     std::string room_description;
@@ -161,6 +156,7 @@ int main(int argc, char** argv) {
     std::string token;
     std::string web_api_url;
     std::string ban_list_file;
+    std::string log_file = "citra-valentin-room.log";
     u64 preferred_game_id = 0;
     u32 port = Network::DefaultRoomPort;
     u32 max_members = 16;
@@ -170,7 +166,7 @@ int main(int argc, char** argv) {
         {"room-name", required_argument, 0, 'n'},
         {"room-description", required_argument, 0, 'd'},
         {"port", required_argument, 0, 'p'},
-        {"max_members", required_argument, 0, 'm'},
+        {"max-members", required_argument, 0, 'm'},
         {"password", required_argument, 0, 'w'},
         {"preferred-game", required_argument, 0, 'g'},
         {"preferred-game-id", required_argument, 0, 'i'},
@@ -178,6 +174,7 @@ int main(int argc, char** argv) {
         {"token", required_argument, 0, 't'},
         {"web-api-url", required_argument, 0, 'a'},
         {"ban-list-file", required_argument, 0, 'b'},
+        {"log-file", required_argument, 0, 'f'},
         {"enable-citra-mods", no_argument, 0, 'e'},
         {"help", no_argument, 0, 'h'},
         {"version", no_argument, 0, 'v'},
@@ -185,7 +182,7 @@ int main(int argc, char** argv) {
     };
 
     while (optind < argc) {
-        int arg = getopt_long(argc, argv, "n:d:p:m:w:g:u:t:a:i:hv", long_options, &option_index);
+        int arg = getopt_long(argc, argv, "n:d:p:m:w:g:u:t:a:i:f:hv", long_options, &option_index);
         if (arg != -1) {
             switch (static_cast<char>(arg)) {
             case 'n':
@@ -220,6 +217,9 @@ int main(int argc, char** argv) {
                 break;
             case 'b':
                 ban_list_file.assign(optarg);
+                break;
+            case 'f':
+                log_file.assign(optarg);
                 break;
             case 'e':
                 enable_citra_mods = true;
@@ -286,6 +286,13 @@ int main(int argc, char** argv) {
         enable_citra_mods = false;
         std::cout << "Can not enable Citra Moderators for private rooms\n\n";
     }
+
+    InitializeLogging(log_file);
+
+    Common::DetachedTasks detached_tasks;
+
+    // This is just to be able to link against core
+    gladLoadGL();
 
     // Load the ban list
     Network::Room::BanList ban_list;

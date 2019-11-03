@@ -780,38 +780,36 @@ void Room::RoomImpl::SendStatusMessage(StatusMessageTypes type, const std::strin
     switch (type) {
     case IdMemberJoin:
         if (username.empty()) {
-            LOG_INFO(Network, "{} joined.", nickname);
+            LOG_INFO(Network, "{} has joined.", nickname);
         } else {
-            LOG_INFO(Network, "{} (username: {}) joined.", nickname, username);
+            LOG_INFO(Network, "{} ({}) has joined.", nickname, username);
         }
         break;
     case IdMemberLeave:
         if (username.empty()) {
-            LOG_INFO(Network, "{} left.", nickname);
+            LOG_INFO(Network, "{} has left.", nickname);
         } else {
-            LOG_INFO(Network, "{} (username: {}) left.", nickname, username);
+            LOG_INFO(Network, "{} ({}) has left.", nickname, username);
         }
         break;
     case IdMemberKicked:
         if (username.empty()) {
-            LOG_INFO(Network, "{} kicked.", nickname);
+            LOG_INFO(Network, "{} has been kicked.", nickname);
         } else {
-            LOG_INFO(Network, "{} (username: {}) kicked.", nickname, username);
+            LOG_INFO(Network, "{} ({}) has been kicked.", nickname, username);
         }
         break;
     case IdMemberBanned:
         if (username.empty()) {
-            LOG_INFO(Network, "{} banned.", nickname);
+            LOG_INFO(Network, "{} has been banned.", nickname);
         } else {
-            LOG_INFO(Network, "{} (username: {}) banned.", nickname, username);
+            LOG_INFO(Network, "{} ({}) has been banned.", nickname, username);
         }
         break;
     case IdAddressUnbanned:
-        if (username.empty()) {
-            LOG_INFO(Network, "{} unbanned.", nickname);
-        } else {
-            LOG_INFO(Network, "{} (username: {}) unbanned.", nickname, username);
-        }
+        // This function is only called with IdAddressUnbanned in HandleModUnbanPacket with a empty
+        // username, so don't show it.
+        LOG_INFO(Network, "{} has been unbanned.", nickname);
         break;
     }
 }
@@ -947,9 +945,9 @@ void Room::RoomImpl::HandleChatPacket(const ENetEvent* event) {
     enet_host_flush(server);
 
     if (sending_member->user_data.username.empty()) {
-        LOG_INFO(Network, "Chat message from {}: {}", sending_member->nickname, message);
+        LOG_INFO(Network, "{}: {}", sending_member->nickname, message);
     } else {
-        LOG_INFO(Network, "Chat message from {} (username: {}): {}", sending_member->nickname,
+        LOG_INFO(Network, "{} ({}): {}", sending_member->nickname,
                  sending_member->user_data.username, message);
     }
 }
@@ -971,6 +969,21 @@ void Room::RoomImpl::HandleGameNamePacket(const ENetEvent* event) {
             });
         if (member != members.end()) {
             member->game_info = game_info;
+            if (game_info.name.empty()) {
+                if (member->user_data.username.empty()) {
+                    LOG_INFO(Network, "{} is not playing", member->nickname);
+                } else {
+                    LOG_INFO(Network, "{} ({}) is not playing", member->nickname,
+                             member->user_data.username);
+                }
+            } else {
+                if (member->user_data.username.empty()) {
+                    LOG_INFO(Network, "{} is playing {}", member->nickname, game_info.name);
+                } else {
+                    LOG_INFO(Network, "{} ({}) is playing {}", member->nickname,
+                             member->user_data.username, game_info.name);
+                }
+            }
         }
     }
     BroadcastRoomInformation();

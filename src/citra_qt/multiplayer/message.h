@@ -21,10 +21,10 @@ private:
 };
 
 /// When the nickname is considered invalid by the client
-extern const ConnectionError USERNAME_NOT_VALID;
+extern const ConnectionError NICKNAME_NOT_VALID;
 extern const ConnectionError ROOMNAME_NOT_VALID;
 /// When the nickname is considered invalid by the room server
-extern const ConnectionError USERNAME_NOT_VALID_SERVER;
+extern const ConnectionError NICKNAME_NOT_VALID_SERVER;
 extern const ConnectionError IP_ADDRESS_NOT_VALID;
 extern const ConnectionError PORT_NOT_VALID;
 extern const ConnectionError GAME_NOT_SELECTED;
