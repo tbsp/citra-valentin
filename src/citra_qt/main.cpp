@@ -424,6 +424,72 @@ void GMainWindow::InitializeHotkeys() {
     connect(hotkey_registry.GetHotkey("Main Window", "Toggle Custom Ticks", this),
             &QShortcut::activated, this,
             [] { Settings::values.custom_ticks = !Settings::values.custom_ticks; });
+
+    connect(hotkey_registry.GetHotkey("Main Window", "Auto Internal Resolution", this),
+            &QShortcut::activated, this, [this] {
+                Settings::values.resolution_factor = 0;
+                statusBar()->showMessage(QStringLiteral("Internal Resolution: Auto"));
+            });
+
+    connect(hotkey_registry.GetHotkey("Main Window", "Native Internal Resolution", this),
+            &QShortcut::activated, this, [this] {
+                Settings::values.resolution_factor = 1;
+                statusBar()->showMessage(QStringLiteral("Internal Resolution: Native"));
+            });
+
+    connect(hotkey_registry.GetHotkey("Main Window", "2x Native Internal Resolution", this),
+            &QShortcut::activated, this, [this] {
+                Settings::values.resolution_factor = 2;
+                statusBar()->showMessage(QStringLiteral("Internal Resolution: 2x Native"));
+            });
+
+    connect(hotkey_registry.GetHotkey("Main Window", "3x Native Internal Resolution", this),
+            &QShortcut::activated, this, [this] {
+                Settings::values.resolution_factor = 3;
+                statusBar()->showMessage(QStringLiteral("Internal Resolution: 3x Native"));
+            });
+
+    connect(hotkey_registry.GetHotkey("Main Window", "4x Native Internal Resolution", this),
+            &QShortcut::activated, this, [this] {
+                Settings::values.resolution_factor = 4;
+                statusBar()->showMessage(QStringLiteral("Internal Resolution: 4x Native"));
+            });
+
+    connect(hotkey_registry.GetHotkey("Main Window", "5x Native Internal Resolution", this),
+            &QShortcut::activated, this, [this] {
+                Settings::values.resolution_factor = 5;
+                statusBar()->showMessage(QStringLiteral("Internal Resolution: 5x Native"));
+            });
+
+    connect(hotkey_registry.GetHotkey("Main Window", "6x Native Internal Resolution", this),
+            &QShortcut::activated, this, [this] {
+                Settings::values.resolution_factor = 6;
+                statusBar()->showMessage(QStringLiteral("Internal Resolution: 6x Native"));
+            });
+
+    connect(hotkey_registry.GetHotkey("Main Window", "7x Native Internal Resolution", this),
+            &QShortcut::activated, this, [this] {
+                Settings::values.resolution_factor = 7;
+                statusBar()->showMessage(QStringLiteral("Internal Resolution: 7x Native"));
+            });
+
+    connect(hotkey_registry.GetHotkey("Main Window", "8x Native Internal Resolution", this),
+            &QShortcut::activated, this, [this] {
+                Settings::values.resolution_factor = 8;
+                statusBar()->showMessage(QStringLiteral("Internal Resolution: 8x Native"));
+            });
+
+    connect(hotkey_registry.GetHotkey("Main Window", "9x Native Internal Resolution", this),
+            &QShortcut::activated, this, [this] {
+                Settings::values.resolution_factor = 9;
+                statusBar()->showMessage(QStringLiteral("Internal Resolution: 9x Native"));
+            });
+
+    connect(hotkey_registry.GetHotkey("Main Window", "10x Native Internal Resolution", this),
+            &QShortcut::activated, this, [this] {
+                Settings::values.resolution_factor = 10;
+                statusBar()->showMessage(QStringLiteral("Internal Resolution: 10x Native"));
+            });
 }
 
 void GMainWindow::SetDefaultUIGeometry() {
@@ -645,8 +711,9 @@ void GMainWindow::AllowOSSleep() {
 
 bool GMainWindow::LoadROM(const QString& filename) {
     // Shutdown previous session if the emu thread is still active...
-    if (emu_thread != nullptr)
+    if (emu_thread != nullptr) {
         ShutdownGame();
+    }
 
     render_window->InitRenderTarget();
 
