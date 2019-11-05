@@ -25,9 +25,9 @@ matrix:
     #   script: "./.travis/linux-frozen/build.sh"
     - os: windows
       env: NAME="Windows build"
-      install: "./.travis/windows/install.ps1"
-      script: "./.travis/windows/build.ps1"
-      after_success: "./.travis/windows/after-success.ps1"
+      install: "powershell ./.travis/windows/install.ps1"
+      script: "powershell ./.travis/windows/build.ps1"
+      after_success: "powershell ./.travis/windows/after-success.ps1"
 
 deploy:
   provider: releases
