@@ -61,20 +61,8 @@ else()
     # On modern Unixes, this is typically already the case. The lone exception is
     # glibc, which may default to 32 bits. glibc allows this to be configured
     # by setting _FILE_OFFSET_BITS.
-    if(CMAKE_SYSTEM_NAME STREQUAL "Linux" OR MINGW)
+    if(CMAKE_SYSTEM_NAME STREQUAL "Linux")
         add_definitions(-D_FILE_OFFSET_BITS=64)
-    endif()
-
-    if (MINGW)
-        add_definitions(-DMINGW_HAS_SECURE_API)
-        if (COMPILE_WITH_DWARF)
-            add_compile_options("-gdwarf")
-        endif()
-
-        if (MINGW_STATIC_BUILD)
-            add_definitions(-DQT_STATICPLUGIN)
-            add_compile_options("-static")
-        endif()
     endif()
 endif()
 
