@@ -26,7 +26,6 @@ endif()
 
 CMAKE_DEPENDENT_OPTION(CITRA_USE_BUNDLED_FFMPEG "Download bundled FFmpeg binaries" ON "ENABLE_FFMPEG;MSVC" OFF)
 CMAKE_DEPENDENT_OPTION(ENABLE_MF "Use Media Foundation decoder (preferred over FFmpeg)" ON "WIN32" OFF)
-CMAKE_DEPENDENT_OPTION(COMPILE_WITH_DWARF "Add DWARF debugging information" ON "MINGW" OFF)
 
 # Sanity check : Check that all submodules are present
 # =======================================================================
@@ -204,10 +203,6 @@ if (WIN32)
     # WSAPoll and SHGetKnownFolderPath (AppData/Roaming) didn't exist before WinNT 6.x (Vista)
     add_definitions(-D_WIN32_WINNT=0x0600 -DWINVER=0x0600)
     set(PLATFORM_LIBRARIES winmm ws2_32)
-    if (MINGW)
-        # PSAPI is the Process Status API
-        set(PLATFORM_LIBRARIES ${PLATFORM_LIBRARIES} psapi imm32 version)
-    endif()
 elseif (CMAKE_SYSTEM_NAME MATCHES "^(Linux|kFreeBSD|GNU|SunOS)$")
     set(PLATFORM_LIBRARIES rt)
 endif()
