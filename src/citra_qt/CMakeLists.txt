@@ -188,13 +188,17 @@ endif()
 set_target_properties(citra-qt PROPERTIES OUTPUT_NAME "citra-valentin-qt")
 
 if(WIN32)
+    # DirectShow camera
     target_sources(citra-qt PRIVATE
-        camera/pipe_camera.cpp
-        camera/pipe_camera.h
+        camera/dshow_camera.cpp
+        camera/dshow_camera.h
     )
+
+    target_link_libraries(citra-qt PRIVATE libdshowcapture)
 
     # compile as a win32 gui application instead of a console application
     target_link_libraries(citra-qt PRIVATE Qt5::WinMain)
+
     if(MSVC)
         set_target_properties(citra-qt PROPERTIES LINK_FLAGS_RELEASE "/SUBSYSTEM:WINDOWS")
     elseif(MINGW)

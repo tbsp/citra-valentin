@@ -33,7 +33,7 @@
     url = https://github.com/citra-emu/ext-libressl-portable.git
 [submodule "cubeb"]
     path = externals/cubeb
-    url = https://github.com/kinetiknz/cubeb.git
+    url = https://github.com/vvanelslande/cubeb.git
 [submodule "cpp-jwt"]
     path = externals/cpp-jwt
     url = https://github.com/arun11299/cpp-jwt.git
@@ -48,4 +48,7 @@
     url = https://github.com/facebook/zstd.git
 [submodule "discord-rpc"]
     path = externals/discord-rpc
-    url = https://github.com/discordapp/discord-rpc
+    url = https://github.com/discordapp/discord-rpc.git
+[submodule "libdshowcapture"]
+    path = externals/libdshowcapture
+    url = https://github.com/vvanelslande/libdshowcapture.git

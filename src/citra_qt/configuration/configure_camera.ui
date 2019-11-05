@@ -156,7 +156,7 @@
                     </item>
                     <item>
                       <property name="text">
-                        <string>Named Pipe Camera (pipe, Windows only)</string>
+                        <string>System Camera (dshow)</string>
                       </property>
                     </item>
                   </widget>

@@ -5,16 +5,16 @@
 #pragma once
 
 #include <QImage>
-#include <windows.h>
+#include <dshowcapture.hpp>
 #include "citra_qt/camera/qt_camera_base.h"
 #include "core/frontend/camera/interface.h"
 
 namespace Camera {
 
-class PipeCamera final : public QtCameraInterface {
+class DirectShowCamera final : public QtCameraInterface {
 public:
-    PipeCamera(const std::string& config, const Service::CAM::Flip& flip);
-    ~PipeCamera();
+    DirectShowCamera(const std::string& config, const Service::CAM::Flip& flip);
+    ~DirectShowCamera();
 
     void StartCapture() override;
     void StopCapture() override;
@@ -23,11 +23,11 @@ public:
     bool IsPreviewAvailable() override;
 
 private:
-    std::string config;
-    HANDLE handle;
+    DShow::Device device;
+    QImage image;
 };
 
-class PipeCameraFactory final : public QObject, public QtCameraFactory {
+class DirectShowCameraFactory final : public QObject, public QtCameraFactory {
     Q_OBJECT
 
 public:

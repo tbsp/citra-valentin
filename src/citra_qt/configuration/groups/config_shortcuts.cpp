@@ -6,10 +6,6 @@
 #include "citra_qt/configuration/config.h"
 #include "citra_qt/uisettings.h"
 
-// This shouldn't have anything except static initializers (no functions). So
-// QKeySequence(...).toString() is NOT ALLOWED HERE.
-// This must be in alphabetical order according to action name as it must have the same order as
-// UISetting::values.shortcuts, which is alphabetically ordered.
 // clang-format off
 const std::array<UISettings::Shortcut, 32> default_hotkeys{
     {{QStringLiteral("2x Native Internal Resolution"),  QStringLiteral("Main Window"), {QStringLiteral("Alt+2"), Qt::ApplicationShortcut}},

@@ -19,7 +19,7 @@ const std::array<std::string, 4> ConfigureCamera::Implementations = {
     "blank", /* Blank */
     "image", /* Image */
     "qt",    /* System Camera */
-    "pipe"   /* Named Pipe Camera */
+    "dshow"  /* DirectShow */
 };
 
 ConfigureCamera::ConfigureCamera(QWidget* parent)
@@ -117,7 +117,7 @@ void ConfigureCamera::UpdateImageSourceUI() {
     switch (image_source) {
     case 0: /* blank */
     case 2:
-    case 3: /* system camera or named pipe camera */
+    case 3: /* system camera */
         ui->prompt_before_load->setHidden(true);
         ui->prompt_before_load->setChecked(false);
         ui->camera_file_label->setHidden(true);
@@ -143,8 +143,8 @@ void ConfigureCamera::UpdateImageSourceUI() {
     default:
         LOG_ERROR(Service_CAM, "Unknown image source {}", image_source);
     }
-    ui->system_camera_label->setHidden(image_source != 2);
-    ui->system_camera->setHidden(image_source != 2);
+    ui->system_camera_label->setHidden(image_source != 2 && image_source != 3);
+    ui->system_camera->setHidden(image_source != 2 && image_source != 3);
     ui->camera_flip_label->setHidden(image_source == 0);
     ui->camera_flip->setHidden(image_source == 0);
 }
@@ -153,7 +153,7 @@ void ConfigureCamera::RecordConfig() {
     std::string implementation = Implementations[ui->image_source->currentIndex()];
     int image_source = ui->image_source->currentIndex();
     std::string config;
-    if (image_source == 2) { /* system camera */
+    if (image_source == 2 || image_source == 3) { /* system camera */
         if (ui->system_camera->currentIndex() == 0) {
             config = "";
         } else {
@@ -185,8 +185,8 @@ void ConfigureCamera::StartPreviewing() {
     ui->preview_button->setHidden(true);
     preview_width = ui->preview_box->size().width();
     preview_height = preview_width * 0.75;
-    ui->preview_box->setToolTip(QStringLiteral("Resolution: ") + QString::number(preview_width) + "*" +
-                                QString::number(preview_height));
+    ui->preview_box->setToolTip(QStringLiteral("Resolution: ") + QString::number(preview_width) +
+                                "*" + QString::number(preview_height));
     // Load previewing camera
     previewing_camera = Camera::CreateCameraPreview(
         camera_name[camera_selection], camera_config[camera_selection], preview_width,
@@ -274,8 +274,10 @@ void ConfigureCamera::OnToolButtonClicked() {
     for (const QByteArray& type : types) {
         temp_filters << QString("*." + QString::fromUtf8(type));
     }
-    QString filter = QStringLiteral("Supported image files (%1)").arg(temp_filters.join(QStringLiteral(" ")));
-    QString path = QFileDialog::getOpenFileName(this, QStringLiteral("Open File"), QStringLiteral("."), filter);
+    QString filter =
+        QStringLiteral("Supported image files (%1)").arg(temp_filters.join(QStringLiteral(" ")));
+    QString path = QFileDialog::getOpenFileName(this, QStringLiteral("Open File"),
+                                                QStringLiteral("."), filter);
     if (!path.isEmpty()) {
         ui->camera_file->setText(path);
     }

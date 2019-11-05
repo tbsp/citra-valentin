@@ -112,3 +112,8 @@ if(CITRA_ENABLE_DISCORD_RP)
     add_subdirectory(discord-rpc EXCLUDE_FROM_ALL)
     target_include_directories(discord-rpc INTERFACE ./discord-rpc/include)
 endif()
+
+if(WIN32)
+    add_subdirectory(libdshowcapture)
+    target_include_directories(libdshowcapture INTERFACE ./libdshowcapture)
+endif()
