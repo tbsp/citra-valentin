@@ -2,9 +2,6 @@
 [Bb]uild/
 doc-build/
 
-# Generated source files
-.travis.descriptor.json
-
 # Project/editor files
 *.swp
 .idea/
