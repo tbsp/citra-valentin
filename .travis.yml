@@ -30,14 +30,13 @@ matrix:
         - powershell ./.travis/windows/install.ps1
       script: "powershell ./.travis/windows/build.ps1"
       after_success: "powershell ./.travis/windows/after-success.ps1"
-
-deploy:
-  provider: releases
-  api_key:
-    secure: $DEPLOY_KEY
-  on:
-    repo: vvanelslande/citra
-    branch: master
-  file_glob: true
-  file: "artifacts/*"
-  skip_cleanup: true
+# deploy:
+#   provider: releases
+#   api_key:
+#     secure: $DEPLOY_KEY
+#   on:
+#     repo: vvanelslande/citra
+#     branch: master
+#   file_glob: true
+#   file: "artifacts/*"
+#   skip_cleanup: true
