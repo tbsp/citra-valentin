@@ -43,13 +43,13 @@ jobs:
         Contents: |
           readme.md
           license.txt
-        TargetFolder: 'build/citra-valentin-linux-$(CITRA_VERSION)'
+        TargetFolder: 'build/bin/citra-valentin-linux-$(CITRA_VERSION)'
     - task: CopyFiles@2
       inputs:
         SourceFolder: 'dist/scripting'
         Contents: |
           **
-        TargetFolder: 'build/citra-valentin-linux-$(CITRA_VERSION)/scripting'
+        TargetFolder: 'build/bin/citra-valentin-linux-$(CITRA_VERSION)/scripting'
     - task: ArchiveFiles@2
       inputs:
         rootFolderOrFile: 'build/bin/citra-valentin-windows-$(CITRA_VERSION)'
@@ -106,8 +106,8 @@ jobs:
     - powershell: |
         Remove-Item "./build/bin/tests" # Tests
 
-        # Rename bin
-        Rename-Item "./build/bin" "citra-valentin-linux-$(CITRA_VERSION)"
+        # Rename bin to citra-valentin-linux-$env:CITRA_VERSION
+        Rename-Item "./build/bin" "citra-valentin-linux-$env:CITRA_VERSION"
       displayName: 'Cleanup'
     - task: CopyFiles@2
       inputs:
