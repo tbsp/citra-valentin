@@ -1,4 +1,65 @@
 jobs:
+- job: Linux
+  timeoutInMinutes: 60
+  pool:
+    vmImage: 'ubuntu-18.04'
+  steps:
+    - script: |
+        sudo apt-get update
+        sudo apt-get install -qq -y libsdl2-dev qtbase5-dev libqt5opengl5-dev qtmultimedia5-dev libqt5multimedia5-plugins libavcodec-dev libavformat-dev libswscale-dev
+      displayName: 'Install dependencies'
+    - script: |
+        git submodule update --init --recursive
+      displayName: 'Fetch submodules'
+    - script: |
+        mkdir build
+      displayName: 'Create build directory'
+    - task: CMake@1
+      inputs:
+        cmakeArgs: -DCMAKE_BUILD_TYPE=Release -DCITRA_ENABLE_DISCORD_RP=ON -DENABLE_FFMPEG_VIDEO_DUMPER=ON ..
+    - powershell: |
+        Set-Location "build"
+        make
+      displayName: 'Build'
+    - powershell: |
+        $CITRA_VERSION = (./build/bin/citra-valentin --version) -replace "Citra Valentin ", ""
+        Write-Host "Citra Version: $CITRA_VERSION"
+        Write-Host "##vso[task.setvariable variable=CITRA_VERSION]$CITRA_VERSION"
+      displayName: 'Get Citra version'
+    - script: |
+        ./build/bin/tests
+      displayName: 'Run tests'
+    - powershell: |
+        Remove-Item "./build/bin/tests" # Tests
+
+        # Rename bin to citra-valentin-linux-$env:CITRA_VERSION
+        Rename-Item "./build/bin" "citra-valentin-linux-$env:CITRA_VERSION"
+      displayName: 'Cleanup'
+    - task: CopyFiles@2
+      inputs:
+        SourceFolder: '.'
+        Contents: |
+          readme.md
+          license.txt
+        TargetFolder: 'build/citra-valentin-linux-$(CITRA_VERSION)'
+    - task: CopyFiles@2
+      inputs:
+        SourceFolder: 'dist/scripting'
+        Contents: |
+          **
+        TargetFolder: 'build/citra-valentin-linux-$(CITRA_VERSION)/scripting'
+    - task: ArchiveFiles@2
+      inputs:
+        rootFolderOrFile: 'build/citra-valentin-linux-$(CITRA_VERSION)'
+        includeRootFolder: true
+        archiveType: 'tar'
+        archiveFile: '$(Build.ArtifactStagingDirectory)/citra-valentin-linux-$(CITRA_VERSION).tar.gz'
+        replaceExistingArchive: true
+    - task: PublishBuildArtifacts@1
+      inputs:
+        PathtoPublish: '$(Build.ArtifactStagingDirectory)'
+        ArtifactName: 'artifacts'
+        publishLocation: 'Container'
 - job: Windows
   timeoutInMinutes: 60
   pool:
@@ -73,67 +134,6 @@ jobs:
         tag: '$(CITRA_VERSION)'
         changeLogCompareToRelease: 'lastFullRelease'
         changeLogType: 'commitBased'
-- job: Linux
-  timeoutInMinutes: 60
-  pool:
-    vmImage: 'ubuntu-18.04'
-  steps:
-    - script: |
-        sudo apt-get update
-        sudo apt-get install -qq -y libsdl2-dev qtbase5-dev libqt5opengl5-dev qtmultimedia5-dev libqt5multimedia5-plugins libavcodec-dev libavformat-dev libswscale-dev
-      displayName: 'Install dependencies'
-    - script: |
-        git submodule update --init --recursive
-      displayName: 'Fetch submodules'
-    - script: |
-        mkdir build
-      displayName: 'Create build directory'
-    - task: CMake@1
-      inputs:
-        cmakeArgs: -DCMAKE_BUILD_TYPE=Release -DCITRA_ENABLE_DISCORD_RP=ON -DENABLE_FFMPEG_VIDEO_DUMPER=ON ..
-    - powershell: |
-        Set-Location "build"
-        make
-      displayName: 'Build'
-    - powershell: |
-        $CITRA_VERSION = (./build/bin/citra-valentin --version) -replace "Citra Valentin ", ""
-        Write-Host "Citra Version: $CITRA_VERSION"
-        Write-Host "##vso[task.setvariable variable=CITRA_VERSION]$CITRA_VERSION"
-      displayName: 'Get Citra version'
-    - script: |
-        ./build/bin/tests
-      displayName: 'Run tests'
-    - powershell: |
-        Remove-Item "./build/bin/tests" # Tests
-
-        # Rename bin to citra-valentin-linux-$env:CITRA_VERSION
-        Rename-Item "./build/bin" "citra-valentin-linux-$env:CITRA_VERSION"
-      displayName: 'Cleanup'
-    - task: CopyFiles@2
-      inputs:
-        SourceFolder: '.'
-        Contents: |
-          readme.md
-          license.txt
-        TargetFolder: 'build/citra-valentin-linux-$(CITRA_VERSION)'
-    - task: CopyFiles@2
-      inputs:
-        SourceFolder: 'dist/scripting'
-        Contents: |
-          **
-        TargetFolder: 'build/citra-valentin-linux-$(CITRA_VERSION)/scripting'
-    - task: ArchiveFiles@2
-      inputs:
-        rootFolderOrFile: 'build/citra-valentin-linux-$(CITRA_VERSION)'
-        includeRootFolder: true
-        archiveType: 'tar'
-        archiveFile: '$(Build.ArtifactStagingDirectory)/citra-valentin-linux-$(CITRA_VERSION).tar.gz'
-        replaceExistingArchive: true
-    - task: PublishBuildArtifacts@1
-      inputs:
-        PathtoPublish: '$(Build.ArtifactStagingDirectory)'
-        ArtifactName: 'artifacts'
-        publishLocation: 'Container'
 - job: ClangFormat
   timeoutInMinutes: 60
   pool:
