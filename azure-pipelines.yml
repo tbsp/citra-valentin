@@ -115,10 +115,10 @@ jobs:
         TargetFolder: 'build/bin/citra-valentin-windows-$(getCitraVersionStep.CITRA_VERSION)/scripting'
     - task: ArchiveFiles@2
       inputs:
-        rootFolderOrFile: 'build/bin/citra-valentin-windows-$(CITRA_VERSION)'
+        rootFolderOrFile: 'build/bin/citra-valentin-windows-$(getCitraVersionStep.CITRA_VERSION)'
         includeRootFolder: true
         archiveType: 'tar'
-        archiveFile: '$(Build.ArtifactStagingDirectory)/citra-valentin-windows-$(CITRA_VERSION).tar.gz'
+        archiveFile: '$(Build.ArtifactStagingDirectory)/citra-valentin-windows-$(getCitraVersionStep.CITRA_VERSION).tar.gz'
         replaceExistingArchive: true
     - task: PublishBuildArtifacts@1
       inputs:
