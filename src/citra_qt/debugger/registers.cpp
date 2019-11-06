@@ -12,10 +12,12 @@ RegistersWidget::RegistersWidget(QWidget* parent) : QDockWidget(parent) {
     cpu_regs_ui.setupUi(this);
 
     tree = cpu_regs_ui.treeWidget;
-    tree->addTopLevelItem(core_registers = new QTreeWidgetItem(QStringList(QStringLiteral("Registers"))));
-    tree->addTopLevelItem(vfp_registers = new QTreeWidgetItem(QStringList(QStringLiteral("VFP Registers"))));
-    tree->addTopLevelItem(vfp_system_registers =
-                              new QTreeWidgetItem(QStringList(QStringLiteral("VFP System Registers"))));
+    tree->addTopLevelItem(core_registers =
+                              new QTreeWidgetItem(QStringList(QStringLiteral("Registers"))));
+    tree->addTopLevelItem(vfp_registers =
+                              new QTreeWidgetItem(QStringList(QStringLiteral("VFP Registers"))));
+    tree->addTopLevelItem(vfp_system_registers = new QTreeWidgetItem(
+                              QStringList(QStringLiteral("VFP System Registers"))));
     tree->addTopLevelItem(cpsr = new QTreeWidgetItem(QStringList(QStringLiteral("CPSR"))));
 
     for (int i = 0; i < 16; ++i) {

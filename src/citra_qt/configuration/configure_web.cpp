@@ -35,13 +35,13 @@ void ConfigureWeb::SetConfiguration() {
     ui->web_credentials_disclaimer->setWordWrap(true);
 
     ui->web_signup_link->setOpenExternalLinks(true);
-    ui->web_signup_link->setText(
-        QStringLiteral("<a href='https://profile.citra-emu.org/'><span style=\"text-decoration: underline; "
-           "color:#039be5;\">Sign up</span></a>"));
+    ui->web_signup_link->setText(QStringLiteral(
+        "<a href='https://profile.citra-emu.org/'><span style=\"text-decoration: underline; "
+        "color:#039be5;\">Sign up</span></a>"));
     ui->web_token_info_link->setOpenExternalLinks(true);
-    ui->web_token_info_link->setText(
-        QStringLiteral("<a href='https://citra-emu.org/wiki/citra-web-service/'><span style=\"text-decoration: "
-           "underline; color:#039be5;\">What is my token?</span></a>"));
+    ui->web_token_info_link->setText(QStringLiteral(
+        "<a href='https://citra-emu.org/wiki/citra-web-service/'><span style=\"text-decoration: "
+        "underline; color:#039be5;\">What is my token?</span></a>"));
 
     ui->edit_username->setText(QString::fromStdString(Settings::values.citra_username));
     ui->edit_token->setText(QString::fromStdString(Settings::values.citra_token));
@@ -60,9 +60,10 @@ void ConfigureWeb::ApplyConfiguration() {
         Settings::values.citra_username = ui->edit_username->text().toStdString();
         Settings::values.citra_token = ui->edit_token->text().toStdString();
     } else {
-        QMessageBox::warning(this, QStringLiteral("Username and token not verified"),
-                             QStringLiteral("Username and token were not verified. The changes to your "
-                                "username and/or token have not been saved."));
+        QMessageBox::warning(
+            this, QStringLiteral("Username and token not verified"),
+            QStringLiteral("Username and token were not verified. The changes to your "
+                           "username and/or token have not been saved."));
     }
 }
 
@@ -107,8 +108,9 @@ void ConfigureWeb::OnLoginVerified() {
         ui->label_token_verified->setPixmap(pixmap);
         QMessageBox::critical(
             this, QStringLiteral("Verification failed"),
-            QStringLiteral("Verification failed. Check that you have entered your username and token "
-               "correctly, and that your internet connection is working."));
+            QStringLiteral(
+                "Verification failed. Check that you have entered your username and token "
+                "correctly, and that your internet connection is working."));
     }
 }
 

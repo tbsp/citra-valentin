@@ -20,7 +20,6 @@ public:
     explicit DirectConnectWindow(QWidget* parent = nullptr);
     ~DirectConnectWindow();
 
-
 signals:
     /**
      * Signalled by this widget when it is closing itself and destroying any state such as

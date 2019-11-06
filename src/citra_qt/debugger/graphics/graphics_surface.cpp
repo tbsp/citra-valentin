@@ -84,24 +84,12 @@ GraphicsSurfaceWidget::GraphicsSurfaceWidget(std::shared_ptr<Pica::DebugContext>
 
     // Color formats sorted by Pica texture format index
     const QStringList surface_formats{
-        QStringLiteral("RGBA8"),
-        QStringLiteral("RGB8"),
-        QStringLiteral("RGB5A1"),
-        QStringLiteral("RGB565"),
-        QStringLiteral("RGBA4"),
-        QStringLiteral("IA8"),
-        QStringLiteral("RG8"),
-        QStringLiteral("I8"),
-        QStringLiteral("A8"),
-        QStringLiteral("IA4"),
-        QStringLiteral("I4"),
-        QStringLiteral("A4"),
-        QStringLiteral("ETC1"),
-        QStringLiteral("ETC1A4"),
-        QStringLiteral("D16"),
-        QStringLiteral("D24"),
-        QStringLiteral("D24X8"),
-        QStringLiteral("X24S8"),
+        QStringLiteral("RGBA8"),   QStringLiteral("RGB8"),   QStringLiteral("RGB5A1"),
+        QStringLiteral("RGB565"),  QStringLiteral("RGBA4"),  QStringLiteral("IA8"),
+        QStringLiteral("RG8"),     QStringLiteral("I8"),     QStringLiteral("A8"),
+        QStringLiteral("IA4"),     QStringLiteral("I4"),     QStringLiteral("A4"),
+        QStringLiteral("ETC1"),    QStringLiteral("ETC1A4"), QStringLiteral("D16"),
+        QStringLiteral("D24"),     QStringLiteral("D24X8"),  QStringLiteral("X24S8"),
         QStringLiteral("Unknown"),
     };
 
@@ -121,7 +109,8 @@ GraphicsSurfaceWidget::GraphicsSurfaceWidget(std::shared_ptr<Pica::DebugContext>
     scroll_area->setWidgetResizable(false);
     scroll_area->setWidget(surface_picture_label);
 
-    save_surface = new QPushButton(QIcon::fromTheme(QStringLiteral("document-save")), QStringLiteral("Save"));
+    save_surface =
+        new QPushButton(QIcon::fromTheme(QStringLiteral("document-save")), QStringLiteral("Save"));
 
     // Connections
     connect(this, &GraphicsSurfaceWidget::Update, this, &GraphicsSurfaceWidget::OnUpdate);
@@ -682,13 +671,15 @@ void GraphicsSurfaceWidget::SaveSurface() {
 
         QFile file{filename};
         if (!file.open(QIODevice::WriteOnly)) {
-            QMessageBox::warning(this, QStringLiteral("Error"), QStringLiteral("Failed to open file '%1'").arg(filename));
+            QMessageBox::warning(this, QStringLiteral("Error"),
+                                 QStringLiteral("Failed to open file '%1'").arg(filename));
             return;
         }
 
         if (!pixmap->save(&file, "PNG")) {
-            QMessageBox::warning(this, QStringLiteral("Error"),
-                                 QStringLiteral("Failed to save surface data to file '%1'").arg(filename));
+            QMessageBox::warning(
+                this, QStringLiteral("Error"),
+                QStringLiteral("Failed to save surface data to file '%1'").arg(filename));
         }
     } else if (selected_filter == bin_filter) {
         const u8* const buffer =
@@ -697,7 +688,8 @@ void GraphicsSurfaceWidget::SaveSurface() {
 
         QFile file{filename};
         if (!file.open(QIODevice::WriteOnly)) {
-            QMessageBox::warning(this, QStringLiteral("Error"), QStringLiteral("Failed to open file '%1'").arg(filename));
+            QMessageBox::warning(this, QStringLiteral("Error"),
+                                 QStringLiteral("Failed to open file '%1'").arg(filename));
             return;
         }
 
@@ -706,8 +698,9 @@ void GraphicsSurfaceWidget::SaveSurface() {
         if (file.write(data) != data.size()) {
             QMessageBox::warning(
                 this, QStringLiteral("Error"),
-                QStringLiteral("Failed to completely write surface data to file. The saved data will "
-                   "likely be corrupt."));
+                QStringLiteral(
+                    "Failed to completely write surface data to file. The saved data will "
+                    "likely be corrupt."));
         }
     } else {
         UNREACHABLE_MSG("Unhandled filter selected");

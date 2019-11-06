@@ -27,8 +27,8 @@ GraphicsTracingWidget::GraphicsTracingWidget(std::shared_ptr<Pica::DebugContext>
     setObjectName(QStringLiteral("CiTracing"));
 
     QPushButton* start_recording = new QPushButton(QStringLiteral("Start Recording"));
-    QPushButton* stop_recording =
-        new QPushButton(QIcon::fromTheme(QStringLiteral("document-save")), QStringLiteral("Stop and Save"));
+    QPushButton* stop_recording = new QPushButton(QIcon::fromTheme(QStringLiteral("document-save")),
+                                                  QStringLiteral("Stop and Save"));
     QPushButton* abort_recording = new QPushButton(QStringLiteral("Abort Recording"));
 
     connect(this, &GraphicsTracingWidget::SetStartTracingButtonEnabled, start_recording,
@@ -109,8 +109,9 @@ void GraphicsTracingWidget::StopRecording() {
     if (!context)
         return;
 
-    QString filename = QFileDialog::getSaveFileName(
-        this, QStringLiteral("Save CiTrace"), QStringLiteral("citrace.ctf"), QStringLiteral("CiTrace File (*.ctf)"));
+    QString filename = QFileDialog::getSaveFileName(this, QStringLiteral("Save CiTrace"),
+                                                    QStringLiteral("citrace.ctf"),
+                                                    QStringLiteral("CiTrace File (*.ctf)"));
 
     if (filename.isEmpty()) {
         // If the user canceled the dialog, keep recording
@@ -158,11 +159,11 @@ void GraphicsTracingWidget::OnEmulationStopping() {
         return;
 
     if (context->recorder) {
-        auto reply =
-            QMessageBox::question(this, QStringLiteral("CiTracing still active"),
-                                  QStringLiteral("A CiTrace is still being recorded. Do you want to save it? "
-                                     "If not, all recorded data will be discarded."),
-                                  QMessageBox::Yes | QMessageBox::No, QMessageBox::Yes);
+        auto reply = QMessageBox::question(
+            this, QStringLiteral("CiTracing still active"),
+            QStringLiteral("A CiTrace is still being recorded. Do you want to save it? "
+                           "If not, all recorded data will be discarded."),
+            QMessageBox::Yes | QMessageBox::No, QMessageBox::Yes);
 
         if (reply == QMessageBox::Yes) {
             StopRecording();

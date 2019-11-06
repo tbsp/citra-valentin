@@ -94,17 +94,18 @@ void ConfigureDialog::UpdateVisibleTabs() {
     if (items.isEmpty())
         return;
 
-    const std::map<QWidget*, QString> widgets = {{ui->generalTab, QStringLiteral("General")},
-                                                 {ui->systemTab, QStringLiteral("System")},
-                                                 {ui->inputTab, QStringLiteral("Input")},
-                                                 {ui->hotkeysTab, QStringLiteral("Hotkeys")},
-                                                 {ui->graphicsTab, QStringLiteral("Advanced")},
-                                                 {ui->enhancementsTab, QStringLiteral("Enhancements")},
-                                                 {ui->audioTab, QStringLiteral("Audio")},
-                                                 {ui->cameraTab, QStringLiteral("Camera")},
-                                                 {ui->debugTab, QStringLiteral("Debug")},
-                                                 {ui->webTab, QStringLiteral("Web")},
-                                                 {ui->uiTab, QStringLiteral("UI")}};
+    const std::map<QWidget*, QString> widgets = {
+        {ui->generalTab, QStringLiteral("General")},
+        {ui->systemTab, QStringLiteral("System")},
+        {ui->inputTab, QStringLiteral("Input")},
+        {ui->hotkeysTab, QStringLiteral("Hotkeys")},
+        {ui->graphicsTab, QStringLiteral("Advanced")},
+        {ui->enhancementsTab, QStringLiteral("Enhancements")},
+        {ui->audioTab, QStringLiteral("Audio")},
+        {ui->cameraTab, QStringLiteral("Camera")},
+        {ui->debugTab, QStringLiteral("Debug")},
+        {ui->webTab, QStringLiteral("Web")},
+        {ui->uiTab, QStringLiteral("UI")}};
 
     ui->tabWidget->clear();
 

@@ -42,4 +42,3 @@ void ConfigureUi::ApplyConfiguration() {
     UISettings::values.game_list_hide_no_icon = ui->toggle_hide_no_icon->isChecked();
     UISettings::values.game_list_single_line_mode = ui->toggle_single_line_mode->isChecked();
 }
-

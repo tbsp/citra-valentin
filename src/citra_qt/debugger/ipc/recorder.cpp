@@ -39,7 +39,8 @@ void IPCRecorderWidget::OnEmulationStarting() {
     SetEnabled(ui->enabled->isChecked());
 }
 
-QString IPCRecorderWidget::GetStatusSQStringLiteral(const IPCDebugger::RequestRecord& record) const {
+QString IPCRecorderWidget::GetStatusSQStringLiteral(
+    const IPCDebugger::RequestRecord& record) const {
     switch (record.status) {
     case IPCDebugger::RequestStatus::Invalid:
         return QStringLiteral("Invalid");
@@ -69,11 +70,12 @@ void IPCRecorderWidget::OnEntryUpdated(IPCDebugger::RequestRecord record) {
         record.status == IPCDebugger::RequestStatus::Handled ||
         record.status == IPCDebugger::RequestStatus::HLEUnimplemented) {
 
-        service = QStringLiteral("%1 (%2)").arg(service, record.is_hle ? QStringLiteral("HLE") : QStringLiteral("LLE"));
+        service = QStringLiteral("%1 (%2)").arg(service, record.is_hle ? QStringLiteral("HLE")
+                                                                       : QStringLiteral("LLE"));
     }
 
-    QTreeWidgetItem item{
-        {QString::number(record.id), GetStatusSQStringLiteral(record), service, GetFunctionName(record)}};
+    QTreeWidgetItem item{{QString::number(record.id), GetStatusSQStringLiteral(record), service,
+                          GetFunctionName(record)}};
 
     const int row_id = record.id - id_offset;
     if (ui->main->invisibleRootItem()->childCount() > row_id) {

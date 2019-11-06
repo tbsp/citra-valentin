@@ -153,7 +153,8 @@ QString WaitTreeThread::GetText() const {
         status = QStringLiteral("ready");
         break;
     case Kernel::ThreadStatus::WaitArb:
-        status = QStringLiteral("waiting for address 0x%1").arg(thread.wait_address, 8, 16, QLatin1Char('0'));
+        status = QStringLiteral("waiting for address 0x%1")
+                     .arg(thread.wait_address, 8, 16, QLatin1Char('0'));
         break;
     case Kernel::ThreadStatus::WaitSleep:
         status = QStringLiteral("sleeping");
@@ -232,10 +233,12 @@ std::vector<std::unique_ptr<WaitTreeItem>> WaitTreeThread::GetChildren() const {
     }
 
     list.push_back(std::make_unique<WaitTreeText>(QStringLiteral("processor = %1").arg(processor)));
-    list.push_back(std::make_unique<WaitTreeText>(QStringLiteral("thread id = %1").arg(thread.GetThreadId())));
-    list.push_back(std::make_unique<WaitTreeText>(QStringLiteral("priority = %1(current) / %2(normal)")
-                                                      .arg(thread.current_priority)
-                                                      .arg(thread.nominal_priority)));
+    list.push_back(
+        std::make_unique<WaitTreeText>(QStringLiteral("thread id = %1").arg(thread.GetThreadId())));
+    list.push_back(
+        std::make_unique<WaitTreeText>(QStringLiteral("priority = %1(current) / %2(normal)")
+                                           .arg(thread.current_priority)
+                                           .arg(thread.nominal_priority)));
     list.push_back(std::make_unique<WaitTreeText>(
         QStringLiteral("last running ticks = %1").arg(thread.last_running_ticks)));
 
@@ -272,8 +275,8 @@ std::vector<std::unique_ptr<WaitTreeItem>> WaitTreeMutex::GetChildren() const {
 
     const auto& mutex = static_cast<const Kernel::Mutex&>(object);
     if (mutex.lock_count) {
-        list.push_back(
-            std::make_unique<WaitTreeText>(QStringLiteral("locked %1 times by thread:").arg(mutex.lock_count)));
+        list.push_back(std::make_unique<WaitTreeText>(
+            QStringLiteral("locked %1 times by thread:").arg(mutex.lock_count)));
         list.push_back(std::make_unique<WaitTreeThread>(*mutex.holding_thread));
     } else {
         list.push_back(std::make_unique<WaitTreeText>(QStringLiteral("free")));
@@ -288,9 +291,10 @@ std::vector<std::unique_ptr<WaitTreeItem>> WaitTreeSemaphore::GetChildren() cons
     std::vector<std::unique_ptr<WaitTreeItem>> list(WaitTreeWaitObject::GetChildren());
 
     const auto& semaphore = static_cast<const Kernel::Semaphore&>(object);
+    list.push_back(std::make_unique<WaitTreeText>(
+        QStringLiteral("available count = %1").arg(semaphore.available_count)));
     list.push_back(
-        std::make_unique<WaitTreeText>(QStringLiteral("available count = %1").arg(semaphore.available_count)));
-    list.push_back(std::make_unique<WaitTreeText>(QStringLiteral("max count = %1").arg(semaphore.max_count)));
+        std::make_unique<WaitTreeText>(QStringLiteral("max count = %1").arg(semaphore.max_count)));
     return list;
 }
 
@@ -303,10 +307,10 @@ std::vector<std::unique_ptr<WaitTreeItem>> WaitTreeTimer::GetChildren() const {
 
     list.push_back(std::make_unique<WaitTreeText>(
         QStringLiteral("reset type = %1").arg(GetResetTypeQString(timer.GetResetType()))));
-    list.push_back(
-        std::make_unique<WaitTreeText>(QStringLiteral("initial delay = %1").arg(timer.GetInitialDelay())));
-    list.push_back(
-        std::make_unique<WaitTreeText>(QStringLiteral("interval delay = %1").arg(timer.GetIntervalDelay())));
+    list.push_back(std::make_unique<WaitTreeText>(
+        QStringLiteral("initial delay = %1").arg(timer.GetInitialDelay())));
+    list.push_back(std::make_unique<WaitTreeText>(
+        QStringLiteral("interval delay = %1").arg(timer.GetIntervalDelay())));
     return list;
 }
 

@@ -309,8 +309,9 @@ public:
         : is_amd(is_amd), separable(separable), programmable_vertex_shaders(separable),
           trivial_vertex_shader(separable), fixed_geometry_shaders(separable),
           fragment_shaders(separable), disk_cache(separable) {
-        if (separable){
-            pipeline.Create();}
+        if (separable) {
+            pipeline.Create();
+        }
     }
 
     struct ShaderTuple {
