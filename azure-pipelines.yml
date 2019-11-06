@@ -170,7 +170,6 @@ jobs:
         buildType: 'current'
         artifactName: 'artifacts'
         targetPath: '$(Build.ArtifactStagingDirectory)'
-      displayName: 'Download artifacts'
     - task: GitHubRelease@1
       inputs:
         gitHubConnection: 'GitHub Releases'
