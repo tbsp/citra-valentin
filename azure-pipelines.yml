@@ -1,3 +1,6 @@
+variables:
+  CITRA_VERSION: "UNKNOWN"
+
 jobs:
 - job: Linux
   timeoutInMinutes: 60
@@ -177,7 +180,7 @@ jobs:
         repositoryName: '$(Build.Repository.Name)'
         action: 'create'
         target: '$(Build.SourceVersion)'
-        tagSource: 'gitTag'
-        assets: '$(Build.ArtifactStagingDirectory)/*'
+        tagSource: 'userSpecifiedTag'
+        tag: '$(CITRA_VERSION)'
         changeLogCompareToRelease: 'lastFullRelease'
         changeLogType: 'commitBased'
