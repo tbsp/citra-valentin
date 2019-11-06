@@ -48,7 +48,7 @@ jobs:
       inputs:
         SourceFolder: 'dist/scripting'
         Contents: |
-          citra.py
+          **
         TargetFolder: 'build/citra-valentin-linux-$(CITRA_VERSION)/scripting'
     - task: ArchiveFiles@2
       inputs:
