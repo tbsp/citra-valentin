@@ -134,17 +134,6 @@ jobs:
         PathtoPublish: '$(Build.ArtifactStagingDirectory)'
         ArtifactName: 'artifacts'
         publishLocation: 'Container'
-    - task: GitHubRelease@1
-      condition: and(succeeded(), eq(variables['Build.SourceBranch'], 'refs/heads/master'))
-      inputs:
-        gitHubConnection: 'GitHub Releases'
-        repositoryName: '$(Build.Repository.Name)'
-        action: 'create'
-        target: '$(Build.SourceVersion)'
-        tagSource: 'userSpecifiedTag'
-        tag: '$(CITRA_VERSION)'
-        changeLogCompareToRelease: 'lastFullRelease'
-        changeLogType: 'commitBased'
 - job: ClangFormat
   timeoutInMinutes: 60
   pool:
@@ -182,3 +171,24 @@ jobs:
             exit 1
         fi
       displayName: 'clang-format check'
+- job: Release
+  dependsOn:
+    - Linux
+    - Windows
+  steps:
+    - task: DownloadPipelineArtifact@2
+      inputs:
+        buildType: 'current'
+        artifactName: 'artifacts'
+        targetPath: '$(Build.ArtifactStagingDirectory)'
+      displayName: 'Download artifacts'
+    - task: GitHubRelease@1
+      inputs:
+        gitHubConnection: 'GitHub Releases'
+        repositoryName: '$(Build.Repository.Name)'
+        action: 'create'
+        target: '$(Build.SourceVersion)'
+        tagSource: 'gitTag'
+        assets: '$(Build.ArtifactStagingDirectory)/*'
+        changeLogCompareToRelease: 'lastFullRelease'
+        changeLogType: 'commitBased'
