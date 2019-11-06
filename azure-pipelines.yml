@@ -33,7 +33,7 @@ jobs:
     - powershell: |
         Remove-Item "./build/bin/tests" # Tests
 
-        # Rename bin to citra-valentin-linux-$env:CITRA_VERSION
+        # Rename bin to citra-valentin-linux-$(getCitraVersionStep.CITRA_VERSION).
         Rename-Item "./build/bin" "citra-valentin-linux-$(getCitraVersionStep.CITRA_VERSION)"
       displayName: 'Cleanup'
     - task: CopyFiles@2
@@ -86,6 +86,7 @@ jobs:
         $CITRA_VERSION = (.\build\bin\Release\citra-valentin --version) -replace "Citra Valentin ", ""
         Write-Host "Citra Version: $CITRA_VERSION"
         Write-Host "##vso[task.setvariable variable=CITRA_VERSION;isOutput=true]$CITRA_VERSION"
+      name: getCitraVersionStep
       displayName: 'Get Citra version'
     - powershell: |
         .\build\bin\Release\tests
@@ -96,8 +97,8 @@ jobs:
         Get-ChildItem -Path ".\build\bin\Release" *.lib | foreach { Remove-Item -Path $_.FullName }
         Get-ChildItem -Path ".\build\bin\Release" *.pdb | foreach { Remove-Item -Path $_.FullName }
 
-        # Rename Release to citra-valentin-windows-$env:CITRA_VERSION.
-        Rename-Item "build\bin\Release" "citra-valentin-windows-$env:CITRA_VERSION"
+        # Rename Release to citra-valentin-windows-$(getCitraVersionStep.CITRA_VERSION).
+        Rename-Item "build\bin\Release" "citra-valentin-windows-$(getCitraVersionStep.CITRA_VERSION)"
       displayName: 'Cleanup'
     - task: CopyFiles@2
       inputs:
@@ -105,13 +106,13 @@ jobs:
         Contents: |
           readme.md
           license.txt
-        TargetFolder: 'build/bin/citra-valentin-linux-$(CITRA_VERSION)'
+        TargetFolder: 'build/bin/citra-valentin-windows-$(getCitraVersionStep.CITRA_VERSION)'
     - task: CopyFiles@2
       inputs:
         SourceFolder: 'dist/scripting'
         Contents: |
           **
-        TargetFolder: 'build/bin/citra-valentin-linux-$(CITRA_VERSION)/scripting'
+        TargetFolder: 'build/bin/citra-valentin-windows-$(getCitraVersionStep.CITRA_VERSION)/scripting'
     - task: ArchiveFiles@2
       inputs:
         rootFolderOrFile: 'build/bin/citra-valentin-windows-$(CITRA_VERSION)'
