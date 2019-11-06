@@ -161,6 +161,7 @@ jobs:
         fi
       displayName: 'clang-format check'
 - job: Release
+  condition: and(succeeded(), eq(variables['Build.SourceBranch'], 'refs/heads/master'))
   dependsOn:
     - Linux
     - Windows
