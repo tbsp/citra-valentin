@@ -85,7 +85,7 @@ jobs:
     - powershell: |
         $CITRA_VERSION = (.\build\bin\Release\citra-valentin --version) -replace "Citra Valentin ", ""
         Write-Host "Citra Version: $CITRA_VERSION"
-        Write-Host "##vso[task.setvariable variable=CITRA_VERSION]$CITRA_VERSION"
+        Write-Host "##vso[task.setvariable variable=CITRA_VERSION;isOutput=true]$CITRA_VERSION"
       displayName: 'Get Citra version'
     - powershell: |
         .\build\bin\Release\tests
