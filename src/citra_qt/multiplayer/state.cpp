@@ -44,9 +44,9 @@ MultiplayerState::MultiplayerState(QWidget* parent, QStandardItemModel* game_lis
 
     status_text = new ClickableLabel(this);
     status_icon = new ClickableLabel(this);
-    status_text->setToolTip(QStringLiteral("Current connection status"));
     status_text->setText(QStringLiteral("Click to open lobby"));
     status_icon->setPixmap(QIcon::fromTheme(QStringLiteral("disconnected")).pixmap(16));
+    status_icon->setToolTip(QStringLiteral("Current connection status"));
 
     connect(status_text, &ClickableLabel::clicked, this, &MultiplayerState::OnOpenNetworkRoom);
     connect(status_icon, &ClickableLabel::clicked, this, &MultiplayerState::OnOpenNetworkRoom);
