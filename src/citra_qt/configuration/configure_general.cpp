@@ -2,7 +2,9 @@
 // Licensed under GPLv2 or any later version
 // Refer to the license.txt file included.
 
+#include <QDesktopServices>
 #include <QMessageBox>
+#include <QUrl>
 #include "citra_qt/configuration/configure_general.h"
 #include "citra_qt/uisettings.h"
 #include "core/core.h"
@@ -18,6 +20,11 @@ ConfigureGeneral::ConfigureGeneral(QWidget* parent)
     connect(ui->toggle_frame_limit, &QCheckBox::toggled, ui->frame_limit, &QSpinBox::setVisible);
     connect(ui->button_reset_defaults, &QPushButton::clicked, this,
             &ConfigureGeneral::ResetDefaults);
+
+    connect(ui->button_open_configuration_location, &QPushButton::clicked, this, [] {
+        QString path = QString::fromStdString(FileUtil::GetUserPath(FileUtil::UserPath::ConfigDir));
+        QDesktopServices::openUrl(QUrl::fromLocalFile(path));
+    });
 }
 
 ConfigureGeneral::~ConfigureGeneral() = default;
