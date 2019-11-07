@@ -6,13 +6,13 @@
 #include "citra_qt/configuration/config.h"
 
 void Config::ReadCoreValues() {
-    qt_config->beginGroup("Core");
-    Settings::values.use_cpu_jit = ReadSetting("use_cpu_jit", true).toBool();
+    qt_config->beginGroup(QStringLiteral("Core"));
+    Settings::values.use_cpu_jit = ReadSetting(QStringLiteral("use_cpu_jit"), true).toBool();
     qt_config->endGroup();
 }
 
 void Config::SaveCoreValues() {
-    qt_config->beginGroup("Core");
-    WriteSetting("use_cpu_jit", Settings::values.use_cpu_jit, true);
+    qt_config->beginGroup(QStringLiteral("Core"));
+    WriteSetting(QStringLiteral("use_cpu_jit"), Settings::values.use_cpu_jit, true);
     qt_config->endGroup();
 }

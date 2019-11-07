@@ -6,19 +6,26 @@
 #include "citra_qt/configuration/config.h"
 
 void Config::ReadWebServiceValues() {
-    qt_config->beginGroup("WebService");
+    qt_config->beginGroup(QStringLiteral("WebService"));
     Settings::values.web_api_url =
-        ReadSetting("web_api_url", "https://api.citra-emu.org").toString().toStdString();
-    Settings::values.citra_username = ReadSetting("citra_username").toString().toStdString();
-    Settings::values.citra_token = ReadSetting("citra_token").toString().toStdString();
+        ReadSetting(QStringLiteral("web_api_url"), QStringLiteral("https://api.citra-emu.org"))
+            .toString()
+            .toStdString();
+    Settings::values.citra_username =
+        ReadSetting(QStringLiteral("citra_username")).toString().toStdString();
+    Settings::values.citra_token =
+        ReadSetting(QStringLiteral("citra_token")).toString().toStdString();
     qt_config->endGroup();
 }
 
 void Config::SaveWebServiceValues() {
-    qt_config->beginGroup("WebService");
-    WriteSetting("web_api_url", QString::fromStdString(Settings::values.web_api_url),
-                 "https://api.citra-emu.org");
-    WriteSetting("citra_username", QString::fromStdString(Settings::values.citra_username));
-    WriteSetting("citra_token", QString::fromStdString(Settings::values.citra_token));
+    qt_config->beginGroup(QStringLiteral("WebService"));
+    WriteSetting(QStringLiteral("web_api_url"),
+                 QString::fromStdString(Settings::values.web_api_url),
+                 QStringLiteral("https://api.citra-emu.org"));
+    WriteSetting(QStringLiteral("citra_username"),
+                 QString::fromStdString(Settings::values.citra_username));
+    WriteSetting(QStringLiteral("citra_token"),
+                 QString::fromStdString(Settings::values.citra_token));
     qt_config->endGroup();
 }

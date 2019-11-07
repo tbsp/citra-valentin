@@ -6,23 +6,26 @@
 #include "citra_qt/configuration/config.h"
 
 void Config::ReadSystemValues() {
-    qt_config->beginGroup("System");
-    Settings::values.is_new_3ds = ReadSetting("is_new_3ds", false).toBool();
+    qt_config->beginGroup(QStringLiteral("System"));
+    Settings::values.is_new_3ds = ReadSetting(QStringLiteral("is_new_3ds"), false).toBool();
     Settings::values.region_value =
-        ReadSetting("region_value", Settings::REGION_VALUE_AUTO_SELECT).toInt();
+        ReadSetting(QStringLiteral("region_value"), Settings::REGION_VALUE_AUTO_SELECT).toInt();
     Settings::values.init_clock = static_cast<Settings::InitClock>(
-        ReadSetting("init_clock", static_cast<u32>(Settings::InitClock::SystemTime)).toInt());
-    Settings::values.init_time = ReadSetting("init_time", 946681277ULL).toULongLong();
+        ReadSetting(QStringLiteral("init_clock"), static_cast<u32>(Settings::InitClock::SystemTime))
+            .toInt());
+    Settings::values.init_time =
+        ReadSetting(QStringLiteral("init_time"), 946681277ULL).toULongLong();
     qt_config->endGroup();
 }
 
 void Config::SaveSystemValues() {
-    qt_config->beginGroup("System");
-    WriteSetting("is_new_3ds", Settings::values.is_new_3ds, false);
-    WriteSetting("region_value", Settings::values.region_value, Settings::REGION_VALUE_AUTO_SELECT);
-    WriteSetting("init_clock", static_cast<u32>(Settings::values.init_clock),
+    qt_config->beginGroup(QStringLiteral("System"));
+    WriteSetting(QStringLiteral("is_new_3ds"), Settings::values.is_new_3ds, false);
+    WriteSetting(QStringLiteral("region_value"), Settings::values.region_value,
+                 Settings::REGION_VALUE_AUTO_SELECT);
+    WriteSetting(QStringLiteral("init_clock"), static_cast<u32>(Settings::values.init_clock),
                  static_cast<u32>(Settings::InitClock::SystemTime));
-    WriteSetting("init_time", static_cast<unsigned long long>(Settings::values.init_time),
-                 946681277ULL);
+    WriteSetting(QStringLiteral("init_time"),
+                 static_cast<unsigned long long>(Settings::values.init_time), 946681277ULL);
     qt_config->endGroup();
 }

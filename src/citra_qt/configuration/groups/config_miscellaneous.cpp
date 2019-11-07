@@ -10,19 +10,24 @@
 #endif
 
 void Config::ReadMiscellaneousValues() {
-    qt_config->beginGroup("Miscellaneous");
-    Settings::values.log_filter = ReadSetting("log_filter", "*:Info").toString().toStdString();
+    qt_config->beginGroup(QStringLiteral("Miscellaneous"));
+    Settings::values.log_filter =
+        ReadSetting(QStringLiteral("log_filter"), QStringLiteral("*:Info"))
+            .toString()
+            .toStdString();
 #ifdef CITRA_ENABLE_DISCORD_RP
-    UISettings::values.enable_discord_rp = ReadSetting("enable_discord_rp", true).toBool();
+    UISettings::values.enable_discord_rp =
+        ReadSetting(QStringLiteral("enable_discord_rp"), true).toBool();
 #endif
     qt_config->endGroup();
 }
 
 void Config::SaveMiscellaneousValues() {
-    qt_config->beginGroup("Miscellaneous");
-    WriteSetting("log_filter", QString::fromStdString(Settings::values.log_filter), "*:Info");
+    qt_config->beginGroup(QStringLiteral("Miscellaneous"));
+    WriteSetting(QStringLiteral("log_filter"), QString::fromStdString(Settings::values.log_filter),
+                 QStringLiteral("*:Info"));
 #ifdef CITRA_ENABLE_DISCORD_RP
-    WriteSetting("enable_discord_rp", UISettings::values.enable_discord_rp, true);
+    WriteSetting(QStringLiteral("enable_discord_rp"), UISettings::values.enable_discord_rp, true);
 #endif
     qt_config->endGroup();
 }

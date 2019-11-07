@@ -43,7 +43,7 @@ const std::array<UISettings::Shortcut, 32> default_hotkeys{
 // clang-format on
 
 void Config::ReadShortcutsValues() {
-    qt_config->beginGroup("Shortcuts");
+    qt_config->beginGroup(QStringLiteral("Shortcuts"));
     for (auto [name, group, shortcut] : default_hotkeys) {
         auto [keyseq, context] = shortcut;
         qt_config->beginGroup(group);
@@ -51,7 +51,8 @@ void Config::ReadShortcutsValues() {
         UISettings::values.shortcuts.push_back(
             {name,
              group,
-             {ReadSetting("KeySeq", keyseq).toString(), ReadSetting("Context", context).toInt()}});
+             {ReadSetting(QStringLiteral("KeySeq"), keyseq).toString(),
+              ReadSetting(QStringLiteral("Context"), context).toInt()}});
         qt_config->endGroup();
         qt_config->endGroup();
     }
@@ -59,15 +60,16 @@ void Config::ReadShortcutsValues() {
 }
 
 void Config::SaveShortcutsValues() {
-    qt_config->beginGroup("Shortcuts");
+    qt_config->beginGroup(QStringLiteral("Shortcuts"));
     // Lengths of UISettings::values.shortcuts & default_hotkeys are same.
     // However, their ordering must also be the same.
     for (std::size_t i = 0; i < default_hotkeys.size(); i++) {
         auto [name, group, shortcut] = UISettings::values.shortcuts[i];
         qt_config->beginGroup(group);
         qt_config->beginGroup(name);
-        WriteSetting("KeySeq", shortcut.first, default_hotkeys[i].shortcut.first);
-        WriteSetting("Context", shortcut.second, default_hotkeys[i].shortcut.second);
+        WriteSetting(QStringLiteral("KeySeq"), shortcut.first, default_hotkeys[i].shortcut.first);
+        WriteSetting(QStringLiteral("Context"), shortcut.second,
+                     default_hotkeys[i].shortcut.second);
         qt_config->endGroup();
         qt_config->endGroup();
     }

@@ -89,13 +89,10 @@ static QString GetQStringLongTitleFromSMDH(const Loader::SMDH& smdh,
 static QString GetRegionFromSMDH(const Loader::SMDH& smdh) {
     using GameRegion = Loader::SMDH::GameRegion;
     static const std::map<GameRegion, const char*> regions_map = {
-        {GameRegion::Japan, QT_TR_NOOP("Japan")},
-        {GameRegion::NorthAmerica, QT_TR_NOOP("North America")},
-        {GameRegion::Europe, QT_TR_NOOP("Europe")},
-        {GameRegion::Australia, QT_TR_NOOP("Australia")},
-        {GameRegion::China, QT_TR_NOOP("China")},
-        {GameRegion::Korea, QT_TR_NOOP("Korea")},
-        {GameRegion::Taiwan, QT_TR_NOOP("Taiwan")}};
+        {GameRegion::Japan, "Japan"},   {GameRegion::NorthAmerica, "North America"},
+        {GameRegion::Europe, "Europe"}, {GameRegion::Australia, "Australia"},
+        {GameRegion::China, "China"},   {GameRegion::Korea, "Korea"},
+        {GameRegion::Taiwan, "Taiwan"}};
 
     std::vector<GameRegion> regions = smdh.GetRegions();
 

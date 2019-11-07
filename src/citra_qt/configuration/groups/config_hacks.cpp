@@ -6,31 +6,35 @@
 #include "citra_qt/configuration/config.h"
 
 void Config::ReadHacksValues() {
-    qt_config->beginGroup("Hacks");
-    Settings::values.custom_ticks = ReadSetting("custom_ticks", false).toBool();
-    Settings::values.ticks = ReadSetting("ticks", 77).toULongLong();
+    qt_config->beginGroup(QStringLiteral("Hacks"));
+    Settings::values.custom_ticks = ReadSetting(QStringLiteral("custom_ticks"), false).toBool();
+    Settings::values.ticks = ReadSetting(QStringLiteral("ticks"), 77).toULongLong();
 
     Settings::values.custom_screen_refresh_rate =
-        ReadSetting("custom_screen_refresh_rate", false).toBool();
-    Settings::values.screen_refresh_rate = ReadSetting("screen_refresh_rate", 60).toDouble();
+        ReadSetting(QStringLiteral("custom_screen_refresh_rate"), false).toBool();
+    Settings::values.screen_refresh_rate =
+        ReadSetting(QStringLiteral("screen_refresh_rate"), 60).toDouble();
 
     Settings::values.sharper_distant_objects =
-        ReadSetting("sharper_distant_objects", false).toBool();
+        ReadSetting(QStringLiteral("sharper_distant_objects"), false).toBool();
     Settings::values.ignore_format_reinterpretation =
-        ReadSetting("ignore_format_reinterpretation", true).toBool();
+        ReadSetting(QStringLiteral("ignore_format_reinterpretation"), true).toBool();
     qt_config->endGroup();
 }
 
 void Config::SaveHacksValues() {
-    qt_config->beginGroup("Hacks");
-    WriteSetting("custom_ticks", Settings::values.custom_ticks, false);
-    WriteSetting("ticks", static_cast<qulonglong>(Settings::values.ticks), 77);
+    qt_config->beginGroup(QStringLiteral("Hacks"));
+    WriteSetting(QStringLiteral("custom_ticks"), Settings::values.custom_ticks, false);
+    WriteSetting(QStringLiteral("ticks"), static_cast<qulonglong>(Settings::values.ticks), 77);
 
-    WriteSetting("custom_screen_refresh_rate", Settings::values.custom_screen_refresh_rate, false);
-    WriteSetting("screen_refresh_rate", Settings::values.screen_refresh_rate, 60.00);
+    WriteSetting(QStringLiteral("custom_screen_refresh_rate"),
+                 Settings::values.custom_screen_refresh_rate, false);
+    WriteSetting(QStringLiteral("screen_refresh_rate"), Settings::values.screen_refresh_rate,
+                 60.00);
 
-    WriteSetting("sharper_distant_objects", Settings::values.sharper_distant_objects, false);
-    WriteSetting("ignore_format_reinterpretation", Settings::values.ignore_format_reinterpretation,
-                 true);
+    WriteSetting(QStringLiteral("sharper_distant_objects"),
+                 Settings::values.sharper_distant_objects, false);
+    WriteSetting(QStringLiteral("ignore_format_reinterpretation"),
+                 Settings::values.ignore_format_reinterpretation, true);
     qt_config->endGroup();
 }
