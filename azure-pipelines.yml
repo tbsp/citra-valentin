@@ -290,10 +290,12 @@ jobs:
 - job: Release
   condition: and(succeeded(), eq(variables['Build.SourceBranch'], 'refs/heads/master'), not(contains(variables['Build.SourceVersionMessage'], '[skip release]')))
   dependsOn:
+    - LinuxDebug
     - LinuxRelease
+    - WindowsDebug
     - WindowsRelease
   variables:
-    CITRA_VERSION: $[ dependencies.Linux.outputs['getCitraVersionStep.CITRA_VERSION'] ]
+    CITRA_VERSION: $[ dependencies.LinuxRelease.outputs['getCitraVersionStep.CITRA_VERSION'] ]
   steps:
     - task: DownloadPipelineArtifact@2
       inputs:
