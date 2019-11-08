@@ -145,7 +145,10 @@ jobs:
     - script: .\build\bin\Debug\tests
       displayName: 'Run tests'
     - powershell: |
-        Remove-Item ".\build\bin\Debug\tests.exe" # Tests
+        # Tests
+        Remove-Item ".\build\bin\Debug\tests.exe"
+        Remove-Item ".\build\bin\Debug\tests.pdb"
+
         Get-ChildItem -Path ".\build\bin\Debug" *.exp | foreach { Remove-Item -Path $_.FullName }
         Get-ChildItem -Path ".\build\bin\Debug" *.lib | foreach { Remove-Item -Path $_.FullName }
 
@@ -219,7 +222,10 @@ jobs:
     - script: .\build\bin\Release\tests
       displayName: 'Run tests'
     - powershell: |
-        Remove-Item ".\build\bin\Release\tests.exe" # Tests
+        # Tests
+        Remove-Item ".\build\bin\Release\tests.exe"
+        Remove-Item ".\build\bin\Release\tests.pdb"
+
         Get-ChildItem -Path ".\build\bin\Release" *.exp | foreach { Remove-Item -Path $_.FullName }
         Get-ChildItem -Path ".\build\bin\Release" *.lib | foreach { Remove-Item -Path $_.FullName }
         
