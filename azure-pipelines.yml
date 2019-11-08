@@ -151,10 +151,10 @@ jobs:
 
         Get-ChildItem -Path ".\build\bin\Debug" *.exp | foreach { Remove-Item -Path $_.FullName }
         Get-ChildItem -Path ".\build\bin\Debug" *.lib | foreach { Remove-Item -Path $_.FullName }
+        Get-ChildItem -Path ".\build\bin\Debug" *.ilk | foreach { Remove-Item -Path $_.FullName }
 
         # Move PDBs
-        mkdir .\build\bin\pdbs
-        Move-Item -Path ".\build\bin\Debug\*.pdb" -Destination ".\build\bin\pdbs"
+        robocopy .\build\bin\Debug .\build\bin\pdbs /E /IF *.pdb /XD /MOVE
 
         # Rename Debug to citra-valentin-windows-$(getCitraVersionStep.CITRA_VERSION).
         Rename-Item ".\build\bin\Debug" "citra-valentin-windows-$(getCitraVersionStep.CITRA_VERSION)"
@@ -230,8 +230,7 @@ jobs:
         Get-ChildItem -Path ".\build\bin\Release" *.lib | foreach { Remove-Item -Path $_.FullName }
         
         # Move PDBs
-        mkdir .\build\bin\pdbs
-        Move-Item -Path ".\build\bin\Release\*.pdb" -Destination ".\build\bin\pdbs"
+        robocopy .\build\bin\Release .\build\bin\pdbs /E /IF *.pdb /XD /MOVE
 
         # Rename Release to citra-valentin-windows-$(getCitraVersionStep.CITRA_VERSION).
         Rename-Item ".\build\bin\Release" "citra-valentin-windows-$(getCitraVersionStep.CITRA_VERSION)"
