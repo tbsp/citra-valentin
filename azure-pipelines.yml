@@ -16,9 +16,7 @@ jobs:
     - task: CMake@1
       inputs:
         cmakeArgs: '-DCMAKE_BUILD_TYPE=Debug -DCITRA_ENABLE_DISCORD_RP=ON -DENABLE_FFMPEG_VIDEO_DUMPER=ON ..'
-    - powershell: |
-        Set-Location "build"
-        make
+    - script: cd build && make
       displayName: 'Build'
     - powershell: |
         $CITRA_VERSION = (./build/bin/citra-valentin --version) -replace "Citra Valentin ", ""
@@ -77,9 +75,7 @@ jobs:
     - task: CMake@1
       inputs:
         cmakeArgs: '-DCMAKE_BUILD_TYPE=Release -DCITRA_ENABLE_DISCORD_RP=ON -DENABLE_FFMPEG_VIDEO_DUMPER=ON ..'
-    - powershell: |
-        Set-Location "build"
-        make
+    - script: cd build && make
       displayName: 'Build'
     - powershell: |
         $CITRA_VERSION = (./build/bin/citra-valentin --version) -replace "Citra Valentin ", ""
@@ -220,8 +216,7 @@ jobs:
         Write-Host "##vso[task.setvariable variable=CITRA_VERSION;isOutput=true]$CITRA_VERSION"
       name: getCitraVersionStep
       displayName: 'Get Citra version'
-    - powershell: |
-        .\build\bin\Release\tests
+    - script: .\build\bin\Release\tests
       displayName: 'Run tests'
     - powershell: |
         Remove-Item ".\build\bin\Release\tests.exe" # Tests
