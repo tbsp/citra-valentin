@@ -125,7 +125,7 @@ jobs:
 - job: WindowsDebug
   timeoutInMinutes: 60
   pool:
-    vmImage: 'windows-latest'
+    vmImage: 'windows-2019'
   steps:
     - script: git submodule update --init --recursive
       displayName: 'Fetch submodules'
@@ -187,7 +187,7 @@ jobs:
 - job: WindowsRelease
   timeoutInMinutes: 60
   pool:
-    vmImage: 'windows-latest'
+    vmImage: 'windows-2019'
 
   steps:
     - script: |
