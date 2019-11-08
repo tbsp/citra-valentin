@@ -182,8 +182,8 @@ jobs:
       inputs:
         rootFolderOrFile: 'build/bin/pdbs'
         includeRootFolder: true
-        archiveType: '7z'
-        archiveFile: '$(Build.ArtifactStagingDirectory)/citra-valentin-windows-$(getCitraVersionStep.CITRA_VERSION)-pdbs.7z'
+        archiveType: 'tar'
+        archiveFile: '$(Build.ArtifactStagingDirectory)/citra-valentin-windows-$(getCitraVersionStep.CITRA_VERSION)-pdbs.tar.gz'
         replaceExistingArchive: true
     - task: PublishBuildArtifacts@1
       inputs:
