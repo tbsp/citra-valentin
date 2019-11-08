@@ -137,7 +137,7 @@ jobs:
         configuration: 'Debug'
         msbuildArgs: ""
     - powershell: |
-        $CITRA_VERSION = (.\build\bin\Release\citra-valentin --version) -replace "Citra Valentin ", ""
+        $CITRA_VERSION = (.\build\bin\Debug\citra-valentin --version) -replace "Citra Valentin ", ""
         Write-Host "Citra Version: $CITRA_VERSION"
         Write-Host "##vso[task.setvariable variable=CITRA_VERSION;isOutput=true]$CITRA_VERSION"
       name: getCitraVersionStep
