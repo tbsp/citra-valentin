@@ -154,7 +154,7 @@ jobs:
         Get-ChildItem -Path ".\build\bin\Debug" *.ilk | foreach { Remove-Item -Path $_.FullName }
 
         # Move PDBs
-        robocopy .\build\bin\Debug .\build\bin\pdbs /E /IF *.pdb /MOVE
+        robocopy .\build\bin\Debug .\build\bin\pdbs /E /IF *.pdb /MOVE; if ($lastexitcode -lt 8) { $global:LASTEXITCODE = $null }
 
         # Rename Debug to citra-valentin-windows-$(getCitraVersionStep.CITRA_VERSION).
         Rename-Item ".\build\bin\Debug" "citra-valentin-windows-$(getCitraVersionStep.CITRA_VERSION)"
@@ -230,7 +230,7 @@ jobs:
         Get-ChildItem -Path ".\build\bin\Release" *.lib | foreach { Remove-Item -Path $_.FullName }
         
         # Move PDBs
-        robocopy .\build\bin\Release .\build\bin\pdbs /E /IF *.pdb /MOVE
+        robocopy .\build\bin\Release .\build\bin\pdbs /E /IF *.pdb /MOVE; if ($lastexitcode -lt 8) { $global:LASTEXITCODE = $null }
 
         # Rename Release to citra-valentin-windows-$(getCitraVersionStep.CITRA_VERSION).
         Rename-Item ".\build\bin\Release" "citra-valentin-windows-$(getCitraVersionStep.CITRA_VERSION)"
