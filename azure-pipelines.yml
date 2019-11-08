@@ -146,16 +146,19 @@ jobs:
         Write-Host "##vso[task.setvariable variable=CITRA_VERSION;isOutput=true]$CITRA_VERSION"
       name: getCitraVersionStep
       displayName: 'Get Citra version'
-    - script: .\build\bin\Release\tests
+    - script: .\build\bin\Debug\tests
       displayName: 'Run tests'
     - powershell: |
-        Remove-Item ".\build\bin\Release\tests.exe" # Tests
-        Get-ChildItem -Path ".\build\bin\Release" *.exp | foreach { Remove-Item -Path $_.FullName }
-        Get-ChildItem -Path ".\build\bin\Release" *.lib | foreach { Remove-Item -Path $_.FullName }
-        Get-ChildItem -Path ".\build\bin\Release" *.pdb | foreach { Remove-Item -Path $_.FullName }
+        Remove-Item ".\build\bin\Debug\tests.exe" # Tests
+        Get-ChildItem -Path ".\build\bin\Debug" *.exp | foreach { Remove-Item -Path $_.FullName }
+        Get-ChildItem -Path ".\build\bin\Debug" *.lib | foreach { Remove-Item -Path $_.FullName }
 
-        # Rename Release to citra-valentin-windows-$(getCitraVersionStep.CITRA_VERSION).
-        Rename-Item "build\bin\Release" "citra-valentin-windows-$(getCitraVersionStep.CITRA_VERSION)"
+        # Move PDBs
+        mkdir .\build\bin\pdbs
+        Get-ChildItem -Path ".\build\bin\Debug\*.pdb -Destination ".\build\bin\pdbs"
+
+        # Rename Debug to citra-valentin-windows-$(getCitraVersionStep.CITRA_VERSION).
+        Rename-Item ".\build\bin\Debug" "citra-valentin-windows-$(getCitraVersionStep.CITRA_VERSION)"
       displayName: 'Cleanup'
     - task: CopyFiles@2
       inputs:
@@ -179,6 +182,13 @@ jobs:
         archiveType: 'tar'
         archiveFile: '$(Build.ArtifactStagingDirectory)/citra-valentin-windows-$(getCitraVersionStep.CITRA_VERSION).tar.gz'
         replaceExistingArchive: true
+    - task: ArchiveFiles@2
+      inputs:
+        rootFolderOrFile: 'build/bin/pdbs'
+        includeRootFolder: true
+        archiveType: '7z'
+        archiveFile: '$(Build.ArtifactStagingDirectory)/citra-valentin-windows-$(getCitraVersionStep.CITRA_VERSION)-pdbs.7z'
+        replaceExistingArchive: true
     - task: PublishBuildArtifacts@1
       inputs:
         PathtoPublish: '$(Build.ArtifactStagingDirectory)'
@@ -188,7 +198,6 @@ jobs:
   timeoutInMinutes: 60
   pool:
     vmImage: 'windows-2019'
-
   steps:
     - script: |
         git submodule update --init --recursive
@@ -218,10 +227,13 @@ jobs:
         Remove-Item ".\build\bin\Release\tests.exe" # Tests
         Get-ChildItem -Path ".\build\bin\Release" *.exp | foreach { Remove-Item -Path $_.FullName }
         Get-ChildItem -Path ".\build\bin\Release" *.lib | foreach { Remove-Item -Path $_.FullName }
-        Get-ChildItem -Path ".\build\bin\Release" *.pdb | foreach { Remove-Item -Path $_.FullName }
+        
+        # Move PDBs
+        mkdir .\build\bin\pdbs
+        Get-ChildItem -Path ".\build\bin\Debug\*.pdb -Destination ".\build\bin\pdbs"
 
         # Rename Release to citra-valentin-windows-$(getCitraVersionStep.CITRA_VERSION).
-        Rename-Item "build\bin\Release" "citra-valentin-windows-$(getCitraVersionStep.CITRA_VERSION)"
+        Rename-Item ".\build\bin\Release" "citra-valentin-windows-$(getCitraVersionStep.CITRA_VERSION)"
       displayName: 'Cleanup'
     - task: CopyFiles@2
       inputs:
@@ -244,6 +256,13 @@ jobs:
         includeRootFolder: true
         archiveType: 'tar'
         archiveFile: '$(Build.ArtifactStagingDirectory)/citra-valentin-windows-$(getCitraVersionStep.CITRA_VERSION).tar.gz'
+        replaceExistingArchive: true
+    - task: ArchiveFiles@2
+      inputs:
+        rootFolderOrFile: 'build/bin/pdbs'
+        includeRootFolder: true
+        archiveType: '7z'
+        archiveFile: '$(Build.ArtifactStagingDirectory)/citra-valentin-windows-$(getCitraVersionStep.CITRA_VERSION)-pdbs.7z'
         replaceExistingArchive: true
     - task: PublishBuildArtifacts@1
       inputs:
