@@ -1,5 +1,5 @@
 jobs:
-- job: Linux Debug
+- job: Linux_Debug
   timeoutInMinutes: 60
   pool:
     vmImage: 'ubuntu-18.04'
@@ -61,7 +61,7 @@ jobs:
         PathtoPublish: '$(Build.ArtifactStagingDirectory)'
         ArtifactName: 'debug'
         publishLocation: 'Container'
-- job: Linux Release
+- job: Linux_Release
   timeoutInMinutes: 60
   pool:
     vmImage: 'ubuntu-18.04'
@@ -122,7 +122,7 @@ jobs:
         PathtoPublish: '$(Build.ArtifactStagingDirectory)'
         ArtifactName: 'release'
         publishLocation: 'Container'
-- job: Windows Debug
+- job: Windows_Debug
   timeoutInMinutes: 60
   pool:
     vmImage: 'windows-latest'
@@ -184,7 +184,7 @@ jobs:
         PathtoPublish: '$(Build.ArtifactStagingDirectory)'
         ArtifactName: 'debug'
         publishLocation: 'Container'
-- job: Windows Release
+- job: Windows_Release
   timeoutInMinutes: 60
   pool:
     vmImage: 'windows-latest'
@@ -290,8 +290,8 @@ jobs:
 - job: Release
   condition: and(succeeded(), eq(variables['Build.SourceBranch'], 'refs/heads/master'), not(contains(variables['Build.SourceVersionMessage'], '[skip release]')))
   dependsOn:
-    - Linux
-    - Windows
+    - Linux_Release
+    - Windows_Release
   variables:
     CITRA_VERSION: $[ dependencies.Linux.outputs['getCitraVersionStep.CITRA_VERSION'] ]
   steps:
