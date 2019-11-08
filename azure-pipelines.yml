@@ -151,7 +151,7 @@ jobs:
 
         # Move PDBs
         mkdir .\build\bin\pdbs
-        Get-ChildItem -Path ".\build\bin\Debug\*.pdb -Destination ".\build\bin\pdbs"
+        Get-ChildItem -Path ".\build\bin\Debug\*.pdb" -Destination ".\build\bin\pdbs"
 
         # Rename Debug to citra-valentin-windows-$(getCitraVersionStep.CITRA_VERSION).
         Rename-Item ".\build\bin\Debug" "citra-valentin-windows-$(getCitraVersionStep.CITRA_VERSION)"
@@ -225,7 +225,7 @@ jobs:
         
         # Move PDBs
         mkdir .\build\bin\pdbs
-        Get-ChildItem -Path ".\build\bin\Debug\*.pdb -Destination ".\build\bin\pdbs"
+        Get-ChildItem -Path ".\build\bin\Debug\*.pdb" -Destination ".\build\bin\pdbs"
 
         # Rename Release to citra-valentin-windows-$(getCitraVersionStep.CITRA_VERSION).
         Rename-Item ".\build\bin\Release" "citra-valentin-windows-$(getCitraVersionStep.CITRA_VERSION)"
