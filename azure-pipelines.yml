@@ -57,7 +57,7 @@ jobs:
     - task: PublishBuildArtifacts@1
       inputs:
         PathtoPublish: '$(Build.ArtifactStagingDirectory)'
-        ArtifactName: 'debug'
+        ArtifactName: 'linux-debug'
         publishLocation: 'Container'
 - job: LinuxRelease
   timeoutInMinutes: 60
@@ -116,7 +116,7 @@ jobs:
     - task: PublishBuildArtifacts@1
       inputs:
         PathtoPublish: '$(Build.ArtifactStagingDirectory)'
-        ArtifactName: 'release'
+        ArtifactName: 'linux-release'
         publishLocation: 'Container'
 - job: WindowsDebug
   timeoutInMinutes: 60
@@ -188,7 +188,7 @@ jobs:
     - task: PublishBuildArtifacts@1
       inputs:
         PathtoPublish: '$(Build.ArtifactStagingDirectory)'
-        ArtifactName: 'debug'
+        ArtifactName: 'windows-debug'
         publishLocation: 'Container'
 - job: WindowsRelease
   timeoutInMinutes: 60
@@ -262,7 +262,7 @@ jobs:
     - task: PublishBuildArtifacts@1
       inputs:
         PathtoPublish: '$(Build.ArtifactStagingDirectory)'
-        ArtifactName: 'release'
+        ArtifactName: 'windows-release'
         publishLocation: 'Container'
 - job: ClangFormat
   timeoutInMinutes: 60
@@ -314,7 +314,12 @@ jobs:
     - task: DownloadPipelineArtifact@2
       inputs:
         buildType: 'current'
-        artifactName: 'release'
+        artifactName: 'linux-release'
+        targetPath: '$(Build.ArtifactStagingDirectory)'
+    - task: DownloadPipelineArtifact@2
+      inputs:
+        buildType: 'current'
+        artifactName: 'windows-release'
         targetPath: '$(Build.ArtifactStagingDirectory)'
     - task: GitHubRelease@1
       inputs:
