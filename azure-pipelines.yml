@@ -307,7 +307,6 @@ jobs:
         fi
       displayName: 'clang-format check'
 - job: Release
-  condition: and(succeeded(), eq(variables['Build.SourceBranch'], 'refs/heads/master'), not(contains(variables['Build.SourceVersionMessage'], '[skip release]')))
   dependsOn:
     - LinuxDebug
     - LinuxRelease
@@ -317,17 +316,20 @@ jobs:
     CITRA_VERSION: $[ dependencies.LinuxRelease.outputs['getCitraVersionStep.CITRA_VERSION'] ]
   steps:
     - task: DownloadPipelineArtifact@2
+      condition: and(succeeded(), eq(variables['Build.SourceBranch'], 'refs/heads/master'), not(contains(variables['Build.SourceVersionMessage'], '[skip release]')))
       inputs:
         buildType: 'current'
         artifactName: 'linux-release'
         targetPath: '$(Build.ArtifactStagingDirectory)'
     - task: DownloadPipelineArtifact@2
+      condition: and(succeeded(), eq(variables['Build.SourceBranch'], 'refs/heads/master'), not(contains(variables['Build.SourceVersionMessage'], '[skip release]')))
       inputs:
         buildType: 'current'
         artifactName: 'windows-release'
         itemPattern: 'citra-valentin-windows-$(CITRA_VERSION).tar.gz'
         targetPath: '$(Build.ArtifactStagingDirectory)'
     - task: GitHubRelease@1
+      condition: and(succeeded(), eq(variables['Build.SourceBranch'], 'refs/heads/master'), not(contains(variables['Build.SourceVersionMessage'], '[skip release]')))
       inputs:
         gitHubConnection: 'GitHub Releases'
         repositoryName: '$(Build.Repository.Name)'
