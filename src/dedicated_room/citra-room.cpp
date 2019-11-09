@@ -9,6 +9,7 @@
 #include <regex>
 #include <string>
 #include <thread>
+#include <cryptopp/base64.h>
 #include <glad/glad.h>
 
 #ifdef _WIN32
@@ -68,6 +69,24 @@ static void PrintVersion() {
 
 /// The magic text at the beginning of a citra-room ban list file.
 static constexpr char BanListMagic[] = "CitraRoom-BanList-1";
+
+static constexpr char token_delimiter{':'};
+
+static std::string UsernameFromDisplayToken(const std::string& display_token) {
+    std::string unencoded_display_token;
+    CryptoPP::StringSource ss(
+        display_token, true,
+        new CryptoPP::Base64Decoder(new CryptoPP::StringSink(unencoded_display_token)));
+    return unencoded_display_token.substr(0, unencoded_display_token.find(token_delimiter));
+}
+
+static std::string TokenFromDisplayToken(const std::string& display_token) {
+    std::string unencoded_display_token;
+    CryptoPP::StringSource ss(
+        display_token, true,
+        new CryptoPP::Base64Decoder(new CryptoPP::StringSink(unencoded_display_token)));
+    return unencoded_display_token.substr(unencoded_display_token.find(token_delimiter) + 1);
+}
 
 static Network::Room::BanList LoadBanList(const std::string& path) {
     std::ifstream file;
@@ -174,7 +193,7 @@ int main(int argc, char** argv) {
         {"password", required_argument, 0, 'w'},
         {"preferred-game", required_argument, 0, 'g'},
         {"preferred-game-id", required_argument, 0, 'i'},
-        {"username", required_argument, 0, 'u'},
+        {"username", optional_argument, 0, 'u'},
         {"token", required_argument, 0, 't'},
         {"web-api-url", required_argument, 0, 'a'},
         {"ban-list-file", required_argument, 0, 'b'},
@@ -268,10 +287,6 @@ int main(int argc, char** argv) {
                      "list.\nSet with --ban-list-file <file>\n\n";
     }
     bool announce = true;
-    if (username.empty()) {
-        announce = false;
-        std::cout << "username is empty: Hosting a private room\n\n";
-    }
     if (token.empty() && announce) {
         announce = false;
         std::cout << "token is empty: Hosting a private room\n\n";
@@ -283,8 +298,15 @@ int main(int argc, char** argv) {
     if (announce) {
         std::cout << "Hosting a public room\n\n";
         Settings::values.web_api_url = web_api_url;
-        Settings::values.citra_username = username;
-        Settings::values.citra_token = token;
+
+        if (username.empty()) {
+            std::cout << "Hosting a public room\n\n";
+            Settings::values.citra_username = UsernameFromDisplayToken(token);
+            Settings::values.citra_token = TokenFromDisplayToken(token);
+        } else {
+            Settings::values.citra_username = username;
+            Settings::values.citra_token = token;
+        }
     }
     if (!announce && enable_citra_mods) {
         enable_citra_mods = false;

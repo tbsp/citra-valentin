@@ -11,7 +11,7 @@ create_target_directory_groups(citra-room)
 set_target_properties(citra-room PROPERTIES OUTPUT_NAME "citra-valentin-room")
 
 target_link_libraries(citra-room PRIVATE common core network web_service)
-target_link_libraries(citra-room PRIVATE glad)
+target_link_libraries(citra-room PRIVATE cryptopp glad)
 
 if (MSVC)
     target_link_libraries(citra-room PRIVATE getopt)
