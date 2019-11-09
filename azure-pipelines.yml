@@ -326,7 +326,7 @@ jobs:
       inputs:
         buildType: 'current'
         artifactName: 'windows-release'
-        itemPattern: 'citra-valentin-windows-$(CITRA_VERSION).tar.gz'
+        itemPattern: 'windows-release/citra-valentin-windows-$(CITRA_VERSION).tar.gz'
         targetPath: '$(Build.ArtifactStagingDirectory)'
     - task: GitHubRelease@1
       condition: and(succeeded(), eq(variables['Build.SourceBranch'], 'refs/heads/master'), not(contains(variables['Build.SourceVersionMessage'], '[skip release]')))
