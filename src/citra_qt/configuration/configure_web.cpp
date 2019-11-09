@@ -11,6 +11,31 @@
 #include "ui_configure_web.h"
 #include "web_service/verify_login.h"
 
+static constexpr char token_delimiter{':'};
+
+static std::string GenerateDisplayToken(const std::string& username, const std::string& token) {
+    if (username.empty() || token.empty()) {
+        return {};
+    }
+
+    const std::string unencoded_display_token{username + token_delimiter + token};
+    QByteArray b{unencoded_display_token.c_str()};
+    QByteArray b64 = b.toBase64();
+    return b64.toStdString();
+}
+
+static std::string UsernameFromDisplayToken(const std::string& display_token) {
+    const std::string unencoded_display_token{
+        QByteArray::fromBase64(display_token.c_str()).toStdString()};
+    return unencoded_display_token.substr(0, unencoded_display_token.find(token_delimiter));
+}
+
+static std::string TokenFromDisplayToken(const std::string& display_token) {
+    const std::string unencoded_display_token{
+        QByteArray::fromBase64(display_token.c_str()).toStdString()};
+    return unencoded_display_token.substr(unencoded_display_token.find(token_delimiter) + 1);
+}
+
 ConfigureWeb::ConfigureWeb(QWidget* parent)
     : QWidget(parent), ui(std::make_unique<Ui::ConfigureWeb>()) {
     ui->setupUi(this);
@@ -43,11 +68,17 @@ void ConfigureWeb::SetConfiguration() {
         "<a href='https://citra-emu.org/wiki/citra-web-service/'><span style=\"text-decoration: "
         "underline; color:#039be5;\">What is my token?</span></a>"));
 
-    ui->edit_username->setText(QString::fromStdString(Settings::values.citra_username));
-    ui->edit_token->setText(QString::fromStdString(Settings::values.citra_token));
+    if (Settings::values.citra_username.empty()) {
+        ui->username->setText(QStringLiteral("Unspecified"));
+    } else {
+        ui->username->setText(QString::fromStdString(Settings::values.citra_username));
+    }
+
+    ui->edit_token->setText(QString::fromStdString(
+        GenerateDisplayToken(Settings::values.citra_username, Settings::values.citra_token)));
+
     // Connect after setting the values, to avoid calling OnLoginChanged now
     connect(ui->edit_token, &QLineEdit::textChanged, this, &ConfigureWeb::OnLoginChanged);
-    connect(ui->edit_username, &QLineEdit::textChanged, this, &ConfigureWeb::OnLoginChanged);
     user_verified = true;
 }
 
@@ -57,38 +88,36 @@ void ConfigureWeb::ApplyConfiguration() {
 #endif
 
     if (user_verified) {
-        Settings::values.citra_username = ui->edit_username->text().toStdString();
-        Settings::values.citra_token = ui->edit_token->text().toStdString();
+        Settings::values.citra_username =
+            UsernameFromDisplayToken(ui->edit_token->text().toStdString());
+        Settings::values.citra_token = TokenFromDisplayToken(ui->edit_token->text().toStdString());
     } else {
         QMessageBox::warning(
-            this, QStringLiteral("Username and token not verified"),
-            QStringLiteral("Username and token were not verified. The changes to your "
-                           "username and/or token have not been saved."));
+            this, QStringLiteral("Token not verified"),
+            QStringLiteral("Token was not verified. The change to your token has not been saved."));
     }
 }
 
 void ConfigureWeb::OnLoginChanged() {
-    if (ui->edit_username->text().isEmpty() && ui->edit_token->text().isEmpty()) {
+    if (ui->edit_token->text().isEmpty()) {
         user_verified = true;
 
         const QPixmap pixmap = QIcon::fromTheme(QStringLiteral("checked")).pixmap(16);
-        ui->label_username_verified->setPixmap(pixmap);
         ui->label_token_verified->setPixmap(pixmap);
     } else {
         user_verified = false;
 
         const QPixmap pixmap = QIcon::fromTheme(QStringLiteral("failed")).pixmap(16);
-        ui->label_username_verified->setPixmap(pixmap);
         ui->label_token_verified->setPixmap(pixmap);
     }
 }
 
 void ConfigureWeb::VerifyLogin() {
     ui->button_verify_login->setDisabled(true);
-    ui->button_verify_login->setText(QStringLiteral("Verifying..."));
-    verify_watcher.setFuture(
-        QtConcurrent::run([this, username = ui->edit_username->text().toStdString(),
-                           token = ui->edit_token->text().toStdString()] {
+    ui->button_verify_login->setText(tr("Verifying..."));
+    verify_watcher.setFuture(QtConcurrent::run(
+        [username = UsernameFromDisplayToken(ui->edit_token->text().toStdString()),
+         token = TokenFromDisplayToken(ui->edit_token->text().toStdString())] {
             return WebService::VerifyLogin(Settings::values.web_api_url, username, token);
         }));
 }
@@ -100,17 +129,17 @@ void ConfigureWeb::OnLoginVerified() {
         user_verified = true;
 
         const QPixmap pixmap = QIcon::fromTheme(QStringLiteral("checked")).pixmap(16);
-        ui->label_username_verified->setPixmap(pixmap);
         ui->label_token_verified->setPixmap(pixmap);
+        ui->username->setText(
+            QString::fromStdString(UsernameFromDisplayToken(ui->edit_token->text().toStdString())));
     } else {
         const QPixmap pixmap = QIcon::fromTheme(QStringLiteral("failed")).pixmap(16);
-        ui->label_username_verified->setPixmap(pixmap);
         ui->label_token_verified->setPixmap(pixmap);
+        ui->username->setText(QStringLiteral("Unspecified"));
         QMessageBox::critical(
             this, QStringLiteral("Verification failed"),
-            QStringLiteral(
-                "Verification failed. Check that you have entered your username and token "
-                "correctly, and that your internet connection is working."));
+            QStringLiteral("Verification failed. Check that you have entered your token "
+                           "correctly, and that your internet connection is working."));
     }
 }
 
