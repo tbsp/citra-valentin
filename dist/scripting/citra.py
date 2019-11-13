@@ -1,21 +1,24 @@
-from struct import pack, unpack
-from socket import socket, AF_INET, SOCK_DGRAM
-from random import getrandbits
-from enum import IntEnum
+import struct
+import socket
+import random
+import enum
 
 CURRENT_REQUEST_VERSION = 1
 MAX_REQUEST_DATA_SIZE = 32
 MAX_PACKET_SIZE = 48
 
-class RequestType(IntEnum):
+
+class RequestType(enum.IntEnum):
     ReadMemory = 1,
     WriteMemory = 2
 
+
 CITRA_PORT = 45987
+
 
 class Citra:
     def __init__(self, address='127.0.0.1', port=CITRA_PORT):
-        self.socket = socket(AF_INET, SOCK_DGRAM)
+        self.socket = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
         self.address = address
         self.port = port
 
@@ -23,15 +26,16 @@ class Citra:
         return self.socket is not None
 
     def _generate_header(self, request_type, data_size):
-        request_id = getrandbits(32)
-        return (pack('IIII', CURRENT_REQUEST_VERSION, request_id, request_type, data_size), request_id)
+        request_id = random.getrandbits(32)
+        return (struct.pack('IIII', CURRENT_REQUEST_VERSION, request_id, request_type, data_size), request_id)
 
     def _read_and_validate_header(self, raw_reply, expected_id, expected_type):
-        reply_version, reply_id, reply_type, reply_data_size = unpack('IIII', raw_reply[:4*4])
+        reply_version, reply_id, reply_type, reply_data_size = struct.unpack(
+            'IIII', raw_reply[:4*4])
         if (CURRENT_REQUEST_VERSION == reply_version and
             expected_id == reply_id and
             expected_type == reply_type and
-            reply_data_size == len(raw_reply[4*4:])):
+                reply_data_size == len(raw_reply[4*4:])):
             return raw_reply[4*4:]
         return None
 
@@ -43,13 +47,15 @@ class Citra:
         result = bytes()
         while read_size > 0:
             temp_read_size = min(read_size, MAX_REQUEST_DATA_SIZE)
-            request_data = pack('II', read_address, temp_read_size)
-            request, request_id = self._generate_header(RequestType.ReadMemory, len(request_data))
+            request_data = struct.pack('II', read_address, temp_read_size)
+            request, request_id = self._generate_header(
+                RequestType.ReadMemory, len(request_data))
             request += request_data
             self.socket.sendto(request, (self.address, self.port))
 
             raw_reply = self.socket.recv(MAX_PACKET_SIZE)
-            reply_data = self._read_and_validate_header(raw_reply, request_id, RequestType.ReadMemory)
+            reply_data = self._read_and_validate_header(
+                raw_reply, request_id, RequestType.ReadMemory)
 
             if reply_data:
                 result += reply_data
@@ -74,14 +80,16 @@ class Citra:
         write_size = len(write_contents)
         while write_size > 0:
             temp_write_size = min(write_size, MAX_REQUEST_DATA_SIZE - 8)
-            request_data = pack('II', write_address, temp_write_size)
+            request_data = struct.pack('II', write_address, temp_write_size)
             request_data += write_contents[:temp_write_size]
-            request, request_id = self._generate_header(RequestType.WriteMemory, len(request_data))
+            request, request_id = self._generate_header(
+                RequestType.WriteMemory, len(request_data))
             request += request_data
             self.socket.sendto(request, (self.address, self.port))
 
             raw_reply = self.socket.recv(MAX_PACKET_SIZE)
-            reply_data = self._read_and_validate_header(raw_reply, request_id, RequestType.WriteMemory)
+            reply_data = self._read_and_validate_header(
+                raw_reply, request_id, RequestType.WriteMemory)
 
             if None != reply_data:
                 write_address += temp_write_size
@@ -91,6 +99,7 @@ class Citra:
                 return False
         return True
 
+
 if __name__ == '__main__':
-    from doctest import testmod
-    testmod(extraglobs={'c': Citra()})
+    import doctest
+    doctest.testmod(extraglobs={'c': Citra()})

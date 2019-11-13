@@ -955,10 +955,11 @@ void GMainWindow::ShutdownGame() {
     ui.action_Advance_Frame->setEnabled(false);
     ui.action_Capture_Screenshot->setEnabled(false);
     render_window->hide();
-    if (game_list->isEmpty())
+    if (game_list->isEmpty()) {
         game_list_placeholder->show();
-    else
+    } else {
         game_list->show();
+    }
     game_list->setFilterFocus();
 
     // Disable status bar updates
@@ -973,6 +974,10 @@ void GMainWindow::ShutdownGame() {
     UpdateWindowTitle();
 
     game_path.clear();
+
+#ifdef CITRA_ENABLE_DISCORD_RP
+    discord_rp.Update();
+#endif
 }
 
 void GMainWindow::StoreRecentFile(const QString& filename) {
@@ -1269,10 +1274,6 @@ void GMainWindow::OnPauseGame() {
 
 void GMainWindow::OnStopGame() {
     ShutdownGame();
-
-#ifdef CITRA_ENABLE_DISCORD_RP
-    discord_rp.Update();
-#endif
 }
 
 void GMainWindow::ToggleFullscreen() {
