@@ -678,7 +678,7 @@ void GMainWindow::ConnectMenuEvents() {
 #else
     ui.action_Open_EXE_Location->setVisible(false);
 #endif
-    connect(ui.action_About, &QAction::triggered, this, &GMainWindow::OnMenuAboutCitra);
+    connect(ui.action_About, &QAction::triggered, this, &GMainWindow::OnMenuAboutCitraValentin);
 }
 
 void GMainWindow::OnDisplayTitleBars(bool show) {
@@ -1795,7 +1795,7 @@ void GMainWindow::OnCoreError(Core::System::ResultStatus result, std::string det
     }
 }
 
-void GMainWindow::OnMenuAboutCitra() {
+void GMainWindow::OnMenuAboutCitraValentin() {
     AboutDialog about{this};
     about.exec();
 }

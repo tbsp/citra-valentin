@@ -11,7 +11,7 @@
       </rect>
     </property>
     <property name="windowTitle">
-      <string>Citra</string>
+      <string>Citra Valentin</string>
     </property>
     <property name="windowIcon">
       <iconset>
@@ -216,7 +216,7 @@
     </action>
     <action name="action_About">
       <property name="text">
-        <string>About Citra</string>
+        <string>About Citra Valentin</string>
       </property>
     </action>
     <action name="action_Single_Window_Mode">
