@@ -62,6 +62,8 @@ add_executable(citra-qt
     configuration/configure_debug.h
     configuration/configure_enhancements.cpp
     configuration/configure_enhancements.h
+    configuration/configure_custom_layout.cpp
+    configuration/configure_custom_layout.h
     configuration/configure_debug.ui
     configuration/configure_dialog.cpp
     configuration/configure_dialog.h

@@ -45,6 +45,7 @@ void ConfigureDialog::SetConfiguration() {
     ui->inputTab->LoadConfiguration();
     ui->graphicsTab->SetConfiguration();
     ui->enhancementsTab->SetConfiguration();
+    ui->customLayoutTab->SetConfiguration();
     ui->audioTab->SetConfiguration();
     ui->cameraTab->SetConfiguration();
     ui->debugTab->SetConfiguration();
@@ -60,6 +61,7 @@ void ConfigureDialog::ApplyConfiguration() {
     ui->hotkeysTab->ApplyConfiguration(registry);
     ui->graphicsTab->ApplyConfiguration();
     ui->enhancementsTab->ApplyConfiguration();
+    ui->customLayoutTab->ApplyConfiguration();
     ui->audioTab->ApplyConfiguration();
     ui->cameraTab->ApplyConfiguration();
     ui->debugTab->ApplyConfiguration();
@@ -78,7 +80,7 @@ void ConfigureDialog::PopulateSelectionList() {
     const std::array<std::pair<QString, QList<QWidget*>>, 4> items{
         {{QStringLiteral("General"), {ui->generalTab, ui->webTab, ui->debugTab, ui->uiTab}},
          {QStringLiteral("System"), {ui->systemTab, ui->audioTab, ui->cameraTab}},
-         {QStringLiteral("Graphics"), {ui->enhancementsTab, ui->graphicsTab}},
+         {QStringLiteral("Graphics"), {ui->enhancementsTab, ui->graphicsTab, ui->customLayoutTab}},
          {QStringLiteral("Controls"), {ui->inputTab, ui->hotkeysTab}}}};
 
     for (const auto& entry : items) {
@@ -91,8 +93,9 @@ void ConfigureDialog::PopulateSelectionList() {
 
 void ConfigureDialog::UpdateVisibleTabs() {
     const auto items = ui->selectorList->selectedItems();
-    if (items.isEmpty())
+    if (items.isEmpty()) {
         return;
+    }
 
     const std::map<QWidget*, QString> widgets = {
         {ui->generalTab, QStringLiteral("General")},
@@ -101,6 +104,7 @@ void ConfigureDialog::UpdateVisibleTabs() {
         {ui->hotkeysTab, QStringLiteral("Hotkeys")},
         {ui->graphicsTab, QStringLiteral("Advanced")},
         {ui->enhancementsTab, QStringLiteral("Enhancements")},
+        {ui->customLayoutTab, QStringLiteral("Custom Layout")},
         {ui->audioTab, QStringLiteral("Audio")},
         {ui->cameraTab, QStringLiteral("Camera")},
         {ui->debugTab, QStringLiteral("Debug")},
@@ -111,6 +115,7 @@ void ConfigureDialog::UpdateVisibleTabs() {
 
     const QList<QWidget*> tabs = qvariant_cast<QList<QWidget*>>(items[0]->data(Qt::UserRole));
 
-    for (const auto tab : tabs)
+    for (const auto tab : tabs) {
         ui->tabWidget->addTab(tab, widgets.at(tab));
+    }
 }

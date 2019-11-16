@@ -9,19 +9,12 @@
    <item>
     <layout class="QHBoxLayout" name="horizontalLayout">
      <item>
-      <widget class="QListWidget" name="selectorList">
-       <property name="minimumWidth">
-        <number>150</number>
-       </property>
-       <property name="maximumWidth">
-        <number>150</number>
-       </property>
-      </widget>
+      <widget class="QListWidget" name="selectorList"/>
      </item>
      <item>
       <widget class="QTabWidget" name="tabWidget">
        <property name="currentIndex">
-        <number>0</number>
+        <number>6</number>
        </property>
        <widget class="ConfigureGeneral" name="generalTab">
         <attribute name="title">
@@ -49,9 +42,14 @@
         </attribute>
        </widget>
        <widget class="ConfigureEnhancements" name="enhancementsTab">
-         <attribute name="title">
-           <string>Enhancements</string>
-         </attribute>
+        <attribute name="title">
+         <string>Enhancements</string>
+        </attribute>
+       </widget>
+       <widget class="ConfigureCustomLayout" name="customLayoutTab">
+        <attribute name="title">
+         <string>Custom Layout</string>
+        </attribute>
        </widget>
        <widget class="ConfigureAudio" name="audioTab">
         <attribute name="title">
@@ -156,6 +154,12 @@
    <class>ConfigureUi</class>
    <extends>QWidget</extends>
    <header>configuration/configure_ui.h</header>
+   <container>1</container>
+  </customwidget>
+  <customwidget>
+   <class>ConfigureCustomLayout</class>
+   <extends>QWidget</extends>
+   <header>configuration/configure_custom_layout.h</header>
    <container>1</container>
   </customwidget>
  </customwidgets>

@@ -14,8 +14,6 @@ ConfigureEnhancements::ConfigureEnhancements(QWidget* parent)
     ui->setupUi(this);
     SetConfiguration();
 
-    ui->layoutBox->setEnabled(!Settings::values.custom_layout);
-
     ui->resolution_factor_combobox->setEnabled(Settings::values.use_hw_renderer);
 
     connect(ui->render_3d_combobox,
