@@ -159,12 +159,21 @@ EmuWindow_SDL2::EmuWindow_SDL2(bool fullscreen) {
 
     const std::string version =
         fmt::format("Citra Valentin {}.{}.{}", Version::major, Version::minor, Version::patch);
-    render_window =
-        SDL_CreateWindow(version.c_str(),
-                         SDL_WINDOWPOS_UNDEFINED, // x position
-                         SDL_WINDOWPOS_UNDEFINED, // y position
-                         Core::kScreenTopWidth, Core::kScreenTopHeight + Core::kScreenBottomHeight,
-                         SDL_WINDOW_OPENGL | SDL_WINDOW_RESIZABLE | SDL_WINDOW_ALLOW_HIGHDPI);
+    int width, height;
+    if (fullscreen) {
+        SDL_DisplayMode display_mode;
+        SDL_GetCurrentDisplayMode(0, &display_mode);
+        width = display_mode.w;
+        height = display_mode.h;
+    } else {
+        width = Core::kScreenTopWidth;
+        height = Core::kScreenTopHeight + Core::kScreenBottomHeight;
+    }
+    render_window = SDL_CreateWindow(
+        version.c_str(),
+        SDL_WINDOWPOS_UNDEFINED, // x position
+        SDL_WINDOWPOS_UNDEFINED, // y position
+        width, height, SDL_WINDOW_OPENGL | SDL_WINDOW_RESIZABLE | SDL_WINDOW_ALLOW_HIGHDPI);
 
     if (render_window == nullptr) {
         LOG_CRITICAL(Frontend, "Failed to create SDL2 window: {}", SDL_GetError());
