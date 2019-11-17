@@ -302,6 +302,7 @@ int main(int argc, char** argv) {
         if (username.empty()) {
             std::cout << "Hosting a public room\n\n";
             Settings::values.citra_username = UsernameFromDisplayToken(token);
+            username = Settings::values.citra_username;
             Settings::values.citra_token = TokenFromDisplayToken(token);
         } else {
             Settings::values.citra_username = username;
