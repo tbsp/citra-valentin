@@ -168,7 +168,6 @@ void MultiplayerState::UpdateThemedIcons() {
             QIcon::fromTheme(QStringLiteral("connected_notification")).pixmap(16));
     } else if (current_state == Network::RoomMember::State::Joined ||
                current_state == Network::RoomMember::State::Moderator) {
-
         status_icon->setPixmap(QIcon::fromTheme(QStringLiteral("connected")).pixmap(16));
     } else {
         status_icon->setPixmap(QIcon::fromTheme(QStringLiteral("disconnected")).pixmap(16));
@@ -199,8 +198,9 @@ void MultiplayerState::OnCreateRoom() {
 }
 
 bool MultiplayerState::OnCloseRoom() {
-    if (!NetworkMessage::WarnCloseRoom())
+    if (!NetworkMessage::WarnCloseRoom()) {
         return false;
+    }
     if (auto room = Network::GetRoom().lock()) {
         // if you are in a room, leave it
         if (auto member = Network::GetRoomMember().lock()) {

@@ -87,15 +87,16 @@ void Lobby::UpdateGameList(QStandardItemModel* list) {
             game_list->appendRow(parent->child(j)->clone());
         }
     }
-    if (proxy)
+    if (proxy) {
         proxy->UpdateGameList(game_list);
+    }
 }
 
 QString Lobby::PasswordPrompt() {
     bool ok;
     const QString text =
         QInputDialog::getText(this, QStringLiteral("Password Required to Join"),
-                              QStringLiteral("Password:"), QLineEdit::Password, "", &ok);
+                              QStringLiteral("Password:"), QLineEdit::Password, QString(), &ok);
     return ok ? text : QString();
 }
 
@@ -128,7 +129,7 @@ void Lobby::OnJoinRoom(const QModelIndex& source) {
 
     // Get a password to pass if the room is password protected
     QModelIndex password_index = proxy->index(index.row(), Column::ROOM_NAME);
-    bool has_password = proxy->data(password_index, LobbyItemName::PasswordRole).toBool();
+    const bool has_password = proxy->data(password_index, LobbyItemName::PasswordRole).toBool();
     const std::string password = has_password ? PasswordPrompt().toStdString() : "";
     if (has_password && password.empty()) {
         return;
@@ -138,11 +139,11 @@ void Lobby::OnJoinRoom(const QModelIndex& source) {
     const std::string nickname = ui->nickname->text().toStdString();
     const std::string ip =
         proxy->data(connection_index, LobbyItemHost::HostIPRole).toString().toStdString();
-    int port = proxy->data(connection_index, LobbyItemHost::HostPortRole).toInt();
+    const int port = proxy->data(connection_index, LobbyItemHost::HostPortRole).toInt();
     const std::string verify_UID =
         proxy->data(connection_index, LobbyItemHost::HostVerifyUIDRole).toString().toStdString();
 
-    // attempt to connect in a different thread
+    // Attempt to connect in a different thread
     QFuture<void> f = QtConcurrent::run([nickname, ip, port, password, verify_UID] {
         std::string token;
         if (!Settings::values.citra_username.empty() && !Settings::values.citra_token.empty()) {
@@ -174,7 +175,7 @@ void Lobby::OnJoinRoom(const QModelIndex& source) {
 void Lobby::ResetModel() {
     model->clear();
     model->insertColumns(0, Column::TOTAL);
-    model->setHeaderData(Column::EXPAND, Qt::Horizontal, "", Qt::DisplayRole);
+    model->setHeaderData(Column::EXPAND, Qt::Horizontal, QString(), Qt::DisplayRole);
     model->setHeaderData(Column::ROOM_NAME, Qt::Horizontal, QStringLiteral("Room Name"),
                          Qt::DisplayRole);
     model->setHeaderData(Column::GAME_NAME, Qt::Horizontal, QStringLiteral("Preferred Game"),

@@ -198,9 +198,9 @@ void CheatDialog::OnDeleteCheat() {
 
     LoadCheats();
     if (cheats.empty()) {
-        ui->lineName->setText(QStringLiteral(""));
-        ui->textCode->setPlainText(QStringLiteral(""));
-        ui->textNotes->setPlainText(QStringLiteral(""));
+        ui->lineName->clear();
+        ui->textCode->setPlainText(QString());
+        ui->textNotes->setPlainText(QString());
         ui->lineName->setEnabled(false);
         ui->textCode->setEnabled(false);
         ui->textNotes->setEnabled(false);
@@ -228,17 +228,17 @@ void CheatDialog::OnAddCheat() {
         return;
     }
 
-    int row = ui->tableCheats->rowCount();
+    const int row = ui->tableCheats->rowCount();
     ui->tableCheats->setRowCount(row + 1);
     ui->tableCheats->setCurrentCell(row, 1);
 
-    // create a dummy item
+    // Create a dummy item
     ui->tableCheats->setItem(row, 1, new QTableWidgetItem(QStringLiteral("[new cheat]")));
-    ui->tableCheats->setItem(row, 2, new QTableWidgetItem(QStringLiteral("")));
-    ui->lineName->setText(QStringLiteral(""));
+    ui->tableCheats->setItem(row, 2, new QTableWidgetItem(QString()));
+    ui->lineName->clear();
     ui->lineName->setPlaceholderText(QStringLiteral("[new cheat]"));
-    ui->textCode->setPlainText(QStringLiteral(""));
-    ui->textNotes->setPlainText(QStringLiteral(""));
+    ui->textCode->setPlainText(QString());
+    ui->textNotes->setPlainText(QString());
     ui->lineName->setEnabled(true);
     ui->textCode->setEnabled(true);
     ui->textNotes->setEnabled(true);

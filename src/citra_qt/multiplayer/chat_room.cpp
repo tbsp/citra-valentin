@@ -42,11 +42,10 @@ public:
         }
 
         // Handle pings at the beginning and end of message
-        QString fixed_message = QString(" %1 ").arg(message);
-        if (fixed_message.contains(QString(" @%1 ").arg(cur_nickname)) ||
+        QString fixed_message = QStringLiteral(" %1 ").arg(message);
+        if (fixed_message.contains(QStringLiteral(" @%1 ").arg(cur_nickname)) ||
             (!cur_username.isEmpty() &&
-             fixed_message.contains(QString(" @%1 ").arg(cur_username)))) {
-
+             fixed_message.contains(QStringLiteral(" @%1 ").arg(cur_username)))) {
             contains_ping = true;
         } else {
             contains_ping = false;
@@ -64,19 +63,20 @@ public:
         if (username.isEmpty() || username == nickname) {
             name = nickname;
         } else {
-            name = QString("%1 (%2)").arg(nickname, username);
+            name = QStringLiteral("%1 (%2)").arg(nickname, username);
         }
 
         QString style, text_color;
         if (ContainsPing()) {
             // Add a background color to these messages
-            style = QString("background-color: %1").arg(ping_color);
+            style = QStringLiteral("background-color: %1").arg(ping_color);
+
             // Add a font color
             text_color = "color='#000000'";
         }
 
-        return QString("[%1] <font color='%2'>&lt;%3&gt;</font> <font style='%4' "
-                       "%5>%6</font>")
+        return QStringLiteral("[%1] <font color='%2'>&lt;%3&gt;</font> <font style='%4' "
+                              "%5>%6</font>")
             .arg(timestamp, color, name.toHtmlEscaped(), style, text_color,
                  message.toHtmlEscaped());
     }
@@ -104,7 +104,8 @@ public:
     }
 
     QString GetSystemChatMessage() const {
-        return QString("[%1] <font color='%2'>* %3</font>").arg(timestamp, system_color, message);
+        return QStringLiteral("[%1] <font color='%2'>* %3</font>")
+            .arg(timestamp, system_color, message);
     }
 
 private:
@@ -144,9 +145,9 @@ public:
         if (username.isEmpty() || username == nickname) {
             name = nickname;
         } else {
-            name = QString("%1 (%2)").arg(nickname, username);
+            name = QStringLiteral("%1 (%2)").arg(nickname, username);
         }
-        return QString("%1\n      %2").arg(name, data(GameNameRole).toString());
+        return QStringLiteral("%1\n      %2").arg(name, data(GameNameRole).toString());
     }
 };
 
@@ -158,19 +159,20 @@ ChatRoom::ChatRoom(QWidget* parent) : QWidget(parent), ui(std::make_unique<Ui::C
     player_list = new QStandardItemModel(ui->player_view);
     ui->player_view->setModel(player_list);
     ui->player_view->setContextMenuPolicy(Qt::CustomContextMenu);
-    // set a header to make it look better though there is only one column
+
+    // Set a header to make it look better though there is only one column
     player_list->insertColumns(0, 1);
     player_list->setHeaderData(0, Qt::Horizontal, QStringLiteral("Members"));
 
     ui->chat_history->document()->setMaximumBlockCount(max_chat_lines);
 
-    // register the network structs to use in slots and signals
+    // Register the network structs to use in slots and signals
     qRegisterMetaType<Network::ChatEntry>();
     qRegisterMetaType<Network::StatusMessageEntry>();
     qRegisterMetaType<Network::RoomInformation>();
     qRegisterMetaType<Network::RoomMember::State>();
 
-    // setup the callbacks for network updates
+    // Setup the callbacks for network updates
     if (auto member = Network::GetRoomMember().lock()) {
         member->BindOnChatMessageRecieved(
             [this](const Network::ChatEntry& chat) { emit ChatReceived(chat); });
@@ -252,7 +254,7 @@ void ChatRoom::OnChatReceive(const Network::ChatEntry& chat) {
         return;
     }
     if (auto room = Network::GetRoomMember().lock()) {
-        // get the id of the player
+        // Get the id of the player
         auto members = room->GetMemberInformation();
         auto it = std::find_if(members.begin(), members.end(),
                                [&chat](const Network::RoomMember::MemberInformation& member) {
@@ -282,8 +284,8 @@ void ChatRoom::OnStatusMessageReceive(const Network::StatusMessageEntry& status_
     if (status_message.username.empty() || status_message.username == status_message.nickname) {
         name = QString::fromStdString(status_message.nickname);
     } else {
-        name = QString("%1 (%2)").arg(QString::fromStdString(status_message.nickname),
-                                      QString::fromStdString(status_message.username));
+        name = QStringLiteral("%1 (%2)").arg(QString::fromStdString(status_message.nickname),
+                                             QString::fromStdString(status_message.username));
     }
     QString message;
     switch (status_message.type) {
@@ -303,23 +305,23 @@ void ChatRoom::OnStatusMessageReceive(const Network::StatusMessageEntry& status_
         message = QStringLiteral("%1 has been unbanned").arg(name);
         break;
     }
-    if (!message.isEmpty())
+    if (!message.isEmpty()) {
         AppendStatusMessage(message);
+    }
 }
 
 void ChatRoom::OnSendChat() {
     if (auto room = Network::GetRoomMember().lock()) {
         if (room->GetState() != Network::RoomMember::State::Joined &&
             room->GetState() != Network::RoomMember::State::Moderator) {
-
             return;
         }
         auto message = ui->chat_message->text().toStdString();
         if (!ValidateMessage(message)) {
             return;
         }
-        auto nick = room->GetNickname();
-        auto username = room->GetUsername();
+        const std::string nick = room->GetNickname();
+        const std::string username = room->GetUsername();
         Network::ChatEntry chat{nick, username, message};
 
         auto members = room->GetMemberInformation();
@@ -356,8 +358,9 @@ void ChatRoom::SetPlayerList(const Network::RoomMember::MemberList& member_list)
     // TODO(B3N30): Remember which row is selected
     player_list->removeRows(0, player_list->rowCount());
     for (const auto& member : member_list) {
-        if (member.nickname.empty())
+        if (member.nickname.empty()) {
             continue;
+        }
         QStandardItem* name_item = new PlayerListItem(member.nickname, member.username,
                                                       member.avatar_url, member.game_info.name);
 
@@ -366,7 +369,7 @@ void ChatRoom::SetPlayerList(const Network::RoomMember::MemberList& member_list)
             const QUrl url(QString::fromStdString(member.avatar_url));
             QFuture<std::string> future = QtConcurrent::run([url] {
                 WebService::Client client(
-                    QString("%1://%2").arg(url.scheme(), url.host()).toStdString(), "", "");
+                    QStringLiteral("%1://%2").arg(url.scheme(), url.host()).toStdString(), "", "");
                 auto result = client.GetImage(url.path().toStdString(), true);
                 if (result.returned_data.empty()) {
                     LOG_ERROR(WebService, "Failed to get avatar");
@@ -377,12 +380,14 @@ void ChatRoom::SetPlayerList(const Network::RoomMember::MemberList& member_list)
             connect(future_watcher, &QFutureWatcher<std::string>::finished, this,
                     [this, future_watcher, avatar_url = member.avatar_url] {
                         const std::string result = future_watcher->result();
-                        if (result.empty())
+                        if (result.empty()) {
                             return;
+                        }
                         QPixmap pixmap;
                         if (!pixmap.loadFromData(reinterpret_cast<const u8*>(result.data()),
-                                                 result.size()))
+                                                 result.size())) {
                             return;
+                        }
                         icon_cache[avatar_url] =
                             pixmap.scaled(48, 48, Qt::IgnoreAspectRatio, Qt::SmoothTransformation);
                         // Update all the displayed icons with the new icon_cache
@@ -398,15 +403,17 @@ void ChatRoom::SetPlayerList(const Network::RoomMember::MemberList& member_list)
 }
 
 void ChatRoom::OnChatTextChanged() {
-    if (ui->chat_message->text().length() > static_cast<int>(Network::MaxMessageSize))
+    if (ui->chat_message->text().length() > static_cast<int>(Network::MaxMessageSize)) {
         ui->chat_message->setText(
             ui->chat_message->text().left(static_cast<int>(Network::MaxMessageSize)));
+    }
 }
 
 void ChatRoom::PopupContextMenu(const QPoint& menu_location) {
     QModelIndex item = ui->player_view->indexAt(menu_location);
-    if (!item.isValid())
+    if (!item.isValid()) {
         return;
+    }
 
     std::string nickname =
         player_list->item(item.row())->data(PlayerListItem::NicknameRole).toString().toStdString();
@@ -418,7 +425,7 @@ void ChatRoom::PopupContextMenu(const QPoint& menu_location) {
         QAction* view_profile_action = context_menu.addAction(QStringLiteral("View Profile"));
         connect(view_profile_action, &QAction::triggered, [username] {
             QDesktopServices::openUrl(
-                QUrl(QString("https://community.citra-emu.org/u/%1").arg(username)));
+                QUrl(QStringLiteral("https://community.citra-emu.org/u/%1").arg(username)));
         });
     }
 

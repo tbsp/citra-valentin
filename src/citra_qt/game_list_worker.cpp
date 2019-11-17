@@ -48,8 +48,9 @@ void GameListWorker::AddFstEntriesToGameList(const std::string& dir_path, unsign
 
             bool executable = false;
             loader->IsExecutable(executable);
-            if (!executable)
+            if (!executable) {
                 return true;
+            }
 
             u64 program_id = 0;
             loader->ReadProgramId(program_id);
@@ -110,7 +111,7 @@ void GameListWorker::AddFstEntriesToGameList(const std::string& dir_path, unsign
 void GameListWorker::run() {
     stop_processing = false;
     for (UISettings::GameDir& game_dir : game_dirs) {
-        if (game_dir.path == "INSTALLED") {
+        if (game_dir.path == QStringLiteral("INSTALLED")) {
             QString games_path =
                 QString::fromStdString(FileUtil::GetUserPath(FileUtil::UserPath::SDMCDir)) +
                 "Nintendo "
@@ -127,7 +128,7 @@ void GameListWorker::run() {
             emit DirEntryReady({game_list_dir});
             AddFstEntriesToGameList(games_path.toStdString(), 2, game_list_dir);
             AddFstEntriesToGameList(demos_path.toStdString(), 2, game_list_dir);
-        } else if (game_dir.path == "SYSTEM") {
+        } else if (game_dir.path == QStringLiteral("SYSTEM")) {
             QString path =
                 QString::fromStdString(FileUtil::GetUserPath(FileUtil::UserPath::NANDDir)) +
                 "00000000000000000000000000000000/title/00040010";
@@ -147,6 +148,6 @@ void GameListWorker::run() {
 }
 
 void GameListWorker::Cancel() {
-    this->disconnect();
+    disconnect();
     stop_processing = true;
 }

@@ -13,7 +13,7 @@ void Config::ReadCameraValues() {
             .toString()
             .toStdString();
     Settings::values.camera_config[OuterRightCamera] =
-        ReadSetting(QStringLiteral("camera_outer_right_config"), QStringLiteral(""))
+        ReadSetting(QStringLiteral("camera_outer_right_config"), QString())
             .toString()
             .toStdString();
     Settings::values.camera_flip[OuterRightCamera] =
@@ -23,21 +23,17 @@ void Config::ReadCameraValues() {
             .toString()
             .toStdString();
     Settings::values.camera_config[InnerCamera] =
-        ReadSetting(QStringLiteral("camera_inner_config"), QStringLiteral(""))
-            .toString()
-            .toStdString();
+        ReadSetting(QStringLiteral("camera_inner_config"), QString()).toString().toStdString();
     Settings::values.camera_flip[InnerCamera] =
-        ReadSetting(QStringLiteral("camera_inner_flip"), QStringLiteral("")).toInt();
+        ReadSetting(QStringLiteral("camera_inner_flip"), QString()).toInt();
     Settings::values.camera_name[OuterLeftCamera] =
         ReadSetting(QStringLiteral("camera_outer_left_name"), QStringLiteral("blank"))
             .toString()
             .toStdString();
     Settings::values.camera_config[OuterLeftCamera] =
-        ReadSetting(QStringLiteral("camera_outer_left_config"), QStringLiteral(""))
-            .toString()
-            .toStdString();
+        ReadSetting(QStringLiteral("camera_outer_left_config"), QString()).toString().toStdString();
     Settings::values.camera_flip[OuterLeftCamera] =
-        ReadSetting(QStringLiteral("camera_outer_left_flip"), QStringLiteral("")).toInt();
+        ReadSetting(QStringLiteral("camera_outer_left_flip"), QString()).toInt();
     qt_config->endGroup();
 }
 
@@ -49,22 +45,21 @@ void Config::SaveCameraValues() {
                  QStringLiteral("blank"));
     WriteSetting(QStringLiteral("camera_outer_right_config"),
                  QString::fromStdString(Settings::values.camera_config[OuterRightCamera]),
-                 QStringLiteral(""));
+                 QString());
     WriteSetting(QStringLiteral("camera_outer_right_flip"),
                  Settings::values.camera_flip[OuterRightCamera], 0);
     WriteSetting(QStringLiteral("camera_inner_name"),
                  QString::fromStdString(Settings::values.camera_name[InnerCamera]),
                  QStringLiteral("blank"));
     WriteSetting(QStringLiteral("camera_inner_config"),
-                 QString::fromStdString(Settings::values.camera_config[InnerCamera]),
-                 QStringLiteral(""));
+                 QString::fromStdString(Settings::values.camera_config[InnerCamera]), QString());
     WriteSetting(QStringLiteral("camera_inner_flip"), Settings::values.camera_flip[InnerCamera], 0);
     WriteSetting(QStringLiteral("camera_outer_left_name"),
                  QString::fromStdString(Settings::values.camera_name[OuterLeftCamera]),
                  QStringLiteral("blank"));
     WriteSetting(QStringLiteral("camera_outer_left_config"),
                  QString::fromStdString(Settings::values.camera_config[OuterLeftCamera]),
-                 QStringLiteral(""));
+                 QString());
     WriteSetting(QStringLiteral("camera_outer_left_flip"),
                  Settings::values.camera_flip[OuterLeftCamera], 0);
     qt_config->endGroup();
