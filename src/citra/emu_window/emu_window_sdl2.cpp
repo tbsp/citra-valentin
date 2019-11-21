@@ -113,6 +113,7 @@ void EmuWindow_SDL2::OnResize() {
 
 void EmuWindow_SDL2::Fullscreen() {
     if (SDL_SetWindowFullscreen(render_window, SDL_WINDOW_FULLSCREEN) == 0) {
+        is_fullscreen = true;
         return;
     }
 
@@ -132,7 +133,7 @@ void EmuWindow_SDL2::Fullscreen() {
     SDL_MaximizeWindow(render_window);
 }
 
-EmuWindow_SDL2::EmuWindow_SDL2(bool fullscreen) {
+EmuWindow_SDL2::EmuWindow_SDL2(bool fullscreen, int fullscreen_display_index) {
     // Initialize the window
     if (SDL_Init(SDL_INIT_VIDEO | SDL_INIT_JOYSTICK) < 0) {
         LOG_CRITICAL(Frontend, "Failed to initialize SDL2! Exiting...");
@@ -162,9 +163,15 @@ EmuWindow_SDL2::EmuWindow_SDL2(bool fullscreen) {
     int width, height;
     if (fullscreen) {
         SDL_DisplayMode display_mode;
-        SDL_GetCurrentDisplayMode(0, &display_mode);
-        width = display_mode.w;
-        height = display_mode.h;
+        if (SDL_GetCurrentDisplayMode(fullscreen_display_index, &display_mode) != 0) {
+            LOG_ERROR(Frontend, "Failed to get current display mode: {}", SDL_GetError());
+
+            width = Core::kScreenTopWidth;
+            height = Core::kScreenTopHeight + Core::kScreenBottomHeight;
+        } else {
+            width = display_mode.w;
+            height = display_mode.h;
+        }
     } else {
         width = Core::kScreenTopWidth;
         height = Core::kScreenTopHeight + Core::kScreenBottomHeight;
@@ -288,7 +295,7 @@ void EmuWindow_SDL2::PollEvents() {
     }
 
     const u32 current_time = SDL_GetTicks();
-    if (current_time > last_time + 2000) {
+    if (!is_fullscreen && current_time > last_time + 2000) {
         const auto results = Core::System::GetInstance().GetAndResetPerfStats();
         const std::string title =
             game.empty() ? fmt::format("Citra Valentin {}.{}.{} | FPS: {:.0f} ({:.0%})",

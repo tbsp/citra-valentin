@@ -33,7 +33,7 @@ private:
 
 class EmuWindow_SDL2 : public Frontend::EmuWindow {
 public:
-    explicit EmuWindow_SDL2(bool fullscreen);
+    explicit EmuWindow_SDL2(bool fullscreen, int fullscreen_display_index);
     ~EmuWindow_SDL2();
 
     void Present();
@@ -107,4 +107,6 @@ private:
     u32 last_time = 0;
 
     std::string game;
+
+    bool is_fullscreen = false;
 };

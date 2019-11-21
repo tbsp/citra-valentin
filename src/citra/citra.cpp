@@ -2,6 +2,7 @@
 // Licensed under GPLv2 or any later version
 // Refer to the license.txt file included.
 
+#include <cstdlib>
 #include <iostream>
 #include <memory>
 #include <regex>
@@ -69,6 +70,7 @@ static void PrintHelp(const char* argv0) {
                  "-p, --movie-play=[file]    Playback the movie (game inputs) from the given file\n"
                  "-d, --dump-video=[file]    Dumps audio and video to the given video file\n"
                  "-f, --fullscreen     Start in fullscreen mode\n"
+                 "-x, --fullscreen-display-index     Default: 0\n"
                  "-h, --help           Display this help and exit\n"
                  "-v, --version        Output version information and exit\n";
 }
@@ -212,21 +214,28 @@ int main(int argc, char** argv) {
 
     bool use_multiplayer = false;
     bool fullscreen = false;
+    int fullscreen_display_index = 0;
     std::string nickname{};
     std::string password{};
     std::string address{};
     u16 port = Network::DefaultRoomPort;
 
     static struct option long_options[] = {
-        {"gdbport", required_argument, 0, 'g'},     {"install", required_argument, 0, 'i'},
-        {"multiplayer", required_argument, 0, 'm'}, {"movie-record", required_argument, 0, 'r'},
-        {"movie-play", required_argument, 0, 'p'},  {"dump-video", required_argument, 0, 'd'},
-        {"fullscreen", no_argument, 0, 'f'},        {"help", no_argument, 0, 'h'},
-        {"version", no_argument, 0, 'v'},           {0, 0, 0, 0},
+        {"gdbport", required_argument, 0, 'g'},
+        {"install", required_argument, 0, 'i'},
+        {"multiplayer", required_argument, 0, 'm'},
+        {"movie-record", required_argument, 0, 'r'},
+        {"movie-play", required_argument, 0, 'p'},
+        {"dump-video", required_argument, 0, 'd'},
+        {"fullscreen", no_argument, 0, 'f'},
+        {"fullscreen-display-index", required_argument, 0, 'x'},
+        {"help", no_argument, 0, 'h'},
+        {"version", no_argument, 0, 'v'},
+        {0, 0, 0, 0},
     };
 
     while (optind < argc) {
-        int arg = getopt_long(argc, argv, "g:i:m:r:p:fhv", long_options, &option_index);
+        int arg = getopt_long(argc, argv, "g:i:m:r:p:x:fhv", long_options, &option_index);
         if (arg != -1) {
             switch (static_cast<char>(arg)) {
             case 'g':
@@ -296,6 +305,9 @@ int main(int argc, char** argv) {
                 fullscreen = true;
                 LOG_INFO(Frontend, "Starting in fullscreen mode...");
                 break;
+            case 'x':
+                fullscreen_display_index = std::atoi(optarg);
+                break;
             case 'h':
                 PrintHelp(argv[0]);
                 return 0;
@@ -348,7 +360,8 @@ int main(int argc, char** argv) {
     // Register generic image interface
     Core::System::GetInstance().RegisterImageInterface(std::make_shared<LodePNGImageInterface>());
 
-    std::unique_ptr<EmuWindow_SDL2> emu_window{std::make_unique<EmuWindow_SDL2>(fullscreen)};
+    std::unique_ptr<EmuWindow_SDL2> emu_window{
+        std::make_unique<EmuWindow_SDL2>(fullscreen, fullscreen_display_index)};
     Frontend::ScopeAcquireContext scope(*emu_window);
     Core::System& system{Core::System::GetInstance()};
 
