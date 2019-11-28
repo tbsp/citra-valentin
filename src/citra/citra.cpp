@@ -77,10 +77,7 @@ static void PrintHelp(const char* argv0) {
 
 static void PrintVersion() {
     std::cout << "Citra Valentin " << Version::major << "." << Version::minor << "."
-              << Version::patch << std::endl
-              << "Network: " << Version::network << std::endl
-              << "Movie: " << static_cast<int>(Version::movie) << std::endl
-              << "Shader cache: " << Version::shader_cache << std::endl;
+              << Version::patch << std::endl;
 }
 
 static void OnStateChanged(const Network::RoomMember::State& state) {
