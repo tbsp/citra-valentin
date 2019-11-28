@@ -66,6 +66,9 @@ public:
 
     GameList* game_list;
 
+    bool DropAction(QDropEvent* event);
+    void AcceptDropEvent(QDropEvent* event);
+
 public slots:
     void OnAppFocusStateChanged(Qt::ApplicationState state);
 
@@ -76,8 +79,8 @@ signals:
      * about to start. At this time, the core system emulation has been initialized, and all
      * emulation handles and memory should be valid.
      *
-     * @param emu_thread Pointer to the newly created EmuThread (to be used by widgets that need to
-     *      access/change emulation state).
+     * @param emu_thread Pointer to the newly created EmuThread (to be used by widgets that need
+     * to access/change emulation state).
      */
     void EmulationStarting(EmuThread* emu_thread);
 
@@ -252,6 +255,10 @@ private:
 #ifdef CITRA_ENABLE_DISCORD_RP
     DiscordRP discord_rp;
 #endif
+protected:
+    void dropEvent(QDropEvent* event) override;
+    void dragEnterEvent(QDragEnterEvent* event) override;
+    void dragMoveEvent(QDragMoveEvent* event) override;
 };
 
 Q_DECLARE_METATYPE(std::size_t);

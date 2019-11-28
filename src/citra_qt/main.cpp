@@ -120,6 +120,7 @@ GMainWindow::GMainWindow()
     qRegisterMetaType<Service::AM::InstallStatus>("Service::AM::InstallStatus");
 
     Pica::g_debug_context = Pica::DebugContext::Construct();
+    setAcceptDrops(true);
     ui.setupUi(this);
     statusBar()->hide();
 
@@ -1795,11 +1796,10 @@ bool GMainWindow::ConfirmClose() {
         return true;
     }
 
-    const QMessageBox::StandardButton answer =
-        QMessageBox::question(this, "Citra", "Would you like to exit now?",
-                              QMessageBox::Yes | QMessageBox::No, QMessageBox::No);
-
-    return answer != QMessageBox::No;
+    return QMessageBox::question(this, QStringLiteral("Citra Valentin"),
+                                 QStringLiteral("Would you like to exit now?"),
+                                 QMessageBox::Yes | QMessageBox::No,
+                                 QMessageBox::No) != QMessageBox::No;
 }
 
 void GMainWindow::closeEvent(QCloseEvent* event) {
@@ -1834,6 +1834,65 @@ void GMainWindow::closeEvent(QCloseEvent* event) {
     render_window->close();
     multiplayer_state->Close();
     QWidget::closeEvent(event);
+}
+
+static bool IsSingleFileDropEvent(const QMimeData* mime) {
+    return mime->hasUrls() && mime->urls().length() == 1;
+}
+
+static const std::array<std::string, 9> ACCEPTED_EXTENSIONS = {"cci",  "cvm", "3ds", "cxi", "bin",
+                                                               "3dsx", "app", "elf", "axf"};
+
+static bool IsCorrectFileExtension(const QMimeData* mime) {
+    const QString& filename = mime->urls().at(0).toLocalFile();
+    return std::find(ACCEPTED_EXTENSIONS.begin(), ACCEPTED_EXTENSIONS.end(),
+                     QFileInfo(filename).suffix().toStdString()) != ACCEPTED_EXTENSIONS.end();
+}
+
+static bool IsAcceptableDropEvent(QDropEvent* event) {
+    return IsSingleFileDropEvent(event->mimeData()) && IsCorrectFileExtension(event->mimeData());
+}
+
+void GMainWindow::AcceptDropEvent(QDropEvent* event) {
+    if (IsAcceptableDropEvent(event)) {
+        event->setDropAction(Qt::DropAction::LinkAction);
+        event->accept();
+    }
+}
+
+bool GMainWindow::DropAction(QDropEvent* event) {
+    if (!IsAcceptableDropEvent(event)) {
+        return false;
+    }
+
+    const QMimeData* mime_data = event->mimeData();
+    const QString& filename = mime_data->urls().at(0).toLocalFile();
+
+    if (emulation_running && QFileInfo(filename).suffix() == "bin") {
+        // Amiibo
+        LoadAmiibo(filename);
+    } else if (QFileInfo(filename).suffix() == "cvm") {
+        // Movie
+        OnPlayMovie(filename);
+    } else {
+        // Game
+        if (ConfirmChangeGame()) {
+            BootGame(filename);
+        }
+    }
+    return true;
+}
+
+void GMainWindow::dropEvent(QDropEvent* event) {
+    DropAction(event);
+}
+
+void GMainWindow::dragEnterEvent(QDragEnterEvent* event) {
+    AcceptDropEvent(event);
+}
+
+void GMainWindow::dragMoveEvent(QDragMoveEvent* event) {
+    AcceptDropEvent(event);
 }
 
 bool GMainWindow::ConfirmChangeGame() {

@@ -3,6 +3,7 @@
 // Refer to the license.txt file included.
 
 #include <QApplication>
+#include <QDragEnterEvent>
 #include <QHBoxLayout>
 #include <QKeyEvent>
 #include <QOffscreenSurface>
@@ -30,6 +31,15 @@
 EmuThread::EmuThread(Frontend::GraphicsContext& core_context) : core_context(core_context) {}
 
 EmuThread::~EmuThread() = default;
+
+static GMainWindow* GetMainWindow() {
+    for (QWidget* w : qApp->topLevelWidgets()) {
+        if (GMainWindow* main = qobject_cast<GMainWindow*>(w)) {
+            return main;
+        }
+    }
+    return nullptr;
+}
 
 void EmuThread::run() {
     MicroProfileOnThreadCreate("EmuThread");
@@ -145,6 +155,15 @@ bool OpenGLWindow::event(QEvent* event) {
     case QEvent::InputMethodQuery:
     case QEvent::TouchCancel:
         return QCoreApplication::sendEvent(event_handler, event);
+    case QEvent::Drop:
+        GetMainWindow()->DropAction(static_cast<QDropEvent*>(event));
+        return true;
+    case QEvent::DragResponse:
+    case QEvent::DragEnter:
+    case QEvent::DragLeave:
+    case QEvent::DragMove:
+        GetMainWindow()->AcceptDropEvent(static_cast<QDropEvent*>(event));
+        return true;
     default:
         return QWindow::event(event);
     }
@@ -306,15 +325,19 @@ void GRenderWindow::TouchEndEvent() {
 }
 
 bool GRenderWindow::event(QEvent* event) {
-    if (event->type() == QEvent::TouchBegin) {
+    switch (event->type()) {
+    case QEvent::TouchBegin:
         TouchBeginEvent(static_cast<QTouchEvent*>(event));
         return true;
-    } else if (event->type() == QEvent::TouchUpdate) {
+    case QEvent::TouchUpdate:
         TouchUpdateEvent(static_cast<QTouchEvent*>(event));
         return true;
-    } else if (event->type() == QEvent::TouchEnd || event->type() == QEvent::TouchCancel) {
+    case QEvent::TouchEnd:
+    case QEvent::TouchCancel:
         TouchEndEvent();
         return true;
+    default:
+        break;
     }
 
     return QWidget::event(event);
