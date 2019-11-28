@@ -5,6 +5,7 @@
 #pragma once
 
 #include <QImage>
+#include <QMutex>
 #include <dshowcapture.hpp>
 #include "citra_qt/camera/qt_camera_base.h"
 #include "core/frontend/camera/interface.h"
@@ -25,6 +26,7 @@ public:
 private:
     DShow::Device device;
     QImage image;
+    QMutex image_mutex;
 };
 
 class DirectShowCameraFactory final : public QObject, public QtCameraFactory {

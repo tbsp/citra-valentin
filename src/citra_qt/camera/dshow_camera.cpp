@@ -2,6 +2,7 @@
 // Licensed under GPLv2 or any later version
 // Refer to the license.txt file included.
 
+#include <QMutexLocker>
 #include "citra_qt/camera/dshow_camera.h"
 #include "common/common_types.h"
 #include "common/string_util.h"
@@ -26,13 +27,14 @@ DirectShowCamera::DirectShowCamera(const std::string& config, const Service::CAM
     video_config.callback = [this](const DShow::VideoConfig& video_config, unsigned char* data,
                                    size_t size, long long startTime, long long stopTime) {
         switch (video_config.format) {
-        case DShow::VideoFormat::XRGB:
-            image = QImage(data, video_config.cx, video_config.cy, QImage::Format_ARGB32)
+        case DShow::VideoFormat::XRGB: {
+            QMutexLocker image_mutex_locker(&image_mutex);
+            image = QImage(data, video_config.cx, video_config.cy_abs, QImage::Format_ARGB32)
                         .convertToFormat(QImage::Format_RGB888);
             break;
+        }
         default:
-            LOG_ERROR(Service_CAM, "Format not supported: {}",
-                      static_cast<int>(video_config.format));
+            UNIMPLEMENTED_MSG("Format not supported: {}", static_cast<int>(video_config.format));
             break;
         }
     };
@@ -70,6 +72,7 @@ void DirectShowCamera::StopCapture() {
 }
 
 QImage DirectShowCamera::QtReceiveFrame() {
+    QMutexLocker image_mutex_locker(&image_mutex);
     return image;
 }
 
