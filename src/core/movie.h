@@ -21,7 +21,7 @@ union PadState;
 } // namespace Service
 
 namespace Core {
-struct CTMHeader;
+struct CvmHeader;
 struct ControllerState;
 enum class PlayMode;
 
@@ -29,7 +29,6 @@ class Movie {
 public:
     enum class ValidationResult {
         OK,
-        RevisionDismatch,
         GameDismatch,
         Invalid,
     };
@@ -122,7 +121,7 @@ private:
     void Record(const Service::IR::PadState& pad_state, const s16& c_stick_x, const s16& c_stick_y);
     void Record(const Service::IR::ExtraHIDResponse& extra_hid_response);
 
-    ValidationResult ValidateHeader(const CTMHeader& header, u64 program_id = 0) const;
+    ValidationResult ValidateHeader(const CvmHeader& header, u64 program_id = 0) const;
 
     void SaveMovie();
 

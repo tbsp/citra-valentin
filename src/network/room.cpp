@@ -11,6 +11,7 @@
 #include <sstream>
 #include <thread>
 #include "common/logging/log.h"
+#include "common/version.h"
 #include "enet/enet.h"
 #include "network/packet.h"
 #include "network/room.h"
@@ -355,7 +356,7 @@ void Room::RoomImpl::HandleJoinRequest(const ENetEvent* event) {
         return;
     }
 
-    if (client_version != network_version) {
+    if (client_version != Version::network) {
         SendVersionMismatch(event->peer);
         return;
     }
@@ -660,7 +661,7 @@ void Room::RoomImpl::SendRoomIsFull(ENetPeer* client) {
 void Room::RoomImpl::SendVersionMismatch(ENetPeer* client) {
     Packet packet;
     packet << static_cast<u8>(IdVersionMismatch);
-    packet << network_version;
+    packet << Version::network;
 
     ENetPacket* enet_packet =
         enet_packet_create(packet.GetData(), packet.GetDataSize(), ENET_PACKET_FLAG_RELIABLE);

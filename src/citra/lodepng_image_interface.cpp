@@ -6,7 +6,7 @@
 #include "citra/lodepng_image_interface.h"
 #include "common/logging/log.h"
 
-bool LodePNGImageInterface::DecodePNG(std::vector<u8>& dst, u32& width, u32& height,
+bool LodePngImageInterface::DecodePng(std::vector<u8>& dst, u32& width, u32& height,
                                       const std::string& path) {
     u32 lodepng_ret = lodepng::decode(dst, width, height, path);
     if (lodepng_ret) {
@@ -17,7 +17,7 @@ bool LodePNGImageInterface::DecodePNG(std::vector<u8>& dst, u32& width, u32& hei
     return true;
 }
 
-bool LodePNGImageInterface::EncodePNG(const std::string& path, const std::vector<u8>& src,
+bool LodePngImageInterface::EncodePng(const std::string& path, const std::vector<u8>& src,
                                       u32 width, u32 height) {
     u32 lodepng_ret = lodepng::encode(path, src, width, height);
     if (lodepng_ret) {

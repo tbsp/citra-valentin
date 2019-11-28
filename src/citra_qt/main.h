@@ -27,17 +27,16 @@ class GameList;
 enum class GameListOpenTarget;
 class GameListPlaceholder;
 class GImageInfo;
-class GPUCommandListWidget;
-class GPUCommandStreamWidget;
-class GraphicsBreakPointsWidget;
+class GpuCommandListWidget;
+class GpuCommandStreamWidget;
+class GraphicsBreakpointsWidget;
 class GraphicsTracingWidget;
 class GraphicsVertexShaderWidget;
 class GRenderWindow;
-class IPCRecorderWidget;
-class LLEServiceModulesWidget;
-class MicroProfileDialog;
+class IpcRecorderWidget;
+class LleServiceModulesWidget;
+class MicroprofileDialog;
 class MultiplayerState;
-class ProfilerWidget;
 template <typename>
 class QFutureWatcher;
 class QProgressBar;
@@ -232,24 +231,20 @@ private:
     bool game_shutdown_delayed = false;
 
     // Debugger panes
-    ProfilerWidget* profilerWidget;
-    MicroProfileDialog* microProfileDialog;
-    RegistersWidget* registersWidget;
-    GPUCommandStreamWidget* graphicsWidget;
-    GPUCommandListWidget* graphicsCommandsWidget;
-    GraphicsBreakPointsWidget* graphicsBreakpointsWidget;
-    GraphicsVertexShaderWidget* graphicsVertexShaderWidget;
-    GraphicsTracingWidget* graphicsTracingWidget;
-    IPCRecorderWidget* ipcRecorderWidget;
-    LLEServiceModulesWidget* lleServiceModulesWidget;
-    WaitTreeWidget* waitTreeWidget;
-
-    bool explicit_update_check = false;
-    bool defer_update_prompt = false;
+    MicroprofileDialog* microprofile_dialog;
+    RegistersWidget* registers_widget;
+    GpuCommandStreamWidget* gpu_command_stream_widget;
+    GpuCommandListWidget* gpu_command_list_widget;
+    GraphicsBreakpointsWidget* graphics_breakpoints_widget;
+    GraphicsVertexShaderWidget* graphics_vertex_shader_widget;
+    GraphicsTracingWidget* graphics_tracing_widget;
+    IpcRecorderWidget* ipc_recorder_widget;
+    LleServiceModulesWidget* lle_service_modules_widget;
+    WaitTreeWidget* wait_tree_widget;
 
     QAction* actions_recent_files[max_recent_files_item];
 
-    // stores default icon theme search paths for the platform
+    // Stores default icon theme search paths for the platform
     QStringList default_theme_paths;
 
     HotkeyRegistry hotkey_registry;

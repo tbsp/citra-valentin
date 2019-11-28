@@ -14,6 +14,7 @@
 #include "common/version.h"
 #include "core/3ds.h"
 #include "core/core.h"
+#include "core/movie.h"
 #include "core/settings.h"
 #include "input_common/keyboard.h"
 #include "input_common/main.h"
@@ -215,6 +216,9 @@ EmuWindow_SDL2::EmuWindow_SDL2(bool fullscreen, int fullscreen_display_index) {
     OnMinimalClientAreaChangeRequest(GetActiveConfig().min_client_area_size);
     SDL_PumpEvents();
     LOG_INFO(Frontend, "Version: {}", version);
+    LOG_INFO(Frontend, "Network version: {}", Version::network);
+    LOG_INFO(Frontend, "Movie version: {}", Version::movie);
+    LOG_INFO(Frontend, "Shader cache version: {}", Version::shader_cache);
     Settings::LogSettings();
 }
 

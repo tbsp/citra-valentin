@@ -6,10 +6,10 @@
 
 #include <QDockWidget>
 
-class LLEServiceModulesWidget : public QDockWidget {
+class LleServiceModulesWidget : public QDockWidget {
     Q_OBJECT
 
 public:
-    explicit LLEServiceModulesWidget(QWidget* parent = nullptr);
-    ~LLEServiceModulesWidget();
+    explicit LleServiceModulesWidget(QWidget* parent = nullptr);
+    ~LleServiceModulesWidget();
 };

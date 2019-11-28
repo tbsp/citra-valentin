@@ -15,7 +15,7 @@
 #include "core/hle/service/sm/sm.h"
 #include "ui_recorder.h"
 
-IPCRecorderWidget::IPCRecorderWidget(QWidget* parent)
+IpcRecorderWidget::IpcRecorderWidget(QWidget* parent)
     : QDockWidget(parent), ui(std::make_unique<Ui::IPCRecorder>()) {
 
     ui->setupUi(this);
@@ -23,15 +23,15 @@ IPCRecorderWidget::IPCRecorderWidget(QWidget* parent)
 
     connect(ui->enabled, &QCheckBox::stateChanged,
             [this](int new_state) { SetEnabled(new_state == Qt::Checked); });
-    connect(ui->clearButton, &QPushButton::clicked, this, &IPCRecorderWidget::Clear);
-    connect(ui->filter, &QLineEdit::textChanged, this, &IPCRecorderWidget::ApplyFilterToAll);
-    connect(ui->main, &QTreeWidget::itemDoubleClicked, this, &IPCRecorderWidget::OpenRecordDialog);
-    connect(this, &IPCRecorderWidget::EntryUpdated, this, &IPCRecorderWidget::OnEntryUpdated);
+    connect(ui->clearButton, &QPushButton::clicked, this, &IpcRecorderWidget::Clear);
+    connect(ui->filter, &QLineEdit::textChanged, this, &IpcRecorderWidget::ApplyFilterToAll);
+    connect(ui->main, &QTreeWidget::itemDoubleClicked, this, &IpcRecorderWidget::OpenRecordDialog);
+    connect(this, &IpcRecorderWidget::EntryUpdated, this, &IpcRecorderWidget::OnEntryUpdated);
 }
 
-IPCRecorderWidget::~IPCRecorderWidget() = default;
+IpcRecorderWidget::~IpcRecorderWidget() = default;
 
-void IPCRecorderWidget::OnEmulationStarting() {
+void IpcRecorderWidget::OnEmulationStarting() {
     Clear();
     id_offset = 1;
 
@@ -39,7 +39,7 @@ void IPCRecorderWidget::OnEmulationStarting() {
     SetEnabled(ui->enabled->isChecked());
 }
 
-QString IPCRecorderWidget::GetStatusSQStringLiteral(
+QString IpcRecorderWidget::GetStatusSQStringLiteral(
     const IPCDebugger::RequestRecord& record) const {
     switch (record.status) {
     case IPCDebugger::RequestStatus::Invalid:
@@ -60,7 +60,7 @@ QString IPCRecorderWidget::GetStatusSQStringLiteral(
     }
 }
 
-void IPCRecorderWidget::OnEntryUpdated(IPCDebugger::RequestRecord record) {
+void IpcRecorderWidget::OnEntryUpdated(IPCDebugger::RequestRecord record) {
     if (record.id < id_offset) { // The record has already been deleted by 'Clear'
         return;
     }
@@ -99,7 +99,7 @@ void IPCRecorderWidget::OnEntryUpdated(IPCDebugger::RequestRecord record) {
     ApplyFilter(row_id);
 }
 
-void IPCRecorderWidget::SetEnabled(bool enabled) {
+void IpcRecorderWidget::SetEnabled(bool enabled) {
     if (!Core::System::GetInstance().IsPoweredOn()) {
         return;
     }
@@ -115,14 +115,14 @@ void IPCRecorderWidget::SetEnabled(bool enabled) {
     }
 }
 
-void IPCRecorderWidget::Clear() {
+void IpcRecorderWidget::Clear() {
     id_offset = records.size() + 1;
 
     records.clear();
     ui->main->invisibleRootItem()->takeChildren();
 }
 
-QString IPCRecorderWidget::GetServiceName(const IPCDebugger::RequestRecord& record) const {
+QString IpcRecorderWidget::GetServiceName(const IPCDebugger::RequestRecord& record) const {
     if (Core::System::GetInstance().IsPoweredOn() && record.client_port.id != -1) {
         const auto service_name =
             Core::System::GetInstance().ServiceManager().GetServiceNameByPortId(
@@ -140,7 +140,7 @@ QString IPCRecorderWidget::GetServiceName(const IPCDebugger::RequestRecord& reco
     return QString::fromStdString(session_name);
 }
 
-QString IPCRecorderWidget::GetFunctionName(const IPCDebugger::RequestRecord& record) const {
+QString IpcRecorderWidget::GetFunctionName(const IPCDebugger::RequestRecord& record) const {
     if (record.untranslated_request_cmdbuf.empty()) { // Cmdbuf is not yet available
         return QStringLiteral("Unknown");
     }
@@ -152,7 +152,7 @@ QString IPCRecorderWidget::GetFunctionName(const IPCDebugger::RequestRecord& rec
     return QStringLiteral("%1 (%2)").arg(QString::fromStdString(record.function_name), header_code);
 }
 
-void IPCRecorderWidget::ApplyFilter(int index) {
+void IpcRecorderWidget::ApplyFilter(int index) {
     auto* item = ui->main->invisibleRootItem()->child(index);
     const QString filter = ui->filter->text();
     if (filter.isEmpty()) {
@@ -170,13 +170,13 @@ void IPCRecorderWidget::ApplyFilter(int index) {
     item->setHidden(true);
 }
 
-void IPCRecorderWidget::ApplyFilterToAll() {
+void IpcRecorderWidget::ApplyFilterToAll() {
     for (int i = 0; i < ui->main->invisibleRootItem()->childCount(); ++i) {
         ApplyFilter(i);
     }
 }
 
-void IPCRecorderWidget::OpenRecordDialog(QTreeWidgetItem* item, [[maybe_unused]] int column) {
+void IpcRecorderWidget::OpenRecordDialog(QTreeWidgetItem* item, [[maybe_unused]] int column) {
     int index = ui->main->invisibleRootItem()->indexOfChild(item);
 
     RecordDialog dialog(this, records[static_cast<std::size_t>(index)], item->text(2),

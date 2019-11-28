@@ -7,7 +7,7 @@
 #include "citra_qt/qt_image_interface.h"
 #include "common/logging/log.h"
 
-bool QtImageInterface::DecodePNG(std::vector<u8>& dst, u32& width, u32& height,
+bool QtImageInterface::DecodePng(std::vector<u8>& dst, u32& width, u32& height,
                                  const std::string& path) {
     QImage image(QString::fromStdString(path));
 
@@ -26,7 +26,7 @@ bool QtImageInterface::DecodePNG(std::vector<u8>& dst, u32& width, u32& height,
     return true;
 }
 
-bool QtImageInterface::EncodePNG(const std::string& path, const std::vector<u8>& src, u32 width,
+bool QtImageInterface::EncodePng(const std::string& path, const std::vector<u8>& src, u32 width,
                                  u32 height) {
     QImage image(src.data(), width, height, QImage::Format_RGBA8888);
 

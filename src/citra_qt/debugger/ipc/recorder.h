@@ -16,12 +16,12 @@ namespace Ui {
 class IPCRecorder;
 }
 
-class IPCRecorderWidget : public QDockWidget {
+class IpcRecorderWidget : public QDockWidget {
     Q_OBJECT
 
 public:
-    explicit IPCRecorderWidget(QWidget* parent = nullptr);
-    ~IPCRecorderWidget();
+    explicit IpcRecorderWidget(QWidget* parent = nullptr);
+    ~IpcRecorderWidget();
 
     void OnEmulationStarting();
 

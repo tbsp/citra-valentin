@@ -8,6 +8,7 @@
 #include <set>
 #include <thread>
 #include "common/assert.h"
+#include "common/version.h"
 #include "enet/enet.h"
 #include "network/packet.h"
 #include "network/room_member.h"
@@ -277,7 +278,7 @@ void RoomMember::RoomMemberImpl::SendJoinRequest(const std::string& nickname,
     packet << nickname;
     packet << console_id_hash;
     packet << preferred_mac;
-    packet << network_version;
+    packet << Version::network;
     packet << password;
     packet << token;
     Send(std::move(packet));

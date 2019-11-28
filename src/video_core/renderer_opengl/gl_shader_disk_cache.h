@@ -25,11 +25,11 @@
 
 namespace Core {
 class System;
-}
+} // namespace Core
 
 namespace FileUtil {
 class IOFile;
-}
+} // namespace FileUtil
 
 namespace OpenGL {
 

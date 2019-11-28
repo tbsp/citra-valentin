@@ -84,14 +84,14 @@ void CustomTexCache::PreloadTextures() {
             Core::System::GetInstance().GetImageInterface();
         const CustomTexPathInfo& path_info = path.second;
         Core::CustomTexInfo tex_info;
-        if (image_interface->DecodePNG(tex_info.tex, tex_info.width, tex_info.height,
+        if (image_interface->DecodePng(tex_info.tex, tex_info.width, tex_info.height,
                                        path_info.path)) {
             // Make sure the texture size is a power of 2
             std::bitset<32> width_bits(tex_info.width);
             std::bitset<32> height_bits(tex_info.height);
             if (width_bits.count() == 1 && height_bits.count() == 1) {
                 LOG_DEBUG(Render_OpenGL, "Loaded custom texture from {}", path_info.path);
-                Common::FlipRGBA8Texture(tex_info.tex, tex_info.width, tex_info.height);
+                Common::FlipRgba8Texture(tex_info.tex, tex_info.width, tex_info.height);
                 CacheTexture(path_info.hash, tex_info.tex, tex_info.width, tex_info.height);
             } else {
                 LOG_ERROR(Render_OpenGL, "Texture {} size is not a power of 2", path_info.path);

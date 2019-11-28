@@ -15,9 +15,9 @@ public:
     virtual ~ImageInterface() = default;
 
     // Error logging should be handled by the frontend
-    virtual bool DecodePNG(std::vector<u8>& dst, u32& width, u32& height,
+    virtual bool DecodePng(std::vector<u8>& dst, u32& width, u32& height,
                            const std::string& path) = 0;
-    virtual bool EncodePNG(const std::string& path, const std::vector<u8>& src, u32 width,
+    virtual bool EncodePng(const std::string& path, const std::vector<u8>& src, u32 width,
                            u32 height) = 0;
 };
 

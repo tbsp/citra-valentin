@@ -139,8 +139,10 @@ GMainWindow::GMainWindow()
     ConnectWidgetEvents();
     ConnectMenuEvents();
 
-    LOG_INFO(Frontend, "Citra Valentin version: {}.{}.{}", Version::major, Version::minor,
-             Version::patch);
+    LOG_INFO(Frontend, "Version: {}.{}.{}", Version::major, Version::minor, Version::patch);
+    LOG_INFO(Frontend, "Network Version: {}", Version::network);
+    LOG_INFO(Frontend, "Movie Version: {}", Version::movie);
+    LOG_INFO(Frontend, "Shader Cache Version: {}", Version::shader_cache);
 #ifdef ARCHITECTURE_x86_64
     LOG_INFO(Frontend, "Host CPU: {}", Common::GetCPUCaps().cpu_string);
 #endif
@@ -235,73 +237,73 @@ void GMainWindow::InitializeDebugWidgets() {
     QMenu* debug_menu = ui.menu_View_Debugging;
 
 #if MICROPROFILE_ENABLED
-    microProfileDialog = new MicroProfileDialog(this);
-    microProfileDialog->hide();
-    debug_menu->addAction(microProfileDialog->toggleViewAction());
+    microprofile_dialog = new MicroprofileDialog(this);
+    microprofile_dialog->hide();
+    debug_menu->addAction(microprofile_dialog->toggleViewAction());
 #endif
 
-    registersWidget = new RegistersWidget(this);
-    addDockWidget(Qt::RightDockWidgetArea, registersWidget);
-    registersWidget->hide();
-    debug_menu->addAction(registersWidget->toggleViewAction());
-    connect(this, &GMainWindow::EmulationStarting, registersWidget,
+    registers_widget = new RegistersWidget(this);
+    addDockWidget(Qt::RightDockWidgetArea, registers_widget);
+    registers_widget->hide();
+    debug_menu->addAction(registers_widget->toggleViewAction());
+    connect(this, &GMainWindow::EmulationStarting, registers_widget,
             &RegistersWidget::OnEmulationStarting);
-    connect(this, &GMainWindow::EmulationStopping, registersWidget,
+    connect(this, &GMainWindow::EmulationStopping, registers_widget,
             &RegistersWidget::OnEmulationStopping);
 
-    graphicsWidget = new GPUCommandStreamWidget(this);
-    addDockWidget(Qt::RightDockWidgetArea, graphicsWidget);
-    graphicsWidget->hide();
-    debug_menu->addAction(graphicsWidget->toggleViewAction());
+    gpu_command_stream_widget = new GpuCommandStreamWidget(this);
+    addDockWidget(Qt::RightDockWidgetArea, gpu_command_stream_widget);
+    gpu_command_stream_widget->hide();
+    debug_menu->addAction(gpu_command_stream_widget->toggleViewAction());
 
-    graphicsCommandsWidget = new GPUCommandListWidget(this);
-    addDockWidget(Qt::RightDockWidgetArea, graphicsCommandsWidget);
-    graphicsCommandsWidget->hide();
-    debug_menu->addAction(graphicsCommandsWidget->toggleViewAction());
+    gpu_command_list_widget = new GpuCommandListWidget(this);
+    addDockWidget(Qt::RightDockWidgetArea, gpu_command_list_widget);
+    gpu_command_list_widget->hide();
+    debug_menu->addAction(gpu_command_list_widget->toggleViewAction());
 
-    graphicsBreakpointsWidget = new GraphicsBreakPointsWidget(Pica::g_debug_context, this);
-    addDockWidget(Qt::RightDockWidgetArea, graphicsBreakpointsWidget);
-    graphicsBreakpointsWidget->hide();
-    debug_menu->addAction(graphicsBreakpointsWidget->toggleViewAction());
+    graphics_breakpoints_widget = new GraphicsBreakpointsWidget(Pica::g_debug_context, this);
+    addDockWidget(Qt::RightDockWidgetArea, graphics_breakpoints_widget);
+    graphics_breakpoints_widget->hide();
+    debug_menu->addAction(graphics_breakpoints_widget->toggleViewAction());
 
-    graphicsVertexShaderWidget = new GraphicsVertexShaderWidget(Pica::g_debug_context, this);
-    addDockWidget(Qt::RightDockWidgetArea, graphicsVertexShaderWidget);
-    graphicsVertexShaderWidget->hide();
-    debug_menu->addAction(graphicsVertexShaderWidget->toggleViewAction());
+    graphics_vertex_shader_widget = new GraphicsVertexShaderWidget(Pica::g_debug_context, this);
+    addDockWidget(Qt::RightDockWidgetArea, graphics_vertex_shader_widget);
+    graphics_vertex_shader_widget->hide();
+    debug_menu->addAction(graphics_vertex_shader_widget->toggleViewAction());
 
-    graphicsTracingWidget = new GraphicsTracingWidget(Pica::g_debug_context, this);
-    addDockWidget(Qt::RightDockWidgetArea, graphicsTracingWidget);
-    graphicsTracingWidget->hide();
-    debug_menu->addAction(graphicsTracingWidget->toggleViewAction());
-    connect(this, &GMainWindow::EmulationStarting, graphicsTracingWidget,
+    graphics_tracing_widget = new GraphicsTracingWidget(Pica::g_debug_context, this);
+    addDockWidget(Qt::RightDockWidgetArea, graphics_tracing_widget);
+    graphics_tracing_widget->hide();
+    debug_menu->addAction(graphics_tracing_widget->toggleViewAction());
+    connect(this, &GMainWindow::EmulationStarting, graphics_tracing_widget,
             &GraphicsTracingWidget::OnEmulationStarting);
-    connect(this, &GMainWindow::EmulationStopping, graphicsTracingWidget,
+    connect(this, &GMainWindow::EmulationStopping, graphics_tracing_widget,
             &GraphicsTracingWidget::OnEmulationStopping);
 
-    waitTreeWidget = new WaitTreeWidget(this);
-    addDockWidget(Qt::LeftDockWidgetArea, waitTreeWidget);
-    waitTreeWidget->hide();
-    debug_menu->addAction(waitTreeWidget->toggleViewAction());
-    connect(this, &GMainWindow::EmulationStarting, waitTreeWidget,
+    wait_tree_widget = new WaitTreeWidget(this);
+    addDockWidget(Qt::LeftDockWidgetArea, wait_tree_widget);
+    wait_tree_widget->hide();
+    debug_menu->addAction(wait_tree_widget->toggleViewAction());
+    connect(this, &GMainWindow::EmulationStarting, wait_tree_widget,
             &WaitTreeWidget::OnEmulationStarting);
-    connect(this, &GMainWindow::EmulationStopping, waitTreeWidget,
+    connect(this, &GMainWindow::EmulationStopping, wait_tree_widget,
             &WaitTreeWidget::OnEmulationStopping);
 
-    lleServiceModulesWidget = new LLEServiceModulesWidget(this);
-    addDockWidget(Qt::RightDockWidgetArea, lleServiceModulesWidget);
-    lleServiceModulesWidget->hide();
-    debug_menu->addAction(lleServiceModulesWidget->toggleViewAction());
+    lle_service_modules_widget = new LleServiceModulesWidget(this);
+    addDockWidget(Qt::RightDockWidgetArea, lle_service_modules_widget);
+    lle_service_modules_widget->hide();
+    debug_menu->addAction(lle_service_modules_widget->toggleViewAction());
     connect(this, &GMainWindow::EmulationStarting,
-            [this] { lleServiceModulesWidget->setDisabled(true); });
-    connect(this, &GMainWindow::EmulationStopping, waitTreeWidget,
-            [this] { lleServiceModulesWidget->setDisabled(false); });
+            [this] { lle_service_modules_widget->setDisabled(true); });
+    connect(this, &GMainWindow::EmulationStopping, lle_service_modules_widget,
+            [this] { lle_service_modules_widget->setDisabled(false); });
 
-    ipcRecorderWidget = new IPCRecorderWidget(this);
-    addDockWidget(Qt::RightDockWidgetArea, ipcRecorderWidget);
-    ipcRecorderWidget->hide();
-    debug_menu->addAction(ipcRecorderWidget->toggleViewAction());
-    connect(this, &GMainWindow::EmulationStarting, ipcRecorderWidget,
-            &IPCRecorderWidget::OnEmulationStarting);
+    ipc_recorder_widget = new IpcRecorderWidget(this);
+    addDockWidget(Qt::RightDockWidgetArea, ipc_recorder_widget);
+    ipc_recorder_widget->hide();
+    debug_menu->addAction(ipc_recorder_widget->toggleViewAction());
+    connect(this, &GMainWindow::EmulationStarting, ipc_recorder_widget,
+            &IpcRecorderWidget::OnEmulationStarting);
 }
 
 void GMainWindow::InitializeRecentFileMenuActions() {
@@ -513,8 +515,8 @@ void GMainWindow::RestoreUIState() {
     restoreState(UISettings::values.state);
     render_window->restoreGeometry(UISettings::values.renderwindow_geometry);
 #if MICROPROFILE_ENABLED
-    microProfileDialog->restoreGeometry(UISettings::values.microprofile_geometry);
-    microProfileDialog->setVisible(UISettings::values.microprofile_visible);
+    microprofile_dialog->restoreGeometry(UISettings::values.microprofile_geometry);
+    microprofile_dialog->setVisible(UISettings::values.microprofile_visible);
 #endif
     ui.action_Cheats->setEnabled(false);
 
@@ -688,15 +690,17 @@ void GMainWindow::OnDisplayTitleBars(bool show) {
         for (QDockWidget* widget : widgets) {
             QWidget* old = widget->titleBarWidget();
             widget->setTitleBarWidget(nullptr);
-            if (old != nullptr)
+            if (old != nullptr) {
                 delete old;
+            }
         }
     } else {
         for (QDockWidget* widget : widgets) {
             QWidget* old = widget->titleBarWidget();
             widget->setTitleBarWidget(new QWidget());
-            if (old != nullptr)
+            if (old != nullptr) {
                 delete old;
+            }
         }
     }
 }
@@ -735,7 +739,7 @@ bool GMainWindow::LoadROM(const QString& filename) {
 
     Core::System& system{Core::System::GetInstance()};
 
-    const Core::System::ResultStatus result{system.Load(*render_window, filename.toStdString())};
+    const Core::System::ResultStatus result = system.Load(*render_window, filename.toStdString());
 
     if (result != Core::System::ResultStatus::Success) {
         switch (result) {
@@ -830,14 +834,15 @@ bool GMainWindow::LoadROM(const QString& filename) {
 
 void GMainWindow::BootGame(const QString& filename) {
     if (filename.endsWith(".cia")) {
-        const auto answer = QMessageBox::question(
+        const QMessageBox::StandardButton answer = QMessageBox::question(
             this, QStringLiteral("CIA must be installed before usage"),
             QStringLiteral(
                 "Before using this CIA, you must install it. Do you want to install it now?"),
             QMessageBox::Yes | QMessageBox::No);
 
-        if (answer == QMessageBox::Yes)
+        if (answer == QMessageBox::Yes) {
             InstallCIA(QStringList(filename));
+        }
 
         return;
     }
@@ -849,8 +854,9 @@ void GMainWindow::BootGame(const QString& filename) {
         Core::Movie::GetInstance().PrepareForRecording();
     }
 
-    if (!LoadROM(filename))
+    if (!LoadROM(filename)) {
         return;
+    }
 
     // Create and start the emulation thread
     emu_thread = std::make_unique<EmuThread>(*render_window);
@@ -862,17 +868,17 @@ void GMainWindow::BootGame(const QString& filename) {
 
     // BlockingQueuedConnection is important here, it makes sure we've finished refreshing our views
     // before the CPU continues
-    connect(emu_thread.get(), &EmuThread::DebugModeEntered, registersWidget,
+    connect(emu_thread.get(), &EmuThread::DebugModeEntered, registers_widget,
             &RegistersWidget::OnDebugModeEntered, Qt::BlockingQueuedConnection);
-    connect(emu_thread.get(), &EmuThread::DebugModeEntered, waitTreeWidget,
+    connect(emu_thread.get(), &EmuThread::DebugModeEntered, wait_tree_widget,
             &WaitTreeWidget::OnDebugModeEntered, Qt::BlockingQueuedConnection);
-    connect(emu_thread.get(), &EmuThread::DebugModeLeft, registersWidget,
+    connect(emu_thread.get(), &EmuThread::DebugModeLeft, registers_widget,
             &RegistersWidget::OnDebugModeLeft, Qt::BlockingQueuedConnection);
-    connect(emu_thread.get(), &EmuThread::DebugModeLeft, waitTreeWidget,
+    connect(emu_thread.get(), &EmuThread::DebugModeLeft, wait_tree_widget,
             &WaitTreeWidget::OnDebugModeLeft, Qt::BlockingQueuedConnection);
 
     // Update the GUI
-    registersWidget->OnDebugModeEntered();
+    registers_widget->OnDebugModeEntered();
     if (ui.action_Single_Window_Mode->isChecked()) {
         game_list->hide();
         game_list_placeholder->hide();
@@ -1022,19 +1028,19 @@ void GMainWindow::OnGameListOpenFolder(u64 data_id, GameListOpenTarget target) {
     switch (target) {
     case GameListOpenTarget::SAVE_DATA: {
         open_target = "Save Data";
-        std::string sdmc_dir = FileUtil::GetUserPath(FileUtil::UserPath::SDMCDir);
+        const std::string sdmc_dir = FileUtil::GetUserPath(FileUtil::UserPath::SDMCDir);
         path = FileSys::ArchiveSource_SDSaveData::GetSaveDataPathFor(sdmc_dir, data_id);
         break;
     }
     case GameListOpenTarget::EXT_DATA: {
         open_target = "Extra Data";
-        std::string sdmc_dir = FileUtil::GetUserPath(FileUtil::UserPath::SDMCDir);
+        const std::string sdmc_dir = FileUtil::GetUserPath(FileUtil::UserPath::SDMCDir);
         path = FileSys::GetExtDataPathFromId(sdmc_dir, data_id);
         break;
     }
     case GameListOpenTarget::APPLICATION: {
         open_target = "Application";
-        auto media_type = Service::AM::GetTitleMediaType(data_id);
+        const Service::FS::MediaType media_type = Service::AM::GetTitleMediaType(data_id);
         path = Service::AM::GetTitlePath(media_type, data_id) + "content/";
         break;
     }
@@ -1098,8 +1104,9 @@ void GMainWindow::OnGameListOpenDirectory(const QString& directory) {
 void GMainWindow::OnGameListAddDirectory() {
     const QString dir_path =
         QFileDialog::getExistingDirectory(this, QStringLiteral("Select Directory"));
-    if (dir_path.isEmpty())
+    if (dir_path.isEmpty()) {
         return;
+    }
     UISettings::GameDir game_dir{dir_path, false, true};
     if (!UISettings::values.game_dirs.contains(game_dir)) {
         UISettings::values.game_dirs.append(game_dir);
@@ -1110,8 +1117,9 @@ void GMainWindow::OnGameListAddDirectory() {
 }
 
 void GMainWindow::OnGameListShowList(bool show) {
-    if (emulation_running && ui.action_Single_Window_Mode->isChecked())
+    if (emulation_running && ui.action_Single_Window_Mode->isChecked()) {
         return;
+    }
     game_list->setVisible(show);
     game_list_placeholder->setVisible(!show);
 };
@@ -1119,17 +1127,13 @@ void GMainWindow::OnGameListShowList(bool show) {
 void GMainWindow::OnMenuLoadFile() {
     const QString extensions =
         QString("*.").append(GameList::supported_file_extensions.join(" *."));
-
     const QString file_filter =
         QStringLiteral("3DS Executable (%1);;All Files (*.*)").arg(extensions);
-
     const QString filename =
         QFileDialog::getOpenFileName(this, "Load File", UISettings::values.roms_path, file_filter);
-
     if (filename.isEmpty()) {
         return;
     }
-
     UISettings::values.roms_path = QFileInfo(filename).path();
     BootGame(filename);
 }
@@ -1138,11 +1142,9 @@ void GMainWindow::OnMenuInstallCIA() {
     const QStringList filepaths =
         QFileDialog::getOpenFileNames(this, "Load Files", UISettings::values.roms_path,
                                       "CTR Importable Archive (*.cia*);;All Files (*.*)");
-
     if (filepaths.isEmpty()) {
         return;
     }
-
     InstallCIA(filepaths);
 }
 
@@ -1158,7 +1160,7 @@ void GMainWindow::InstallCIA(QStringList filepaths) {
         const auto cia_progress = [&](std::size_t written, std::size_t total) {
             emit UpdateProgress(written, total);
         };
-        for (const auto current_path : filepaths) {
+        for (const QString current_path : filepaths) {
             status = Service::AM::InstallCIA(current_path.toStdString(), cia_progress);
             emit CIAInstallReport(status, current_path);
         }
@@ -1172,7 +1174,7 @@ void GMainWindow::OnUpdateProgress(std::size_t written, std::size_t total) {
 }
 
 void GMainWindow::OnCIAInstallReport(Service::AM::InstallStatus status, QString filepath) {
-    QString filename = QFileInfo(filepath).fileName();
+    const QString filename = QFileInfo(filepath).fileName();
 
     switch (status) {
     case Service::AM::InstallStatus::Success:
@@ -1213,8 +1215,8 @@ void GMainWindow::OnCIAInstallFinished() {
 }
 
 void GMainWindow::OnMenuRecentFile() {
-    QAction* action = qobject_cast<QAction*>(sender());
-    assert(action);
+    const QAction* action = qobject_cast<QAction*>(sender());
+    ASSERT(action);
 
     const QString filename = action->data().toString();
     if (QFileInfo::exists(filename)) {
@@ -1323,7 +1325,6 @@ void GMainWindow::ToggleWindowMode() {
             render_window->setFocus();
             game_list->hide();
         }
-
     } else {
         // Render in a separate window...
         ui.horizontalLayout->removeWidget(render_window);
@@ -1395,13 +1396,13 @@ void GMainWindow::OnCheats() {
 void GMainWindow::OnConfigure() {
     ConfigureDialog configureDialog(this, hotkey_registry,
                                     !multiplayer_state->IsHostingPublicRoom());
-    auto old_theme = UISettings::values.theme;
+    const QString old_theme = UISettings::values.theme;
     const int old_input_profile_index = Settings::values.current_input_profile_index;
-    const auto old_input_profiles = Settings::values.input_profiles;
+    const std::vector<Settings::InputProfile> old_input_profiles = Settings::values.input_profiles;
 #ifdef CITRA_ENABLE_DISCORD_RP
     const bool enable_discord_rp = UISettings::values.enable_discord_rp;
 #endif
-    auto result = configureDialog.exec();
+    const int result = configureDialog.exec();
     if (result == QDialog::Accepted) {
         configureDialog.ApplyConfiguration();
         InitializeHotkeys();
@@ -1427,28 +1428,24 @@ void GMainWindow::OnConfigure() {
 }
 
 void GMainWindow::OnLoadAmiibo() {
-    const QString extensions{"*.bin"};
-    const QString file_filter =
-        QStringLiteral("Amiibo File (%1);; All Files (*.*)").arg(extensions);
     const QString filename =
-        QFileDialog::getOpenFileName(this, QStringLiteral("Load Amiibo"), "", file_filter);
-
+        QFileDialog::getOpenFileName(this, QStringLiteral("Load Amiibo"), QString(),
+                                     QStringLiteral("Amiibo File (*.bin);; All Files (*.*)"));
     if (filename.isEmpty()) {
         return;
     }
-
     LoadAmiibo(filename);
 }
 
 void GMainWindow::LoadAmiibo(const QString& filename) {
-    Core::System& system{Core::System::GetInstance()};
-    Service::SM::ServiceManager& sm = system.ServiceManager();
-    auto nfc = sm.GetService<Service::NFC::Module::Interface>("nfc:u");
+    Service::SM::ServiceManager& sm = Core::System::GetInstance().ServiceManager();
+    std::shared_ptr<Service::NFC::Module::Interface> nfc =
+        sm.GetService<Service::NFC::Module::Interface>("nfc:u");
     if (nfc == nullptr) {
         return;
     }
 
-    QFile nfc_file{filename};
+    QFile nfc_file(filename);
     if (!nfc_file.open(QIODevice::ReadOnly)) {
         QMessageBox::warning(
             this, QStringLiteral("Error opening Amiibo data file"),
@@ -1474,14 +1471,14 @@ void GMainWindow::LoadAmiibo(const QString& filename) {
 }
 
 void GMainWindow::OnRemoveAmiibo() {
-    Core::System& system{Core::System::GetInstance()};
-    Service::SM::ServiceManager& sm = system.ServiceManager();
-    auto nfc = sm.GetService<Service::NFC::Module::Interface>("nfc:u");
+    Service::SM::ServiceManager& sm = Core::System::GetInstance().ServiceManager();
+    std::shared_ptr<Service::NFC::Module::Interface> nfc =
+        sm.GetService<Service::NFC::Module::Interface>("nfc:u");
     if (nfc == nullptr) {
         return;
     }
-
     nfc->RemoveAmiibo();
+
     ui.action_Remove_Amiibo->setEnabled(false);
 }
 
@@ -1500,28 +1497,31 @@ void GMainWindow::OnToggleFilterBar() {
 }
 
 void GMainWindow::OnCreateGraphicsSurfaceViewer() {
-    auto graphicsSurfaceViewerWidget = new GraphicsSurfaceWidget(Pica::g_debug_context, this);
-    addDockWidget(Qt::RightDockWidgetArea, graphicsSurfaceViewerWidget);
-    // TODO: Maybe graphicsSurfaceViewerWidget->setFloating(true);
-    graphicsSurfaceViewerWidget->show();
+    GraphicsSurfaceWidget* graphics_surface_viewer_widget =
+        new GraphicsSurfaceWidget(Pica::g_debug_context, this);
+    addDockWidget(Qt::RightDockWidgetArea, graphics_surface_viewer_widget);
+    // TODO: Maybe graphics_surface_viewer_widget->setFloating(true);
+    graphics_surface_viewer_widget->show();
 }
 
 void GMainWindow::OnRecordMovie() {
     if (emulation_running) {
-        QMessageBox::StandardButton answer = QMessageBox::warning(
+        const QMessageBox::StandardButton answer = QMessageBox::warning(
             this, QStringLiteral("Record Movie"),
             QStringLiteral(
                 "To keep consistency with the RNG, it is recommended to record the movie from game "
                 "start.<br>Are you sure you still want to record movies now?"),
             QMessageBox::Yes | QMessageBox::No);
-        if (answer == QMessageBox::No)
+        if (answer == QMessageBox::No) {
             return;
+        }
     }
-    const QString path = QFileDialog::getSaveFileName(this, QStringLiteral("Record Movie"),
-                                                      UISettings::values.movie_record_path,
-                                                      QStringLiteral("Citra TAS Movie (*.ctm)"));
-    if (path.isEmpty())
+    const QString path = QFileDialog::getSaveFileName(
+        this, QStringLiteral("Record Movie"), UISettings::values.movie_record_path,
+        QStringLiteral("Citra Valentin Movie (*.cvm)"));
+    if (path.isEmpty()) {
         return;
+    }
     UISettings::values.movie_record_path = QFileInfo(path).path();
     if (emulation_running) {
         Core::Movie::GetInstance().StartRecording(path.toStdString());
@@ -1537,83 +1537,71 @@ void GMainWindow::OnRecordMovie() {
 }
 
 bool GMainWindow::ValidateMovie(const QString& path, u64 program_id) {
-    using namespace Core;
-    Movie::ValidationResult result =
+    const Core::Movie::ValidationResult result =
         Core::Movie::GetInstance().ValidateMovie(path.toStdString(), program_id);
-    const QString revision_dismatch_text = QStringLiteral(
-        "The movie file you are trying to load was created on a different revision of Citra."
-        "<br/>Citra has had some changes during the time, and the playback may desync or not "
-        "work as expected."
-        "<br/><br/>Are you sure you still want to load the movie file?");
-    const QString game_dismatch_text = QStringLiteral(
-        "The movie file you are trying to load was recorded with a different game."
-        "<br/>The playback may not work as expected, and it may cause unexpected results."
-        "<br/><br/>Are you sure you still want to load the movie file?");
-    const QString invalid_movie_text = QStringLiteral(
-        "The movie file you are trying to load is invalid."
-        "<br/>Either the file is corrupted, or Citra has had made some major changes to the "
-        "Movie module."
-        "<br/>Please choose a different movie file and try again.");
-    int answer;
     switch (result) {
-    case Movie::ValidationResult::RevisionDismatch:
-        answer =
-            QMessageBox::question(this, QStringLiteral("Revision Dismatch"), revision_dismatch_text,
-                                  QMessageBox::Yes | QMessageBox::No, QMessageBox::No);
-        if (answer != QMessageBox::Yes)
+    case Core::Movie::ValidationResult::GameDismatch: {
+        const int answer = QMessageBox::question(
+            this, QStringLiteral("Game Dismatch"),
+            QStringLiteral(
+                "The movie file you are trying to load was recorded with a different game."
+                "<br/>The playback may not work as expected, and it may cause unexpected results."
+                "<br/><br/>Are you sure you still want to load the movie file?"),
+            QMessageBox::Yes | QMessageBox::No, QMessageBox::No);
+        if (answer != QMessageBox::Yes) {
             return false;
+        }
         break;
-    case Movie::ValidationResult::GameDismatch:
-        answer = QMessageBox::question(this, QStringLiteral("Game Dismatch"), game_dismatch_text,
-                                       QMessageBox::Yes | QMessageBox::No, QMessageBox::No);
-        if (answer != QMessageBox::Yes)
-            return false;
-        break;
-    case Movie::ValidationResult::Invalid:
-        QMessageBox::critical(this, QStringLiteral("Invalid Movie File"), invalid_movie_text);
+    }
+    case Core::Movie::ValidationResult::Invalid: {
+        QMessageBox::critical(
+            this, QStringLiteral("Invalid Movie File"),
+            QStringLiteral("The movie file you are trying to load is invalid."
+                           "<br/>Either the file is corrupted, or the movie was created using a "
+                           "official Citra build or a different Citra Valentin version."));
         return false;
-    default:
-        break;
+    }
+    default: { break; }
     }
     return true;
 }
 
 void GMainWindow::OnPlayMovie(const QString& filename) {
     if (emulation_running) {
-        QMessageBox::StandardButton answer = QMessageBox::warning(
+        const QMessageBox::StandardButton answer = QMessageBox::warning(
             this, QStringLiteral("Play Movie"),
             QStringLiteral(
                 "To keep consistency with the RNG, it is recommended to play the movie from game "
                 "start.<br>Are you sure you still want to play movies now?"),
             QMessageBox::Yes | QMessageBox::No);
-        if (answer == QMessageBox::No)
+        if (answer == QMessageBox::No) {
             return;
+        }
     }
 
     const QString path =
-        filename.isEmpty() ? QFileDialog::getOpenFileName(this, QStringLiteral("Play Movie"),
-                                                          UISettings::values.movie_playback_path,
-                                                          QStringLiteral("Citra TAS Movie (*.ctm)"))
-                           : filename;
-    if (path.isEmpty())
+        filename.isEmpty()
+            ? QFileDialog::getOpenFileName(this, QStringLiteral("Play Movie"),
+                                           UISettings::values.movie_playback_path,
+                                           QStringLiteral("Citra Valentin Movie (*.cvm)"))
+            : filename;
+    if (path.isEmpty()) {
         return;
+    }
     UISettings::values.movie_playback_path = QFileInfo(path).path();
 
     if (emulation_running) {
-        if (!ValidateMovie(path))
-            return;
-    } else {
-        const QString invalid_movie_text = QStringLiteral(
-            "The movie file you are trying to load is invalid."
-            "<br/>Either the file is corrupted, or Citra has had made some major changes to the "
-            "Movie module."
-            "<br/>Please choose a different movie file and try again.");
-        u64 program_id = Core::Movie::GetInstance().GetMovieProgramID(path.toStdString());
-        if (!program_id) {
-            QMessageBox::critical(this, QStringLiteral("Invalid Movie File"), invalid_movie_text);
+        if (!ValidateMovie(path)) {
             return;
         }
-        QString game_path = game_list->FindGameByProgramID(program_id);
+    } else {
+        const u64 program_id = Core::Movie::GetInstance().GetMovieProgramID(path.toStdString());
+        if (program_id == 0) {
+            QMessageBox::critical(this, QStringLiteral("Invalid Movie File"),
+                                  QStringLiteral("The program ID is zero"));
+            return;
+        }
+        const QString game_path = game_list->FindGameByProgramID(program_id);
         if (game_path.isEmpty()) {
             QMessageBox::warning(
                 this, QStringLiteral("Game Not Found"),
@@ -1622,8 +1610,9 @@ void GMainWindow::OnPlayMovie(const QString& filename) {
                                "folder to the game list and try to play the movie again."));
             return;
         }
-        if (!ValidateMovie(path, program_id))
+        if (!ValidateMovie(path, program_id)) {
             return;
+        }
         Core::Movie::GetInstance().PrepareForPlayback(path.toStdString());
         BootGame(game_path);
     }
@@ -1824,8 +1813,8 @@ void GMainWindow::closeEvent(QCloseEvent* event) {
     }
     UISettings::values.state = saveState();
 #if MICROPROFILE_ENABLED
-    UISettings::values.microprofile_geometry = microProfileDialog->saveGeometry();
-    UISettings::values.microprofile_visible = microProfileDialog->isVisible();
+    UISettings::values.microprofile_geometry = microprofile_dialog->saveGeometry();
+    UISettings::values.microprofile_visible = microprofile_dialog->isVisible();
 #endif
     UISettings::values.single_window_mode = ui.action_Single_Window_Mode->isChecked();
     UISettings::values.fullscreen = ui.action_Fullscreen->isChecked();
@@ -1968,7 +1957,7 @@ int main(int argc, char* argv[]) {
     QObject::connect(&app, &QGuiApplication::applicationStateChanged, &main_window,
                      &GMainWindow::OnAppFocusStateChanged);
 
-    int result = app.exec();
+    const int result = app.exec();
     detached_tasks.WaitForAllTasks();
     return result;
 }

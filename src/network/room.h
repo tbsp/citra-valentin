@@ -13,8 +13,6 @@
 
 namespace Network {
 
-constexpr u32 network_version = 4; ///< The version of this Room and RoomMember
-
 constexpr u16 DefaultRoomPort = 24872;
 
 constexpr u32 MaxMessageSize = 500;

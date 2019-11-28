@@ -14,13 +14,13 @@ class QTreeView;
 
 class BreakPointModel;
 
-class GraphicsBreakPointsWidget : public QDockWidget, Pica::DebugContext::BreakPointObserver {
+class GraphicsBreakpointsWidget : public QDockWidget, Pica::DebugContext::BreakPointObserver {
     Q_OBJECT
 
     using Event = Pica::DebugContext::Event;
 
 public:
-    explicit GraphicsBreakPointsWidget(std::shared_ptr<Pica::DebugContext> debug_context,
+    explicit GraphicsBreakpointsWidget(std::shared_ptr<Pica::DebugContext> debug_context,
                                        QWidget* parent = nullptr);
 
     void OnPicaBreakPointHit(Pica::DebugContext::Event event, void* data) override;

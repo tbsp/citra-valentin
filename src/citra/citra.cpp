@@ -77,7 +77,10 @@ static void PrintHelp(const char* argv0) {
 
 static void PrintVersion() {
     std::cout << "Citra Valentin " << Version::major << "." << Version::minor << "."
-              << Version::patch << std::endl;
+              << Version::patch << std::endl
+              << "Network: " << Version::network << std::endl
+              << "Movie: " << static_cast<int>(Version::movie) << std::endl
+              << "Shader cache: " << Version::shader_cache << std::endl;
 }
 
 static void OnStateChanged(const Network::RoomMember::State& state) {
@@ -106,35 +109,35 @@ static void OnNetworkError(const Network::RoomMember::Error& error) {
         break;
     case Network::RoomMember::Error::CouldNotConnect:
         LOG_ERROR(Network, "Error: Could not connect");
-        exit(1);
+        std::exit(1);
         break;
     case Network::RoomMember::Error::NameCollision:
         LOG_ERROR(
             Network,
             "You tried to use the same nickname as another user that is connected to the Room");
-        exit(1);
+        std::exit(1);
         break;
     case Network::RoomMember::Error::MacCollision:
         LOG_ERROR(Network, "You tried to use the same MAC-Address as another user that is "
                            "connected to the Room");
-        exit(1);
+        std::exit(1);
         break;
     case Network::RoomMember::Error::ConsoleIdCollision:
         LOG_ERROR(Network, "Your Console ID conflicted with someone else in the Room");
-        exit(1);
+        std::exit(1);
         break;
     case Network::RoomMember::Error::WrongPassword:
         LOG_ERROR(Network, "Room replied with: Wrong password");
-        exit(1);
+        std::exit(1);
         break;
     case Network::RoomMember::Error::WrongVersion:
         LOG_ERROR(Network,
                   "You are using a different version than the room you are trying to connect to");
-        exit(1);
+        std::exit(1);
         break;
     case Network::RoomMember::Error::RoomIsFull:
         LOG_ERROR(Network, "The room is full");
-        exit(1);
+        std::exit(1);
         break;
     case Network::RoomMember::Error::HostKicked:
         LOG_ERROR(Network, "You have been kicked by the host");
@@ -358,14 +361,14 @@ int main(int argc, char** argv) {
     Frontend::RegisterDefaultApplets();
 
     // Register generic image interface
-    Core::System::GetInstance().RegisterImageInterface(std::make_shared<LodePNGImageInterface>());
+    Core::System::GetInstance().RegisterImageInterface(std::make_shared<LodePngImageInterface>());
 
     std::unique_ptr<EmuWindow_SDL2> emu_window{
         std::make_unique<EmuWindow_SDL2>(fullscreen, fullscreen_display_index)};
     Frontend::ScopeAcquireContext scope(*emu_window);
-    Core::System& system{Core::System::GetInstance()};
+    Core::System& system = Core::System::GetInstance();
 
-    const Core::System::ResultStatus load_result{system.Load(*emu_window, filepath)};
+    const Core::System::ResultStatus load_result = system.Load(*emu_window, filepath);
 
     switch (load_result) {
     case Core::System::ResultStatus::ErrorGetLoader:

@@ -122,7 +122,7 @@ void GPUCommandListModel::OnPicaTraceFinished(const Pica::DebugUtils::PicaTrace&
     (cmd_id >= PICA_REG_INDEX(reg_name) &&                                                         \
      cmd_id < PICA_REG_INDEX(reg_name) + sizeof(decltype(Pica::g_state.regs.reg_name)) / 4)
 
-void GPUCommandListWidget::OnCommandDoubleClicked(const QModelIndex& index) {
+void GpuCommandListWidget::OnCommandDoubleClicked(const QModelIndex& index) {
     const unsigned int command_id =
         list_widget->model()->data(index, GPUCommandListModel::CommandIdRole).toUInt();
     if (COMMAND_IN_RANGE(command_id, texturing.texture0) ||
@@ -144,7 +144,7 @@ void GPUCommandListWidget::OnCommandDoubleClicked(const QModelIndex& index) {
     }
 }
 
-void GPUCommandListWidget::SetCommandInfo(const QModelIndex& index) {
+void GpuCommandListWidget::SetCommandInfo(const QModelIndex& index) {
     QWidget* new_info_widget = nullptr;
 
     const unsigned int command_id =
@@ -182,7 +182,7 @@ void GPUCommandListWidget::SetCommandInfo(const QModelIndex& index) {
 }
 #undef COMMAND_IN_RANGE
 
-GPUCommandListWidget::GPUCommandListWidget(QWidget* parent)
+GpuCommandListWidget::GpuCommandListWidget(QWidget* parent)
     : QDockWidget(QStringLiteral("Pica Command List"), parent) {
     setObjectName(QStringLiteral("Pica Command List"));
     GPUCommandListModel* model = new GPUCommandListModel(this);
@@ -197,18 +197,18 @@ GPUCommandListWidget::GPUCommandListWidget(QWidget* parent)
     list_widget->header()->setSectionResizeMode(QHeaderView::ResizeToContents);
 
     connect(list_widget->selectionModel(), &QItemSelectionModel::currentChanged, this,
-            &GPUCommandListWidget::SetCommandInfo);
+            &GpuCommandListWidget::SetCommandInfo);
     connect(list_widget, &QTreeView::doubleClicked, this,
-            &GPUCommandListWidget::OnCommandDoubleClicked);
+            &GpuCommandListWidget::OnCommandDoubleClicked);
 
     toggle_tracing = new QPushButton(QStringLiteral("Start Tracing"));
     QPushButton* copy_all = new QPushButton(QStringLiteral("Copy All"));
 
-    connect(toggle_tracing, &QPushButton::clicked, this, &GPUCommandListWidget::OnToggleTracing);
-    connect(this, &GPUCommandListWidget::TracingFinished, model,
+    connect(toggle_tracing, &QPushButton::clicked, this, &GpuCommandListWidget::OnToggleTracing);
+    connect(this, &GpuCommandListWidget::TracingFinished, model,
             &GPUCommandListModel::OnPicaTraceFinished);
 
-    connect(copy_all, &QPushButton::clicked, this, &GPUCommandListWidget::CopyAllToClipboard);
+    connect(copy_all, &QPushButton::clicked, this, &GpuCommandListWidget::CopyAllToClipboard);
 
     command_info_widget = nullptr;
 
@@ -225,7 +225,7 @@ GPUCommandListWidget::GPUCommandListWidget(QWidget* parent)
     setWidget(main_widget);
 }
 
-void GPUCommandListWidget::OnToggleTracing() {
+void GpuCommandListWidget::OnToggleTracing() {
     if (!Pica::DebugUtils::IsPicaTracing()) {
         Pica::DebugUtils::StartPicaTracing();
         toggle_tracing->setText(QStringLiteral("Finish Tracing"));
@@ -236,7 +236,7 @@ void GPUCommandListWidget::OnToggleTracing() {
     }
 }
 
-void GPUCommandListWidget::CopyAllToClipboard() {
+void GpuCommandListWidget::CopyAllToClipboard() {
     QClipboard* clipboard = QApplication::clipboard();
     QString text;
 

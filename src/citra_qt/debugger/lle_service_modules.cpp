@@ -9,9 +9,9 @@
 #include "citra_qt/debugger/lle_service_modules.h"
 #include "core/settings.h"
 
-LLEServiceModulesWidget::LLEServiceModulesWidget(QWidget* parent)
+LleServiceModulesWidget::LleServiceModulesWidget(QWidget* parent)
     : QDockWidget(QStringLiteral("Toggle LLE Service Modules"), parent) {
-    setObjectName(QStringLiteral("LLEServiceModulesWidget"));
+    setObjectName(QStringLiteral("LleServiceModulesWidget"));
     QScrollArea* scroll_area = new QScrollArea;
     QLayout* scroll_layout = new QVBoxLayout;
     for (const auto& service_module : Settings::values.lle_modules) {
@@ -30,4 +30,4 @@ LLEServiceModulesWidget::LLEServiceModulesWidget(QWidget* parent)
     setWidget(scroll_area);
 }
 
-LLEServiceModulesWidget::~LLEServiceModulesWidget() = default;
+LleServiceModulesWidget::~LleServiceModulesWidget() = default;

@@ -35,11 +35,11 @@ private:
     Pica::DebugUtils::PicaTrace pica_trace;
 };
 
-class GPUCommandListWidget : public QDockWidget {
+class GpuCommandListWidget : public QDockWidget {
     Q_OBJECT
 
 public:
-    explicit GPUCommandListWidget(QWidget* parent = nullptr);
+    explicit GpuCommandListWidget(QWidget* parent = nullptr);
 
 public slots:
     void OnToggleTracing();

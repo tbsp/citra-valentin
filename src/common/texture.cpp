@@ -8,7 +8,7 @@
 #include "common/common_types.h"
 
 namespace Common {
-void FlipRGBA8Texture(std::vector<u8>& tex, u64 width, u64 height) {
+void FlipRgba8Texture(std::vector<u8>& tex, u64 width, u64 height) {
     ASSERT(tex.size() == width * height * 4);
     const u64 line_size = width * 4;
     for (u64 line = 0; line < height / 2; line++) {

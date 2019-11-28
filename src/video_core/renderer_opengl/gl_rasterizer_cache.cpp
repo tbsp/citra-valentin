@@ -802,22 +802,24 @@ void CachedSurface::FlushGLBuffer(PAddr flush_start, PAddr flush_end) {
 bool CachedSurface::LoadCustomTexture(u64 tex_hash, Core::CustomTexInfo& tex_info,
                                       Common::Rectangle<u32>& custom_rect) {
     bool result = false;
-    auto& custom_tex_cache = Core::System::GetInstance().CustomTexCache();
-    const auto& image_interface = Core::System::GetInstance().GetImageInterface();
+    Core::CustomTexCache& custom_tex_cache = Core::System::GetInstance().CustomTexCache();
+    const std::shared_ptr<Frontend::ImageInterface>& image_interface =
+        Core::System::GetInstance().GetImageInterface();
 
     if (custom_tex_cache.IsTextureCached(tex_hash)) {
         tex_info = custom_tex_cache.LookupTexture(tex_hash);
         result = true;
     } else {
         if (custom_tex_cache.CustomTextureExists(tex_hash)) {
-            const auto& path_info = custom_tex_cache.LookupTexturePathInfo(tex_hash);
-            if (image_interface->DecodePNG(tex_info.tex, tex_info.width, tex_info.height,
+            const Core::CustomTexPathInfo& path_info =
+                custom_tex_cache.LookupTexturePathInfo(tex_hash);
+            if (image_interface->DecodePng(tex_info.tex, tex_info.width, tex_info.height,
                                            path_info.path)) {
                 std::bitset<32> width_bits(tex_info.width);
                 std::bitset<32> height_bits(tex_info.height);
                 if (width_bits.count() == 1 && height_bits.count() == 1) {
                     LOG_DEBUG(Render_OpenGL, "Loaded custom texture from {}", path_info.path);
-                    Common::FlipRGBA8Texture(tex_info.tex, tex_info.width, tex_info.height);
+                    Common::FlipRgba8Texture(tex_info.tex, tex_info.width, tex_info.height);
                     custom_tex_cache.CacheTexture(tex_hash, tex_info.tex, tex_info.width,
                                                   tex_info.height);
                     result = true;
@@ -876,8 +878,8 @@ void CachedSurface::DumpTexture(GLuint target_tex, u64 tex_hash) {
         GetTexImage(GL_TEXTURE_2D, 0, GL_RGBA, GL_UNSIGNED_BYTE, height, width, 0,
                     &decoded_texture[0]);
         glBindTexture(GL_TEXTURE_2D, 0);
-        Common::FlipRGBA8Texture(decoded_texture, width, height);
-        if (!image_interface->EncodePNG(dump_path, decoded_texture, width, height)) {
+        Common::FlipRgba8Texture(decoded_texture, width, height);
+        if (!image_interface->EncodePng(dump_path, decoded_texture, width, height)) {
             LOG_ERROR(Render_OpenGL, "Failed to save decoded texture");
         }
     }
@@ -1912,7 +1914,7 @@ void RasterizerCacheOpenGL::FlushRegion(PAddr addr, u32 size, Surface flush_surf
         ASSERT(surface->IsRegionValid(interval));
 
         if (surface->type != SurfaceType::Fill) {
-            SurfaceParams params = surface->FromInterval(interval);
+            const SurfaceParams params = surface->FromInterval(interval);
             surface->DownloadGLTexture(surface->GetSubRect(params), read_framebuffer.handle,
                                        draw_framebuffer.handle);
         }
@@ -1928,8 +1930,9 @@ void RasterizerCacheOpenGL::FlushAll() {
 }
 
 void RasterizerCacheOpenGL::InvalidateRegion(PAddr addr, u32 size, const Surface& region_owner) {
-    if (size == 0)
+    if (size == 0) {
         return;
+    }
 
     const SurfaceInterval invalid_interval(addr, addr + size);
 
@@ -1943,8 +1946,9 @@ void RasterizerCacheOpenGL::InvalidateRegion(PAddr addr, u32 size, const Surface
 
     for (auto& pair : RangeFromInterval(surface_cache, invalid_interval)) {
         for (auto& cached_surface : pair.second) {
-            if (cached_surface == region_owner)
+            if (cached_surface == region_owner) {
                 continue;
+            }
 
             // If cpu is invalidating this region we want to remove it
             // to (likely) mark the memory pages as uncached
@@ -1954,7 +1958,8 @@ void RasterizerCacheOpenGL::InvalidateRegion(PAddr addr, u32 size, const Surface
                 continue;
             }
 
-            const auto interval = cached_surface->GetInterval() & invalid_interval;
+            const OpenGL::SurfaceInterval interval =
+                cached_surface->GetInterval() & invalid_interval;
             cached_surface->invalid_regions.insert(interval);
             cached_surface->InvalidateAllWatcher();
 
@@ -1966,14 +1971,15 @@ void RasterizerCacheOpenGL::InvalidateRegion(PAddr addr, u32 size, const Surface
         }
     }
 
-    if (region_owner != nullptr)
+    if (region_owner != nullptr) {
         dirty_regions.set({invalid_interval, region_owner});
-    else
+    } else {
         dirty_regions.erase(invalid_interval);
+    }
 
     for (auto& remove_surface : remove_surfaces) {
         if (remove_surface == region_owner) {
-            Surface expanded_surface = FindMatch<MatchFlags::SubRect | MatchFlags::Invalid>(
+            const Surface expanded_surface = FindMatch<MatchFlags::SubRect | MatchFlags::Invalid>(
                 surface_cache, *region_owner, ScaleMatch::Ignore);
             ASSERT(expanded_surface);
 
@@ -2030,11 +2036,12 @@ void RasterizerCacheOpenGL::UpdatePagesCachedCount(PAddr addr, u32 size, int del
     // Interval maps will erase segments if count reaches 0, so if delta is negative we have to
     // subtract after iterating
     const auto pages_interval = PageMap::interval_type::right_open(page_start, page_end);
-    if (delta > 0)
+    if (delta > 0) {
         cached_pages.add({pages_interval, delta});
+    }
 
     for (auto& pair : RangeFromInterval(cached_pages, pages_interval)) {
-        const auto interval = pair.first & pages_interval;
+        const OpenGL::SurfaceInterval interval = pair.first & pages_interval;
         const int count = pair.second;
 
         const PAddr interval_start_addr = boost::icl::first(interval) << Memory::PAGE_BITS;

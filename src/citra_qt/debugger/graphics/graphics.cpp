@@ -63,7 +63,7 @@ void GPUCommandStreamItemModel::OnGXCommandFinishedInternal(int total_command_co
     emit dataChanged(index(prev_command_count, 0), index(total_command_count - 1, 0));
 }
 
-GPUCommandStreamWidget::GPUCommandStreamWidget(QWidget* parent)
+GpuCommandStreamWidget::GpuCommandStreamWidget(QWidget* parent)
     : QDockWidget(QStringLiteral("Graphics Debugger"), parent) {
     setObjectName(QStringLiteral("GraphicsDebugger"));
 

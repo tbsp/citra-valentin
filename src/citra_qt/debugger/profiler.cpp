@@ -45,7 +45,7 @@ private:
 
 #endif
 
-MicroProfileDialog::MicroProfileDialog(QWidget* parent) : QWidget(parent, Qt::Dialog) {
+MicroprofileDialog::MicroprofileDialog(QWidget* parent) : QWidget(parent, Qt::Dialog) {
     setObjectName(QStringLiteral("MicroProfile"));
     setWindowTitle(QStringLiteral("MicroProfile"));
     resize(1000, 600);
@@ -70,25 +70,25 @@ MicroProfileDialog::MicroProfileDialog(QWidget* parent) : QWidget(parent, Qt::Di
 #endif
 }
 
-QAction* MicroProfileDialog::toggleViewAction() {
+QAction* MicroprofileDialog::toggleViewAction() {
     if (toggle_view_action == nullptr) {
         toggle_view_action = new QAction(windowTitle(), this);
         toggle_view_action->setCheckable(true);
         toggle_view_action->setChecked(isVisible());
-        connect(toggle_view_action, &QAction::toggled, this, &MicroProfileDialog::setVisible);
+        connect(toggle_view_action, &QAction::toggled, this, &MicroprofileDialog::setVisible);
     }
 
     return toggle_view_action;
 }
 
-void MicroProfileDialog::showEvent(QShowEvent* ev) {
+void MicroprofileDialog::showEvent(QShowEvent* ev) {
     if (toggle_view_action) {
         toggle_view_action->setChecked(isVisible());
     }
     QWidget::showEvent(ev);
 }
 
-void MicroProfileDialog::hideEvent(QHideEvent* ev) {
+void MicroprofileDialog::hideEvent(QHideEvent* ev) {
     if (toggle_view_action) {
         toggle_view_action->setChecked(isVisible());
     }

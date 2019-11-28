@@ -109,18 +109,18 @@ struct ControllerState {
 static_assert(sizeof(ControllerState) == 7, "ControllerState should be 7 bytes");
 #pragma pack(pop)
 
-constexpr std::array<u8, 4> header_magic_bytes{{'C', 'T', 'M', 0x1C}};
+const std::array<u8, 4> header_magic_bytes{{'C', 'V', 'M', Version::movie}};
 
 #pragma pack(push, 1)
-struct CTMHeader {
-    std::array<u8, 4> filetype; /// Unique Identifier to check the file type (always "CTM"0x1C)
-    u64_le program_id;          /// ID of the ROM being executed. Also called title_id
-    u16_le major_version;       /// Major version of Citra this movie was created with
-    u64_le clock_init_time;     /// The init time of the system clock
+struct CvmHeader {
+    std::array<u8, 4>
+        filetype;      /// Unique identifier to check the file type (always `header_magic_bytes`)
+    u64_le program_id; /// ID of the ROM being executed. Also called title_id
+    u64_le clock_init_time; /// The init time of the system clock
 
-    std::array<u8, 234> reserved; /// Make heading 256 bytes so it has consistent size
+    std::array<u8, 236> reserved; /// Make heading 256 bytes so it has consistent size
 };
-static_assert(sizeof(CTMHeader) == 256, "CTMHeader should be 256 bytes");
+static_assert(sizeof(CvmHeader) == 256, "CvmHeader should be 256 bytes");
 #pragma pack(pop)
 
 bool Movie::IsPlayingInput() const {
@@ -358,24 +358,19 @@ u64 Movie::GetOverrideInitTime() const {
     return init_time;
 }
 
-Movie::ValidationResult Movie::ValidateHeader(const CTMHeader& header, u64 program_id) const {
+Movie::ValidationResult Movie::ValidateHeader(const CvmHeader& header, u64 program_id) const {
     if (header_magic_bytes != header.filetype) {
-        LOG_ERROR(Movie, "Playback file does not have valid header");
+        LOG_ERROR(Movie,
+                  "Playback file does not have valid header. Maybe the movie module changed a lot");
         return ValidationResult::Invalid;
     }
 
-    if (!program_id)
+    if (!program_id) {
         Core::System::GetInstance().GetAppLoader().ReadProgramId(program_id);
+    }
     if (program_id != header.program_id) {
         LOG_WARNING(Movie, "This movie was recorded using a ROM with a different program id");
         return ValidationResult::GameDismatch;
-    }
-
-    if (header.major_version != Version::major) {
-        LOG_WARNING(
-            Movie,
-            "This movie was created on a different major version of Citra, playback may desync");
-        return ValidationResult::RevisionDismatch;
     }
 
     return ValidationResult::OK;
@@ -390,14 +385,13 @@ void Movie::SaveMovie() {
         return;
     }
 
-    CTMHeader header = {};
+    CvmHeader header = {};
     header.filetype = header_magic_bytes;
     header.clock_init_time = init_time;
-    header.major_version = Version::major;
 
     Core::System::GetInstance().GetAppLoader().ReadProgramId(header.program_id);
 
-    save_record.WriteBytes(&header, sizeof(CTMHeader));
+    save_record.WriteBytes(&header, sizeof(CvmHeader));
     save_record.WriteBytes(recorded_input.data(), recorded_input.size());
 
     if (!save_record.IsGood()) {
@@ -411,12 +405,12 @@ void Movie::StartPlayback(const std::string& movie_file,
     FileUtil::IOFile save_record(movie_file, "rb");
     const u64 size = save_record.GetSize();
 
-    if (save_record.IsGood() && size > sizeof(CTMHeader)) {
-        CTMHeader header;
+    if (save_record.IsGood() && size > sizeof(CvmHeader)) {
+        CvmHeader header;
         save_record.ReadArray(&header, 1);
         if (ValidateHeader(header) != ValidationResult::Invalid) {
             play_mode = PlayMode::Playing;
-            recorded_input.resize(size - sizeof(CTMHeader));
+            recorded_input.resize(size - sizeof(CvmHeader));
             save_record.ReadArray(recorded_input.data(), recorded_input.size());
             current_byte = 0;
             playback_completion_callback = completion_callback;
@@ -432,15 +426,15 @@ void Movie::StartRecording(const std::string& movie_file) {
     record_movie_file = movie_file;
 }
 
-static boost::optional<CTMHeader> ReadHeader(const std::string& movie_file) {
+static boost::optional<CvmHeader> ReadHeader(const std::string& movie_file) {
     FileUtil::IOFile save_record(movie_file, "rb");
     const u64 size = save_record.GetSize();
 
-    if (!save_record || size <= sizeof(CTMHeader)) {
+    if (!save_record || size <= sizeof(CvmHeader)) {
         return boost::none;
     }
 
-    CTMHeader header;
+    CvmHeader header;
     save_record.ReadArray(&header, 1);
 
     if (header_magic_bytes != header.filetype) {

@@ -9,11 +9,11 @@
 #include <QTimer>
 #include "common/microprofile.h"
 
-class MicroProfileDialog : public QWidget {
+class MicroprofileDialog : public QWidget {
     Q_OBJECT
 
 public:
-    explicit MicroProfileDialog(QWidget* parent = nullptr);
+    explicit MicroprofileDialog(QWidget* parent = nullptr);
 
     /// Returns a QAction that can be used to toggle visibility of this dialog.
     QAction* toggleViewAction();

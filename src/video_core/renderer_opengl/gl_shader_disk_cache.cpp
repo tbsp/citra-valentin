@@ -4,7 +4,6 @@
 
 #include <cstring>
 #include <fmt/format.h>
-
 #include "common/assert.h"
 #include "common/common_paths.h"
 #include "common/common_types.h"
@@ -100,8 +99,9 @@ ShaderDiskCache::~ShaderDiskCache() = default;
 
 std::optional<std::vector<ShaderDiskCacheRaw>> ShaderDiskCache::LoadTransferable() {
     const bool has_title_id = GetProgramID() != 0;
-    if (!Settings::values.use_disk_shader_cache || !has_title_id)
+    if (!Settings::values.use_disk_shader_cache || !has_title_id) {
         return std::nullopt;
+    }
     tried_to_load = true;
 
     FileUtil::IOFile file(GetTransferablePath(), "rb");
@@ -111,17 +111,15 @@ std::optional<std::vector<ShaderDiskCacheRaw>> ShaderDiskCache::LoadTransferable
         return std::nullopt;
     }
 
-    u16 major_version;
-    if (file.ReadBytes(&major_version, sizeof(major_version)) != sizeof(major_version)) {
+    u16 version;
+    if (file.ReadBytes(&version, sizeof(version)) != sizeof(version)) {
         LOG_ERROR(Render_OpenGL,
-                  "Failed to get transferable cache major version for title id={} - skipping",
+                  "Failed to get transferable cache version for title id={} - skipping",
                   GetTitleID());
         return std::nullopt;
     }
-    LOG_INFO(Render_OpenGL, "Major version: {}", major_version);
-    if (major_version != Version::major) {
-        LOG_INFO(Render_OpenGL, "Transferable shader cache created using a different major version "
-                                "of Citra - removing");
+    if (version != Version::shader_cache) {
+        LOG_INFO(Render_OpenGL, "Different transferable cache version - removing");
         file.Close();
         InvalidateAll();
         return std::nullopt;
@@ -185,20 +183,18 @@ ShaderDiskCache::LoadPrecompiled() {
 
 std::optional<std::pair<std::unordered_map<u64, ShaderDiskCacheDecompiled>, ShaderDumpsMap>>
 ShaderDiskCache::LoadPrecompiledFile(FileUtil::IOFile& file) {
-    u16 major_version;
-    if (file.ReadBytes(&major_version, sizeof(major_version)) != sizeof(major_version)) {
-        LOG_ERROR(Render_OpenGL, "Could not read major version from precompiled shader cache");
+    u16 version;
+    if (file.ReadBytes(&version, sizeof(version)) != sizeof(version)) {
+        LOG_ERROR(Render_OpenGL, "Could not read version from precompiled shader cache");
         return std::nullopt;
     }
-    LOG_INFO(Render_OpenGL, "Major version: {}", major_version);
-    if (major_version != Version::major) {
-        LOG_ERROR(Render_OpenGL,
-                  "Precompiled shader cache created using a different major version of Citra");
+    if (version != Version::shader_cache) {
+        LOG_ERROR(Render_OpenGL, "Different shader cache version");
         return std::nullopt;
     }
 
     // Read compressed file from disk and decompress to virtual precompiled cache file
-    std::vector<u8> compressed(file.GetSize() - sizeof(major_version));
+    std::vector<u8> compressed(file.GetSize() - sizeof(version));
     file.ReadBytes(compressed.data(), compressed.size());
     const std::vector<u8> decompressed = Common::Compression::DecompressDataZSTD(compressed);
     SaveArrayToPrecompiled(decompressed.data(), decompressed.size());
@@ -367,10 +363,11 @@ bool ShaderDiskCache::IsUsable() const {
 }
 
 FileUtil::IOFile ShaderDiskCache::AppendTransferableFile() {
-    if (!EnsureDirectories())
+    if (!EnsureDirectories()) {
         return {};
+    }
 
-    const auto transferable_path{GetTransferablePath()};
+    const std::string transferable_path = GetTransferablePath();
     const bool existed = FileUtil::Exists(transferable_path);
 
     FileUtil::IOFile file(transferable_path, "ab");
@@ -380,7 +377,8 @@ FileUtil::IOFile ShaderDiskCache::AppendTransferableFile() {
     }
     if (!existed || file.GetSize() == 0) {
         // If the file didn't exist, write its major version
-        if (file.WriteBytes(&Version::major, sizeof(u16)) != sizeof(u16)) {
+        if (file.WriteBytes(&Version::shader_cache, sizeof(Version::shader_cache)) !=
+            sizeof(Version::shader_cache)) {
             LOG_ERROR(Render_OpenGL, "Failed to write transferable cache major version in path={}",
                       transferable_path);
             return {};
@@ -394,14 +392,15 @@ void ShaderDiskCache::SaveVirtualPrecompiledFile() {
     const std::vector<u8>& compressed = Common::Compression::CompressDataZSTDDefault(
         decompressed_precompiled_cache.data(), decompressed_precompiled_cache.size());
 
-    const auto precompiled_path{GetPrecompiledPath()};
+    const std::string precompiled_path = GetPrecompiledPath();
     FileUtil::IOFile file(precompiled_path, "wb");
 
     if (!file.IsOpen()) {
         LOG_ERROR(Render_OpenGL, "Failed to open precompiled cache in path={}", precompiled_path);
         return;
     }
-    if (file.WriteBytes(&Version::major, sizeof(Version::major)) != sizeof(Version::major)) {
+    if (file.WriteBytes(&Version::shader_cache, sizeof(Version::shader_cache)) !=
+        sizeof(Version::shader_cache)) {
         LOG_ERROR(Render_OpenGL, "Failed to write precompiled cache major version");
         return;
     }

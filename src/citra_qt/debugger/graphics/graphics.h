@@ -31,11 +31,11 @@ private:
     int command_count;
 };
 
-class GPUCommandStreamWidget : public QDockWidget {
+class GpuCommandStreamWidget : public QDockWidget {
     Q_OBJECT
 
 public:
-    GPUCommandStreamWidget(QWidget* parent = nullptr);
+    GpuCommandStreamWidget(QWidget* parent = nullptr);
 
 private:
 };

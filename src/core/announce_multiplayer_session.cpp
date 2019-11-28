@@ -7,6 +7,7 @@
 #include "announce_multiplayer_session.h"
 #include "common/announce_multiplayer_room.h"
 #include "common/assert.h"
+#include "common/version.h"
 #include "core/settings.h"
 #include "network/network.h"
 #include "web_service/announce_room_json.h"
@@ -82,7 +83,7 @@ void AnnounceMultiplayerSession::UpdateBackendData(std::shared_ptr<Network::Room
     const std::vector<Network::Room::Member> memberlist = room->GetRoomMemberList();
     backend->SetRoomInformation(
         room_information.name, room_information.description, room_information.port,
-        room_information.member_slots, Network::network_version, room->HasPassword(),
+        room_information.member_slots, Version::network, room->HasPassword(),
         room_information.preferred_game, room_information.preferred_game_id);
     backend->ClearPlayers();
     for (const auto& member : memberlist) {

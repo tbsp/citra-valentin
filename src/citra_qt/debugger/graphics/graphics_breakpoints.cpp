@@ -137,7 +137,7 @@ QString BreakPointModel::DebugContextEventToString(Pica::DebugContext::Event eve
     return QStringLiteral("Unknown debug context event");
 }
 
-GraphicsBreakPointsWidget::GraphicsBreakPointsWidget(
+GraphicsBreakpointsWidget::GraphicsBreakpointsWidget(
     std::shared_ptr<Pica::DebugContext> debug_context, QWidget* parent)
     : QDockWidget(QStringLiteral("Pica Breakpoints"), parent),
       Pica::DebugContext::BreakPointObserver(debug_context) {
@@ -156,21 +156,21 @@ GraphicsBreakPointsWidget::GraphicsBreakPointsWidget(
     qRegisterMetaType<Pica::DebugContext::Event>("Pica::DebugContext::Event");
 
     connect(breakpoint_list, &QTreeView::doubleClicked, this,
-            &GraphicsBreakPointsWidget::OnItemDoubleClicked);
+            &GraphicsBreakpointsWidget::OnItemDoubleClicked);
 
     connect(resume_button, &QPushButton::clicked, this,
-            &GraphicsBreakPointsWidget::OnResumeRequested);
+            &GraphicsBreakpointsWidget::OnResumeRequested);
 
-    connect(this, &GraphicsBreakPointsWidget::BreakPointHit, this,
-            &GraphicsBreakPointsWidget::OnBreakPointHit, Qt::BlockingQueuedConnection);
-    connect(this, &GraphicsBreakPointsWidget::Resumed, this, &GraphicsBreakPointsWidget::OnResumed);
+    connect(this, &GraphicsBreakpointsWidget::BreakPointHit, this,
+            &GraphicsBreakpointsWidget::OnBreakPointHit, Qt::BlockingQueuedConnection);
+    connect(this, &GraphicsBreakpointsWidget::Resumed, this, &GraphicsBreakpointsWidget::OnResumed);
 
-    connect(this, &GraphicsBreakPointsWidget::BreakPointHit, breakpoint_model,
+    connect(this, &GraphicsBreakpointsWidget::BreakPointHit, breakpoint_model,
             &BreakPointModel::OnBreakPointHit, Qt::BlockingQueuedConnection);
-    connect(this, &GraphicsBreakPointsWidget::Resumed, breakpoint_model,
+    connect(this, &GraphicsBreakpointsWidget::Resumed, breakpoint_model,
             &BreakPointModel::OnResumed);
 
-    connect(this, &GraphicsBreakPointsWidget::BreakPointsChanged,
+    connect(this, &GraphicsBreakpointsWidget::BreakPointsChanged,
             [this](const QModelIndex& top_left, const QModelIndex& bottom_right) {
                 breakpoint_model->dataChanged(top_left, bottom_right);
             });
@@ -189,32 +189,32 @@ GraphicsBreakPointsWidget::GraphicsBreakPointsWidget(
     setWidget(main_widget);
 }
 
-void GraphicsBreakPointsWidget::OnPicaBreakPointHit(Event event, void* data) {
+void GraphicsBreakpointsWidget::OnPicaBreakPointHit(Event event, void* data) {
     // Process in GUI thread
     emit BreakPointHit(event, data);
 }
 
-void GraphicsBreakPointsWidget::OnBreakPointHit(Pica::DebugContext::Event event, void* data) {
+void GraphicsBreakpointsWidget::OnBreakPointHit(Pica::DebugContext::Event event, void* data) {
     status_text->setText(QStringLiteral("Emulation halted at breakpoint"));
     resume_button->setEnabled(true);
 }
 
-void GraphicsBreakPointsWidget::OnPicaResume() {
+void GraphicsBreakpointsWidget::OnPicaResume() {
     // Process in GUI thread
     emit Resumed();
 }
 
-void GraphicsBreakPointsWidget::OnResumed() {
+void GraphicsBreakpointsWidget::OnResumed() {
     status_text->setText(QStringLiteral("Emulation running"));
     resume_button->setEnabled(false);
 }
 
-void GraphicsBreakPointsWidget::OnResumeRequested() {
+void GraphicsBreakpointsWidget::OnResumeRequested() {
     if (auto context = context_weak.lock())
         context->Resume();
 }
 
-void GraphicsBreakPointsWidget::OnItemDoubleClicked(const QModelIndex& index) {
+void GraphicsBreakpointsWidget::OnItemDoubleClicked(const QModelIndex& index) {
     if (!index.isValid())
         return;
 
