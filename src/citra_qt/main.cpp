@@ -902,6 +902,14 @@ void GMainWindow::BootGame(const QString& filename) {
         video_dumping_path.clear();
     }
     OnStartGame();
+
+    qRegisterMetaType<Core::System::ResultStatus>("Core::System::ResultStatus");
+    qRegisterMetaType<std::string>("std::string");
+    connect(emu_thread.get(), &EmuThread::ErrorThrown, this, &GMainWindow::OnCoreError);
+
+#ifdef CITRA_ENABLE_DISCORD_RP
+    discord_rp.Update();
+#endif
 }
 
 void GMainWindow::ShutdownGame() {
@@ -1243,9 +1251,6 @@ void GMainWindow::OnStartGame() {
     PreventOSSleep();
 
     emu_thread->SetRunning(true);
-    qRegisterMetaType<Core::System::ResultStatus>("Core::System::ResultStatus");
-    qRegisterMetaType<std::string>("std::string");
-    connect(emu_thread.get(), &EmuThread::ErrorThrown, this, &GMainWindow::OnCoreError);
 
     ui.action_Start->setEnabled(false);
     ui.action_Start->setText(QStringLiteral("Continue"));
@@ -1257,10 +1262,6 @@ void GMainWindow::OnStartGame() {
     ui.action_Load_Amiibo->setEnabled(true);
     ui.action_Enable_Frame_Advancing->setEnabled(true);
     ui.action_Capture_Screenshot->setEnabled(true);
-
-#ifdef CITRA_ENABLE_DISCORD_RP
-    discord_rp.Update();
-#endif
 }
 
 void GMainWindow::OnPauseGame() {
