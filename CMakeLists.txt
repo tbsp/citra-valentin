@@ -7,7 +7,7 @@ include(CMakeDependentOption)
 
 project(citra)
 
-# Set bundled sdl2/qt as dependent options.
+# Set bundled SDL2/Qt as dependent options.
 # OFF by default, but if ENABLE_SDL2 and MSVC are true then ON
 option(ENABLE_SDL2 "Enable the SDL2 frontend" ON)
 CMAKE_DEPENDENT_OPTION(CITRA_USE_BUNDLED_SDL2 "Download bundled SDL2 binaries" ON "ENABLE_SDL2;MSVC" OFF)
