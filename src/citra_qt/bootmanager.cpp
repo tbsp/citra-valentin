@@ -98,6 +98,7 @@ void EmuThread::run() {
     MicroProfileOnThreadExit();
 #endif
 }
+
 OpenGLWindow::OpenGLWindow(QWindow* parent, QWidget* event_handler, QOpenGLContext* shared_context)
     : QWindow(parent), event_handler(event_handler),
       context(new QOpenGLContext(shared_context->parent())) {
@@ -349,7 +350,6 @@ void GRenderWindow::focusOutEvent(QFocusEvent* event) {
 }
 
 void GRenderWindow::resizeEvent(QResizeEvent* event) {
-    child_widget->resize(event->size());
     QWidget::resizeEvent(event);
 
     OnFramebufferSizeChanged();
