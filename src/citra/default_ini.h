@@ -296,6 +296,10 @@ custom_screen_refresh_rate = false
 screen_refresh_rate = 60
 
 sharper_distant_objects = false
+
+# Ignores flushing surfaces from CPU memory if the surface was created by the GPU
+# and has a different format. This can speed up many games, potentially break some, but is rightfully
+# just a hack as a placeholder for GPU texture encoding/decoding
 ignore_format_reinterpretation = true
 )";
 }
