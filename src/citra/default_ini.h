@@ -300,6 +300,7 @@ sharper_distant_objects = false
 # Ignores flushing surfaces from CPU memory if the surface was created by the GPU
 # and has a different format. This can speed up many games, potentially break some, but is rightfully
 # just a hack as a placeholder for GPU texture encoding/decoding
-ignore_format_reinterpretation = true
+# 0: Off, 1: On (default)
+ignore_format_reinterpretation = 1
 )";
 }
