@@ -147,6 +147,7 @@ struct Values {
     u16 resolution_factor;
     bool use_frame_limit;
     u16 frame_limit;
+    int min_vertices_per_thread;
 
     LayoutOption layout_option;
     bool swap_screen;

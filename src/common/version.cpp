@@ -6,9 +6,9 @@
 
 namespace Version {
 // Citra Valentin version
-const u16 major = 3;
+const u16 major = 4;
 const u16 minor = 0;
-const u16 patch = 2;
+const u16 patch = 0;
 
 const u32 network = 4;
 const u8 movie = 1;

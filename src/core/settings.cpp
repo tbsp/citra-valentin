@@ -42,24 +42,25 @@ void Apply() {
         Core::DSP().SetSink(values.sink_id, values.audio_device_id);
         Core::DSP().EnableStretching(values.enable_audio_stretching);
 
-        auto hid = Service::HID::GetModule(system);
+        std::shared_ptr<Service::HID::Module> hid = Service::HID::GetModule(system);
         if (hid) {
             hid->ReloadInputDevices();
         }
 
-        auto sm = system.ServiceManager();
+        Service::SM::ServiceManager& sm = system.ServiceManager();
 
-        auto ir_user = sm.GetService<Service::IR::IR_USER>("ir:USER");
+        std::shared_ptr<Service::IR::IR_USER> ir_user =
+            sm.GetService<Service::IR::IR_USER>("ir:USER");
         if (ir_user) {
             ir_user->ReloadInputDevices();
         }
 
-        auto ir_rst = sm.GetService<Service::IR::IR_RST>("ir:rst");
+        std::shared_ptr<Service::IR::IR_RST> ir_rst = sm.GetService<Service::IR::IR_RST>("ir:rst");
         if (ir_rst) {
             ir_rst->ReloadInputDevices();
         }
 
-        auto cam = Service::CAM::GetModule(system);
+        std::shared_ptr<Service::CAM::Module> cam = Service::CAM::GetModule(system);
         if (cam) {
             cam->ReloadCameraDevices();
         }
@@ -85,6 +86,7 @@ void LogSettings() {
     LogSetting("resolution_factor", Settings::values.resolution_factor);
     LogSetting("use_frame_limit", Settings::values.use_frame_limit);
     LogSetting("frame_limit", Settings::values.frame_limit);
+    LogSetting("min_vertices_per_thread", Settings::values.min_vertices_per_thread);
     LogSetting("pp_shader_name", Settings::values.pp_shader_name);
     LogSetting("filter_mode", Settings::values.filter_mode);
     LogSetting("render_3d", static_cast<int>(Settings::values.render_3d));

@@ -330,23 +330,29 @@ void GMainWindow::InitializeRecentFileMenuActions() {
 void GMainWindow::InitializeHotkeys() {
     hotkey_registry.LoadHotkeys();
 
-    ui.action_Show_Filter_Bar->setShortcut(
-        hotkey_registry.GetKeySequence("Main Window", "Toggle Filter Bar"));
-    ui.action_Show_Filter_Bar->setShortcutContext(
-        hotkey_registry.GetShortcutContext("Main Window", "Toggle Filter Bar"));
+    ui.action_Show_Filter_Bar->setShortcut(hotkey_registry.GetKeySequence(
+        QStringLiteral("Main Window"), QStringLiteral("Toggle Filter Bar")));
+    ui.action_Show_Filter_Bar->setShortcutContext(hotkey_registry.GetShortcutContext(
+        QStringLiteral("Main Window"), QStringLiteral("Toggle Filter Bar")));
 
-    ui.action_Show_Status_Bar->setShortcut(
-        hotkey_registry.GetKeySequence("Main Window", "Toggle Status Bar"));
-    ui.action_Show_Status_Bar->setShortcutContext(
-        hotkey_registry.GetShortcutContext("Main Window", "Toggle Status Bar"));
+    ui.action_Show_Status_Bar->setShortcut(hotkey_registry.GetKeySequence(
+        QStringLiteral("Main Window"), QStringLiteral("Toggle Status Bar")));
+    ui.action_Show_Status_Bar->setShortcutContext(hotkey_registry.GetShortcutContext(
+        QStringLiteral("Main Window"), QStringLiteral("Toggle Status Bar")));
 
-    connect(hotkey_registry.GetHotkey("Main Window", "Load File", this), &QShortcut::activated,
-            ui.action_Load_File, &QAction::trigger);
-    connect(hotkey_registry.GetHotkey("Main Window", "Stop Emulation", this), &QShortcut::activated,
-            ui.action_Stop, &QAction::trigger);
-    connect(hotkey_registry.GetHotkey("Main Window", "Exit Citra", this), &QShortcut::activated,
-            ui.action_Exit, &QAction::trigger);
-    connect(hotkey_registry.GetHotkey("Main Window", "Continue/Pause Emulation", this),
+    connect(
+        hotkey_registry.GetHotkey(QStringLiteral("Main Window"), QStringLiteral("Load File"), this),
+        &QShortcut::activated, ui.action_Load_File, &QAction::trigger);
+
+    connect(hotkey_registry.GetHotkey(QStringLiteral("Main Window"),
+                                      QStringLiteral("Stop Emulation"), this),
+            &QShortcut::activated, ui.action_Stop, &QAction::trigger);
+
+    connect(hotkey_registry.GetHotkey(QStringLiteral("Main Window"), QStringLiteral("Exit"), this),
+            &QShortcut::activated, ui.action_Exit, &QAction::trigger);
+
+    connect(hotkey_registry.GetHotkey(QStringLiteral("Main Window"),
+                                      QStringLiteral("Continue/Pause Emulation"), this),
             &QShortcut::activated, this, [&] {
                 if (emulation_running) {
                     if (emu_thread->IsRunning()) {
@@ -356,146 +362,264 @@ void GMainWindow::InitializeHotkeys() {
                     }
                 }
             });
-    connect(hotkey_registry.GetHotkey("Main Window", "Restart Emulation", this),
+
+    connect(hotkey_registry.GetHotkey(QStringLiteral("Main Window"),
+                                      QStringLiteral("Restart Emulation"), this),
             &QShortcut::activated, this, [this] {
-                if (!Core::System::GetInstance().IsPoweredOn())
+                if (!Core::System::GetInstance().IsPoweredOn()) {
                     return;
+                }
                 BootGame(QString(game_path));
             });
-    connect(hotkey_registry.GetHotkey("Main Window", "Swap Screens", render_window),
+
+    connect(hotkey_registry.GetHotkey(QStringLiteral("Main Window"), QStringLiteral("Swap Screens"),
+                                      render_window),
             &QShortcut::activated, ui.action_Screen_Layout_Swap_Screens, &QAction::trigger);
-    connect(hotkey_registry.GetHotkey("Main Window", "Toggle Screen Layout", render_window),
+
+    connect(hotkey_registry.GetHotkey(QStringLiteral("Main Window"),
+                                      QStringLiteral("Toggle Screen Layout"), render_window),
             &QShortcut::activated, this, &GMainWindow::ToggleScreenLayout);
-    connect(hotkey_registry.GetHotkey("Main Window", "Fullscreen", render_window),
+
+    connect(hotkey_registry.GetHotkey(QStringLiteral("Main Window"), QStringLiteral("Fullscreen"),
+                                      render_window),
             &QShortcut::activated, ui.action_Fullscreen, &QAction::trigger);
-    connect(hotkey_registry.GetHotkey("Main Window", "Fullscreen", render_window),
+
+    connect(hotkey_registry.GetHotkey(QStringLiteral("Main Window"), QStringLiteral("Fullscreen"),
+                                      render_window),
             &QShortcut::activatedAmbiguously, ui.action_Fullscreen, &QAction::trigger);
-    connect(hotkey_registry.GetHotkey("Main Window", "Exit Fullscreen", this),
+
+    connect(hotkey_registry.GetHotkey(QStringLiteral("Main Window"),
+                                      QStringLiteral("Exit Fullscreen"), this),
             &QShortcut::activated, this, [&] {
                 if (emulation_running) {
                     ui.action_Fullscreen->setChecked(false);
                     ToggleFullscreen();
                 }
             });
-    connect(hotkey_registry.GetHotkey("Main Window", "Toggle Speed Limit", this),
+
+    connect(hotkey_registry.GetHotkey(QStringLiteral("Main Window"),
+                                      QStringLiteral("Toggle Speed Limit"), this),
             &QShortcut::activated, this, [&] {
                 Settings::values.use_frame_limit = !Settings::values.use_frame_limit;
+                Settings::LogSettings();
                 UpdateStatusBar();
             });
-    connect(hotkey_registry.GetHotkey("Main Window", "Toggle Texture Dumping", this),
-            &QShortcut::activated, this,
-            [&] { Settings::values.dump_textures = !Settings::values.dump_textures; });
+
+    connect(hotkey_registry.GetHotkey(QStringLiteral("Main Window"),
+                                      QStringLiteral("Toggle Texture Dumping"), this),
+            &QShortcut::activated, this, [&] {
+                Settings::values.dump_textures = !Settings::values.dump_textures;
+                Settings::LogSettings();
+            });
+
     // We use "static" here in order to avoid capturing by lambda due to a MSVC bug, which makes
     // the variable hold a garbage value after this function exits
     static constexpr u16 SPEED_LIMIT_STEP = 5;
-    connect(hotkey_registry.GetHotkey("Main Window", "Increase Speed Limit", this),
+
+    connect(hotkey_registry.GetHotkey(QStringLiteral("Main Window"),
+                                      QStringLiteral("Increase Speed Limit"), this),
             &QShortcut::activated, this, [&] {
                 if (Settings::values.frame_limit < 9999 - SPEED_LIMIT_STEP) {
                     Settings::values.frame_limit += SPEED_LIMIT_STEP;
+                    Settings::LogSettings();
                     UpdateStatusBar();
                 }
             });
-    connect(hotkey_registry.GetHotkey("Main Window", "Decrease Speed Limit", this),
+
+    connect(hotkey_registry.GetHotkey(QStringLiteral("Main Window"),
+                                      QStringLiteral("Decrease Speed Limit"), this),
             &QShortcut::activated, this, [&] {
                 if (Settings::values.frame_limit > SPEED_LIMIT_STEP) {
                     Settings::values.frame_limit -= SPEED_LIMIT_STEP;
+                    Settings::LogSettings();
                     UpdateStatusBar();
                 }
             });
-    connect(hotkey_registry.GetHotkey("Main Window", "Toggle Frame Advancing", this),
+
+    connect(hotkey_registry.GetHotkey(QStringLiteral("Main Window"),
+                                      QStringLiteral("Toggle Frame Advancing"), this),
             &QShortcut::activated, ui.action_Enable_Frame_Advancing, &QAction::trigger);
-    connect(hotkey_registry.GetHotkey("Main Window", "Advance Frame", this), &QShortcut::activated,
-            ui.action_Advance_Frame, &QAction::trigger);
-    connect(hotkey_registry.GetHotkey("Main Window", "Load Amiibo", this), &QShortcut::activated,
-            this, [&] {
+
+    connect(hotkey_registry.GetHotkey(QStringLiteral("Main Window"),
+                                      QStringLiteral("Advance Frame"), this),
+            &QShortcut::activated, ui.action_Advance_Frame, &QAction::trigger);
+
+    connect(hotkey_registry.GetHotkey(QStringLiteral("Main Window"), QStringLiteral("Load Amiibo"),
+                                      this),
+            &QShortcut::activated, this, [&] {
                 if (ui.action_Load_Amiibo->isEnabled()) {
                     OnLoadAmiibo();
                 }
             });
-    connect(hotkey_registry.GetHotkey("Main Window", "Remove Amiibo", this), &QShortcut::activated,
-            this, [&] {
+
+    connect(hotkey_registry.GetHotkey(QStringLiteral("Main Window"),
+                                      QStringLiteral("Remove Amiibo"), this),
+            &QShortcut::activated, this, [&] {
                 if (ui.action_Remove_Amiibo->isEnabled()) {
                     OnRemoveAmiibo();
                 }
             });
-    connect(hotkey_registry.GetHotkey("Main Window", "Capture Screenshot", this),
+
+    connect(hotkey_registry.GetHotkey(QStringLiteral("Main Window"),
+                                      QStringLiteral("Capture Screenshot"), this),
             &QShortcut::activated, this, [&] {
                 if (emu_thread->IsRunning()) {
                     OnCaptureScreenshot();
                 }
             });
-    connect(hotkey_registry.GetHotkey("Main Window", "Toggle Custom Ticks", this),
+
+    connect(hotkey_registry.GetHotkey(QStringLiteral("Main Window"),
+                                      QStringLiteral("Toggle Custom Ticks"), this),
             &QShortcut::activated, this, [this] {
                 Settings::values.custom_ticks = !Settings::values.custom_ticks;
+                Settings::LogSettings();
                 statusBar()->showMessage(Settings::values.custom_ticks
                                              ? QStringLiteral("Custom Ticks: On")
                                              : QStringLiteral("Custom Ticks: Off"));
             });
 
-    connect(hotkey_registry.GetHotkey("Main Window", "Auto Internal Resolution", this),
+    connect(hotkey_registry.GetHotkey(QStringLiteral("Main Window"),
+                                      QStringLiteral("Auto Internal Resolution"), this),
             &QShortcut::activated, this, [this] {
-                Settings::values.resolution_factor = 0;
-                statusBar()->showMessage(QStringLiteral("Internal Resolution: Auto"));
+                const u16 original = Settings::values.resolution_factor;
+
+                if (original != 0) {
+                    Settings::values.resolution_factor = 0;
+                    Settings::LogSettings();
+                    statusBar()->showMessage(QStringLiteral("Internal Resolution: Auto"));
+                }
             });
 
-    connect(hotkey_registry.GetHotkey("Main Window", "Native Internal Resolution", this),
+    connect(hotkey_registry.GetHotkey(QStringLiteral("Main Window"),
+                                      QStringLiteral("Native Internal Resolution"), this),
             &QShortcut::activated, this, [this] {
-                Settings::values.resolution_factor = 1;
-                statusBar()->showMessage(QStringLiteral("Internal Resolution: Native"));
+                const u16 original = Settings::values.resolution_factor;
+
+                if (original != 1) {
+                    Settings::values.resolution_factor = 1;
+                    Settings::LogSettings();
+                    statusBar()->showMessage(QStringLiteral("Internal Resolution: Native"));
+                }
             });
 
-    connect(hotkey_registry.GetHotkey("Main Window", "2x Native Internal Resolution", this),
+    connect(hotkey_registry.GetHotkey(QStringLiteral("Main Window"),
+                                      QStringLiteral("2x Native Internal Resolution"), this),
             &QShortcut::activated, this, [this] {
-                Settings::values.resolution_factor = 2;
-                statusBar()->showMessage(QStringLiteral("Internal Resolution: 2x Native"));
+                const u16 original = Settings::values.resolution_factor;
+
+                if (original != 2) {
+                    Settings::values.resolution_factor = 2;
+                    Settings::LogSettings();
+                    statusBar()->showMessage(QStringLiteral("Internal Resolution: 2x Native"));
+                }
             });
 
-    connect(hotkey_registry.GetHotkey("Main Window", "3x Native Internal Resolution", this),
+    connect(hotkey_registry.GetHotkey(QStringLiteral("Main Window"),
+                                      QStringLiteral("3x Native Internal Resolution"), this),
             &QShortcut::activated, this, [this] {
-                Settings::values.resolution_factor = 3;
-                statusBar()->showMessage(QStringLiteral("Internal Resolution: 3x Native"));
+                const u16 original = Settings::values.resolution_factor;
+
+                if (original != 3) {
+                    Settings::values.resolution_factor = 3;
+                    Settings::LogSettings();
+                    statusBar()->showMessage(QStringLiteral("Internal Resolution: 3x Native"));
+                }
             });
 
-    connect(hotkey_registry.GetHotkey("Main Window", "4x Native Internal Resolution", this),
+    connect(hotkey_registry.GetHotkey(QStringLiteral("Main Window"),
+                                      QStringLiteral("4x Native Internal Resolution"), this),
             &QShortcut::activated, this, [this] {
-                Settings::values.resolution_factor = 4;
-                statusBar()->showMessage(QStringLiteral("Internal Resolution: 4x Native"));
+                const u16 original = Settings::values.resolution_factor;
+
+                if (original != 4) {
+                    Settings::values.resolution_factor = 4;
+                    Settings::LogSettings();
+                    statusBar()->showMessage(QStringLiteral("Internal Resolution: 4x Native"));
+                }
             });
 
-    connect(hotkey_registry.GetHotkey("Main Window", "5x Native Internal Resolution", this),
+    connect(hotkey_registry.GetHotkey(QStringLiteral("Main Window"),
+                                      QStringLiteral("5x Native Internal Resolution"), this),
             &QShortcut::activated, this, [this] {
-                Settings::values.resolution_factor = 5;
-                statusBar()->showMessage(QStringLiteral("Internal Resolution: 5x Native"));
+                const u16 original = Settings::values.resolution_factor;
+
+                if (original != 5) {
+                    Settings::values.resolution_factor = 5;
+                    Settings::LogSettings();
+                    statusBar()->showMessage(QStringLiteral("Internal Resolution: 5x Native"));
+                }
             });
 
-    connect(hotkey_registry.GetHotkey("Main Window", "6x Native Internal Resolution", this),
+    connect(hotkey_registry.GetHotkey(QStringLiteral("Main Window"),
+                                      QStringLiteral("6x Native Internal Resolution"), this),
             &QShortcut::activated, this, [this] {
-                Settings::values.resolution_factor = 6;
-                statusBar()->showMessage(QStringLiteral("Internal Resolution: 6x Native"));
+                const u16 original = Settings::values.resolution_factor;
+
+                if (original != 6) {
+                    Settings::values.resolution_factor = 6;
+                    Settings::LogSettings();
+                    statusBar()->showMessage(QStringLiteral("Internal Resolution: 6x Native"));
+                }
             });
 
-    connect(hotkey_registry.GetHotkey("Main Window", "7x Native Internal Resolution", this),
+    connect(hotkey_registry.GetHotkey(QStringLiteral("Main Window"),
+                                      QStringLiteral("7x Native Internal Resolution"), this),
             &QShortcut::activated, this, [this] {
-                Settings::values.resolution_factor = 7;
-                statusBar()->showMessage(QStringLiteral("Internal Resolution: 7x Native"));
+                const u16 original = Settings::values.resolution_factor;
+
+                if (original != 7) {
+                    Settings::values.resolution_factor = 7;
+                    Settings::LogSettings();
+                    statusBar()->showMessage(QStringLiteral("Internal Resolution: 7x Native"));
+                }
             });
 
-    connect(hotkey_registry.GetHotkey("Main Window", "8x Native Internal Resolution", this),
+    connect(hotkey_registry.GetHotkey(QStringLiteral("Main Window"),
+                                      QStringLiteral("8x Native Internal Resolution"), this),
             &QShortcut::activated, this, [this] {
-                Settings::values.resolution_factor = 8;
-                statusBar()->showMessage(QStringLiteral("Internal Resolution: 8x Native"));
+                const u16 original = Settings::values.resolution_factor;
+
+                if (original != 8) {
+                    Settings::values.resolution_factor = 8;
+                    Settings::LogSettings();
+                    statusBar()->showMessage(QStringLiteral("Internal Resolution: 8x Native"));
+                }
             });
 
-    connect(hotkey_registry.GetHotkey("Main Window", "9x Native Internal Resolution", this),
+    connect(hotkey_registry.GetHotkey(QStringLiteral("Main Window"),
+                                      QStringLiteral("9x Native Internal Resolution"), this),
             &QShortcut::activated, this, [this] {
-                Settings::values.resolution_factor = 9;
-                statusBar()->showMessage(QStringLiteral("Internal Resolution: 9x Native"));
+                const u16 original = Settings::values.resolution_factor;
+
+                if (original != 9) {
+                    Settings::values.resolution_factor = 9;
+                    Settings::LogSettings();
+                    statusBar()->showMessage(QStringLiteral("Internal Resolution: 9x Native"));
+                }
             });
 
-    connect(hotkey_registry.GetHotkey("Main Window", "10x Native Internal Resolution", this),
+    connect(hotkey_registry.GetHotkey(QStringLiteral("Main Window"),
+                                      QStringLiteral("10x Native Internal Resolution"), this),
             &QShortcut::activated, this, [this] {
-                Settings::values.resolution_factor = 10;
-                statusBar()->showMessage(QStringLiteral("Internal Resolution: 10x Native"));
+                const u16 original = Settings::values.resolution_factor;
+
+                if (original != 10) {
+                    Settings::values.resolution_factor = 10;
+                    Settings::LogSettings();
+                    statusBar()->showMessage(QStringLiteral("Internal Resolution: 10x Native"));
+                }
+            });
+
+    connect(hotkey_registry.GetHotkey(QStringLiteral("Main Window"),
+                                      QStringLiteral("Toggle Hardware Shader"), this),
+            &QShortcut::activated, this, [this] {
+                Settings::values.use_hw_shader = !Settings::values.use_hw_shader;
+                Settings::Apply();
+                Settings::LogSettings();
+
+                statusBar()->showMessage(Settings::values.use_hw_shader
+                                             ? QStringLiteral("Hardware Shader: On")
+                                             : QStringLiteral("Hardware Shader: Off"));
             });
 }
 
@@ -673,6 +797,16 @@ void GMainWindow::ConnectMenuEvents() {
     // Help
     connect(ui.action_Open_Citra_Folder, &QAction::triggered, this,
             &GMainWindow::OnOpenCitraFolder);
+
+    connect(ui.action_About, &QAction::triggered, this, &GMainWindow::OnMenuAboutCitraValentin);
+
+    connect(ui.action_Changelog, &QAction::triggered, this, [] {
+        QDesktopServices::openUrl(
+            QUrl(QStringLiteral("https://github.com/vvanelslande/citra/blob/master/changelog.md#") +
+                 QString::number(Version::major) + QString::number(Version::minor) +
+                 QString::number(Version::patch)));
+    });
+
 #ifdef _WIN32
     connect(ui.action_Open_EXE_Location, &QAction::triggered, this, [] {
         QDesktopServices::openUrl(
@@ -681,7 +815,6 @@ void GMainWindow::ConnectMenuEvents() {
 #else
     ui.action_Open_EXE_Location->setVisible(false);
 #endif
-    connect(ui.action_About, &QAction::triggered, this, &GMainWindow::OnMenuAboutCitraValentin);
 }
 
 void GMainWindow::OnDisplayTitleBars(bool show) {

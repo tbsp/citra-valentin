@@ -38,6 +38,7 @@ void ConfigureGraphics::SetConfiguration() {
     ui->ignore_format_reinterpretation->setChecked(Settings::values.ignore_format_reinterpretation);
     ui->toggle_custom_screen_refresh_rate->setChecked(Settings::values.custom_screen_refresh_rate);
     ui->custom_screen_refresh_rate->setValue(Settings::values.screen_refresh_rate);
+    ui->min_vertices_per_thread->setValue(Settings::values.min_vertices_per_thread);
 }
 
 void ConfigureGraphics::ApplyConfiguration() {
@@ -52,4 +53,5 @@ void ConfigureGraphics::ApplyConfiguration() {
     Settings::values.custom_screen_refresh_rate =
         ui->toggle_custom_screen_refresh_rate->isChecked();
     Settings::values.screen_refresh_rate = ui->custom_screen_refresh_rate->value();
+    Settings::values.min_vertices_per_thread = ui->min_vertices_per_thread->value();
 }

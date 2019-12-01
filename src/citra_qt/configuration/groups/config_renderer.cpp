@@ -24,6 +24,8 @@ void Config::ReadRendererValues() {
     Settings::values.bg_red = ReadSetting(QStringLiteral("bg_red"), 0.0).toFloat();
     Settings::values.bg_green = ReadSetting(QStringLiteral("bg_green"), 0.0).toFloat();
     Settings::values.bg_blue = ReadSetting(QStringLiteral("bg_blue"), 0.0).toFloat();
+    Settings::values.min_vertices_per_thread =
+        ReadSetting(QStringLiteral("min_vertices_per_thread"), 10).toInt();
     qt_config->endGroup();
 }
 
@@ -39,6 +41,8 @@ void Config::SaveRendererValues() {
     WriteSetting(QStringLiteral("resolution_factor"), Settings::values.resolution_factor, 1);
     WriteSetting(QStringLiteral("use_frame_limit"), Settings::values.use_frame_limit, true);
     WriteSetting(QStringLiteral("frame_limit"), Settings::values.frame_limit, 100);
+    WriteSetting(QStringLiteral("min_vertices_per_thread"),
+                 Settings::values.min_vertices_per_thread, 10);
 
     // Cast to double because Qt's written float values are not human-readable
     WriteSetting(QStringLiteral("bg_red"), (double)Settings::values.bg_red, 0.0);
