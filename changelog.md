@@ -17,7 +17,8 @@
 
 ## Fixes
 
-- SDL frontend crash
+- SDL: Crash after starting a game
+- SDL: Move `Starting in fullscreen mode...` log to `EmuWindow_SDL2`, was logged if using `--help` or `--version`
 
 ## Minor Changes
 

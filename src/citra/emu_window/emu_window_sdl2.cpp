@@ -191,6 +191,7 @@ EmuWindow_SDL2::EmuWindow_SDL2(bool fullscreen, int fullscreen_display_index) {
                                     SDL_WINDOW_HIDDEN | SDL_WINDOW_OPENGL);
 
     if (fullscreen) {
+        LOG_INFO(Frontend, "Starting in fullscreen mode...");
         Fullscreen();
     }
 

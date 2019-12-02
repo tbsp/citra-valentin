@@ -328,8 +328,6 @@ int main(int argc, char** argv) {
     LocalFree(argv_w);
 #endif
 
-    LOG_INFO(Frontend, "Starting in fullscreen mode...");
-
     MicroProfileOnThreadCreate("EmuThread");
     SCOPE_EXIT({ MicroProfileShutdown(); });
 
