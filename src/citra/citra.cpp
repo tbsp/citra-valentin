@@ -303,7 +303,6 @@ int main(int argc, char** argv) {
                 break;
             case 'f':
                 fullscreen = true;
-                LOG_INFO(Frontend, "Starting in fullscreen mode...");
                 break;
             case 'x':
                 fullscreen_display_index = std::atoi(optarg);
@@ -328,6 +327,8 @@ int main(int argc, char** argv) {
 #ifdef _WIN32
     LocalFree(argv_w);
 #endif
+
+    LOG_INFO(Frontend, "Starting in fullscreen mode...");
 
     MicroProfileOnThreadCreate("EmuThread");
     SCOPE_EXIT({ MicroProfileShutdown(); });

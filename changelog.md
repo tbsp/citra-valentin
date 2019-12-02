@@ -1,5 +1,6 @@
 # Versions
 
+[4.0.1](#401)  
 [4.0.0](#400)  
 [3.0.2](#302)  
 [3.0.1](#301)  
@@ -12,11 +13,16 @@
 [2.10.2](#2102)  
 [2.10.1](#2101)
 
-# Unreleased
+# 4.0.1
+
+## Fixes
+
+- SDL frontend crash
 
 ## Minor Changes
 
-- Externals: Bump `fmt` from `3bc28fc` to `7111a1eb`
+- Externals: Bump `fmt` from `3bc28fc` to `4ca6821`
+- SDL: Remove `is_fullscreen` hack because it's not needed
 - Add `.prettierrc.json`
 
 # 4.0.0

@@ -107,6 +107,4 @@ private:
     u32 last_time = 0;
 
     std::string game;
-
-    bool is_fullscreen = false;
 };

@@ -114,7 +114,6 @@ void EmuWindow_SDL2::OnResize() {
 
 void EmuWindow_SDL2::Fullscreen() {
     if (SDL_SetWindowFullscreen(render_window, SDL_WINDOW_FULLSCREEN) == 0) {
-        is_fullscreen = true;
         return;
     }
 
@@ -299,15 +298,15 @@ void EmuWindow_SDL2::PollEvents() {
     }
 
     const u32 current_time = SDL_GetTicks();
-    if (!is_fullscreen && current_time > last_time + 2000) {
+    if (current_time > last_time + 2000) {
         const auto results = Core::System::GetInstance().GetAndResetPerfStats();
         const std::string title =
-            game.empty() ? fmt::format("Citra Valentin {}.{}.{} | FPS: {:.0f} ({:.0%})",
+            game.empty() ? fmt::format("Citra Valentin {}.{}.{} | FPS: {:.0f} ({:.0f}%)",
                                        Version::major, Version::minor, Version::patch,
-                                       results.game_fps, results.emulation_speed)
-                         : fmt::format("Citra Valentin {}.{}.{} | {} | FPS: {:.0f} ({:.0%})",
+                                       results.game_fps, results.emulation_speed * 100.0)
+                         : fmt::format("Citra Valentin {}.{}.{} | {} | FPS: {:.0f} ({:.0f}%)",
                                        Version::major, Version::minor, Version::patch, game,
-                                       results.game_fps, results.emulation_speed);
+                                       results.game_fps, results.emulation_speed * 100.0);
         SDL_SetWindowTitle(render_window, title.c_str());
         last_time = current_time;
     }
