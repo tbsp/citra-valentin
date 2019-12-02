@@ -323,7 +323,6 @@ jobs:
           itemPattern: windows-release/citra-valentin-windows-$(CITRA_VERSION).tar.gz
           targetPath: $(Build.ArtifactStagingDirectory)
       - task: GitHubRelease@1
-        condition: and(succeeded(), eq(variables['Build.SourceBranch'], 'refs/heads/master'), not(contains(variables['Build.SourceVersionMessage'], '[skip release]')))
         inputs:
           gitHubConnection: GitHub Releases
           repositoryName: $(Build.Repository.Name)
@@ -331,5 +330,7 @@ jobs:
           target: $(Build.SourceVersion)
           tagSource: userSpecifiedTag
           tag: $(CITRA_VERSION)
+          releaseNotesSource: inline
+          releaseNotesInline: '[Changelog](https://github.com/vvanelslande/citra/blob/master/changelog.md#$(Build.SourceVersionMessage))'
           changeLogCompareToRelease: lastFullRelease
           changeLogType: commitBased
