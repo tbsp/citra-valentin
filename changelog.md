@@ -16,7 +16,9 @@
 
 # 4.0.2
 
-This version removes the commit list from the release descriptions.
+## Fixes
+
+- Azure Pipelines: a commit changelog was added to the release descriptions
 
 # 4.0.1
 
