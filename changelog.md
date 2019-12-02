@@ -12,6 +12,12 @@
 [2.10.2](#2102)  
 [2.10.1](#2101)
 
+# Unreleased
+
+## Minor Changes
+
+- Externals: Bump `fmt` from `3bc28fc` to `7111a1eb`
+
 # 4.0.0
 
 ## Breaking Changes
