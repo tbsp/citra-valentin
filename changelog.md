@@ -14,6 +14,12 @@
 [2.10.2](#2102)  
 [2.10.1](#2101)
 
+# Unreleased
+
+## Minor Changes
+
+- Externals: Bump `fmt` from `4ca6821` to `5981588`
+
 # 4.0.2
 
 ## Fixes
