@@ -76,8 +76,10 @@ jobs:
         displayName: Build
       - powershell: |
           $CITRA_VERSION = (./build/bin/citra-valentin --version) -replace "Citra Valentin ", ""
-          Write-Host "Citra Version: $CITRA_VERSION"
+          $CITRA_VERSION_NUMBER = $CITRA_VERSION -replace "\.", ""
+          Write-Host "Citra Version: $CITRA_VERSION ($CITRA_VERSION_NUMBER)"
           Write-Host "##vso[task.setvariable variable=CITRA_VERSION;isOutput=true]$CITRA_VERSION"
+          Write-Host "##vso[task.setvariable variable=CITRA_VERSION_NUMBER;isOutput=true]$CITRA_VERSION_NUMBER"
         name: getCitraVersionStep
         displayName: Get Citra version
       - script: ./build/bin/tests
@@ -308,6 +310,7 @@ jobs:
       - WindowsRelease
     variables:
       CITRA_VERSION: $[ dependencies.LinuxRelease.outputs['getCitraVersionStep.CITRA_VERSION'] ]
+      CITRA_VERSION_NUMBER: $[ dependencies.LinuxRelease.outputs['getCitraVersionStep.CITRA_VERSION_NUMBER'] ]
     steps:
       - task: DownloadPipelineArtifact@2
         condition: and(succeeded(), eq(variables['Build.SourceBranch'], 'refs/heads/master'), not(contains(variables['Build.SourceVersionMessage'], '[skip release]')))
@@ -331,6 +334,6 @@ jobs:
           tagSource: userSpecifiedTag
           tag: $(CITRA_VERSION)
           releaseNotesSource: inline
-          releaseNotesInline: '[Changelog](https://github.com/vvanelslande/citra/blob/master/changelog.md#$(Build.SourceVersionMessage))'
+          releaseNotesInline: '[Changelog](https://github.com/vvanelslande/citra/blob/master/changelog.md#$(CITRA_VERSION_NUMBER))'
           changeLogCompareToRelease: lastFullRelease
           changeLogType: commitBased
