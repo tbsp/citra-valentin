@@ -16,9 +16,7 @@
 
 # 4.0.2
 
-## Fixes
-
-- Releases: 2 changelogs
+This version removes the commit list from the release descriptions.
 
 # 4.0.1
 
