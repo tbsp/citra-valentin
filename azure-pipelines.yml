@@ -1,341 +1,335 @@
 jobs:
-- job: LinuxDebug
-  timeoutInMinutes: 60
-  pool:
-    vmImage: 'ubuntu-18.04'
-  steps:
-    - script: |
-        sudo apt-get update
-        sudo apt-get install -qq -y libsdl2-dev qtbase5-dev libqt5opengl5-dev qtmultimedia5-dev libqt5multimedia5-plugins libavcodec-dev libavformat-dev libswscale-dev
-      displayName: 'Install dependencies'
-    - script: git submodule update --init --recursive
-      displayName: 'Fetch submodules'
-    - script: |
-        mkdir build
-      displayName: 'Create build directory'
-    - task: CMake@1
-      inputs:
-        cmakeArgs: '-DCMAKE_BUILD_TYPE=Debug -DCITRA_ENABLE_DISCORD_RP=ON -DENABLE_FFMPEG_VIDEO_DUMPER=ON ..'
-    - script: cd build && make
-      displayName: 'Build'
-    - powershell: |
-        $CITRA_VERSION = (./build/bin/citra-valentin --version) -replace "Citra Valentin ", ""
-        Write-Host "Citra Version: $CITRA_VERSION"
-        Write-Host "##vso[task.setvariable variable=CITRA_VERSION;isOutput=true]$CITRA_VERSION"
-      name: 'getCitraVersionStep'
-      displayName: 'Get Citra version'
-    - script: ./build/bin/tests
-      displayName: 'Run tests'
-    - powershell: |
-        Remove-Item "./build/bin/tests" # Tests
+  - job: LinuxDebug
+    timeoutInMinutes: 60
+    pool:
+      vmImage: ubuntu-18.04
+    steps:
+      - script: |
+          sudo apt-get update
+          sudo apt-get install -qq -y libsdl2-dev qtbase5-dev libqt5opengl5-dev qtmultimedia5-dev libqt5multimedia5-plugins libavcodec-dev libavformat-dev libswscale-dev
+        displayName: Install dependencies
+      - script: git submodule update --init --recursive
+        displayName: Fetch submodules
+      - script: |
+          mkdir build
+        displayName: Create build directory
+      - task: CMake@1
+        inputs:
+          cmakeArgs: -DCMAKE_BUILD_TYPE=Debug -DCITRA_ENABLE_DISCORD_RP=ON -DENABLE_FFMPEG_VIDEO_DUMPER=ON ..
+      - script: cd build && make
+        displayName: Build
+      - powershell: |
+          $CITRA_VERSION = (./build/bin/citra-valentin --version) -replace "Citra Valentin ", ""
+          Write-Host "Citra Version: $CITRA_VERSION"
+          Write-Host "##vso[task.setvariable variable=CITRA_VERSION;isOutput=true]$CITRA_VERSION"
+        name: getCitraVersionStep
+        displayName: Get Citra version
+      - script: ./build/bin/tests
+        displayName: Run tests
+      - powershell: |
+          Remove-Item "./build/bin/tests"
+          Rename-Item "./build/bin" "citra-valentin-linux-$(getCitraVersionStep.CITRA_VERSION)"
+        displayName: Cleanup
+      - task: CopyFiles@2
+        inputs:
+          SourceFolder: .
+          Contents: |
+            readme.md
+            license.txt
+          TargetFolder: build/citra-valentin-linux-$(getCitraVersionStep.CITRA_VERSION)
+        displayName: Copy readme.md and license.txt
+      - task: CopyFiles@2
+        inputs:
+          SourceFolder: dist/scripting
+          Contents: '**'
+          TargetFolder: build/citra-valentin-linux-$(getCitraVersionStep.CITRA_VERSION)/scripting
+        displayName: Copy scripting files
+      - task: ArchiveFiles@2
+        inputs:
+          rootFolderOrFile: build/citra-valentin-linux-$(getCitraVersionStep.CITRA_VERSION)
+          includeRootFolder: true
+          archiveType: tar
+          archiveFile: $(Build.ArtifactStagingDirectory)/citra-valentin-linux-$(getCitraVersionStep.CITRA_VERSION).tar.gz
+          replaceExistingArchive: true
+      - task: PublishBuildArtifacts@1
+        inputs:
+          PathtoPublish: $(Build.ArtifactStagingDirectory)
+          ArtifactName: linux-debug
+          publishLocation: Container
+  - job: LinuxRelease
+    timeoutInMinutes: 60
+    pool:
+      vmImage: ubuntu-18.04
+    steps:
+      - script: |
+          sudo apt-get update
+          sudo apt-get install -qq -y libsdl2-dev qtbase5-dev libqt5opengl5-dev qtmultimedia5-dev libqt5multimedia5-plugins libavcodec-dev libavformat-dev libswscale-dev
+        displayName: Install dependencies
+      - script: git submodule update --init --recursive
+        displayName: Fetch submodules
+      - script: mkdir build
+        displayName: Create build directory
+      - task: CMake@1
+        inputs:
+          cmakeArgs: -DCMAKE_BUILD_TYPE=Release -DCITRA_ENABLE_DISCORD_RP=ON -DENABLE_FFMPEG_VIDEO_DUMPER=ON ..
+      - script: cd build && make
+        displayName: Build
+      - powershell: |
+          $CITRA_VERSION = (./build/bin/citra-valentin --version) -replace "Citra Valentin ", ""
+          Write-Host "Citra Version: $CITRA_VERSION"
+          Write-Host "##vso[task.setvariable variable=CITRA_VERSION;isOutput=true]$CITRA_VERSION"
+        name: getCitraVersionStep
+        displayName: Get Citra version
+      - script: ./build/bin/tests
+        displayName: Run tests
+      - powershell: |
+          Remove-Item "./build/bin/tests" # Tests
 
-        # Rename bin to citra-valentin-linux-$(getCitraVersionStep.CITRA_VERSION).
-        Rename-Item "./build/bin" "citra-valentin-linux-$(getCitraVersionStep.CITRA_VERSION)"
-      displayName: 'Cleanup'
-    - task: CopyFiles@2
-      inputs:
-        SourceFolder: '.'
-        Contents: |
-          readme.md
-          license.txt
-        TargetFolder: 'build/citra-valentin-linux-$(getCitraVersionStep.CITRA_VERSION)'
-      displayName: 'Copy readme.md and license.txt'
-    - task: CopyFiles@2
-      inputs:
-        SourceFolder: 'dist/scripting'
-        Contents: |
-          **
-        TargetFolder: 'build/citra-valentin-linux-$(getCitraVersionStep.CITRA_VERSION)/scripting'
-      displayName: 'Copy scripting files'
-    - task: ArchiveFiles@2
-      inputs:
-        rootFolderOrFile: 'build/citra-valentin-linux-$(getCitraVersionStep.CITRA_VERSION)'
-        includeRootFolder: true
-        archiveType: 'tar'
-        archiveFile: '$(Build.ArtifactStagingDirectory)/citra-valentin-linux-$(getCitraVersionStep.CITRA_VERSION).tar.gz'
-        replaceExistingArchive: true
-    - task: PublishBuildArtifacts@1
-      inputs:
-        PathtoPublish: '$(Build.ArtifactStagingDirectory)'
-        ArtifactName: 'linux-debug'
-        publishLocation: 'Container'
-- job: LinuxRelease
-  timeoutInMinutes: 60
-  pool:
-    vmImage: 'ubuntu-18.04'
-  steps:
-    - script: |
-        sudo apt-get update
-        sudo apt-get install -qq -y libsdl2-dev qtbase5-dev libqt5opengl5-dev qtmultimedia5-dev libqt5multimedia5-plugins libavcodec-dev libavformat-dev libswscale-dev
-      displayName: 'Install dependencies'
-    - script: git submodule update --init --recursive
-      displayName: 'Fetch submodules'
-    - script: mkdir build
-      displayName: 'Create build directory'
-    - task: CMake@1
-      inputs:
-        cmakeArgs: '-DCMAKE_BUILD_TYPE=Release -DCITRA_ENABLE_DISCORD_RP=ON -DENABLE_FFMPEG_VIDEO_DUMPER=ON ..'
-    - script: cd build && make
-      displayName: 'Build'
-    - powershell: |
-        $CITRA_VERSION = (./build/bin/citra-valentin --version) -replace "Citra Valentin ", ""
-        Write-Host "Citra Version: $CITRA_VERSION"
-        Write-Host "##vso[task.setvariable variable=CITRA_VERSION;isOutput=true]$CITRA_VERSION"
-      name: 'getCitraVersionStep'
-      displayName: 'Get Citra version'
-    - script: ./build/bin/tests
-      displayName: 'Run tests'
-    - powershell: |
-        Remove-Item "./build/bin/tests" # Tests
+          # Rename bin to citra-valentin-linux-$(getCitraVersionStep.CITRA_VERSION).
+          Rename-Item "./build/bin" "citra-valentin-linux-$(getCitraVersionStep.CITRA_VERSION)"
+        displayName: Cleanup
+      - task: CopyFiles@2
+        inputs:
+          SourceFolder: .
+          Contents: |
+            readme.md
+            license.txt
+          TargetFolder: build/citra-valentin-linux-$(getCitraVersionStep.CITRA_VERSION)
+        displayName: Copy readme.md and license.txt
+      - task: CopyFiles@2
+        inputs:
+          SourceFolder: dist/scripting
+          Contents: |
+            **
+          TargetFolder: build/citra-valentin-linux-$(getCitraVersionStep.CITRA_VERSION)/scripting
+        displayName: Copy scripting files
+      - task: ArchiveFiles@2
+        inputs:
+          rootFolderOrFile: build/citra-valentin-linux-$(getCitraVersionStep.CITRA_VERSION)
+          includeRootFolder: true
+          archiveType: tar
+          archiveFile: $(Build.ArtifactStagingDirectory)/citra-valentin-linux-$(getCitraVersionStep.CITRA_VERSION).tar.gz
+          replaceExistingArchive: true
+      - task: PublishBuildArtifacts@1
+        inputs:
+          PathtoPublish: $(Build.ArtifactStagingDirectory)
+          ArtifactName: linux-release
+          publishLocation: Container
+  - job: WindowsDebug
+    timeoutInMinutes: 60
+    pool:
+      vmImage: windows-2019
+    steps:
+      - script: git submodule update --init --recursive
+        displayName: Fetch submodules
+      - script: mkdir build
+        displayName: Create build directory
+      - task: CMake@1
+        inputs:
+          cmakeArgs: -DCITRA_USE_BUNDLED_QT=ON -DCITRA_USE_BUNDLED_SDL2=ON  -DCITRA_ENABLE_DISCORD_RP=ON -DENABLE_MF=ON -DENABLE_FFMPEG_VIDEO_DUMPER=ON ..
+      - task: VSBuild@1
+        inputs:
+          platform: x64
+          solution: build/citra.sln
+          configuration: Debug
+      - powershell: |
+          $CITRA_VERSION = (.\build\bin\Debug\citra-valentin --version) -replace "Citra Valentin ", ""
+          Write-Host "Citra Version: $CITRA_VERSION"
+          Write-Host "##vso[task.setvariable variable=CITRA_VERSION;isOutput=true]$CITRA_VERSION"
+        name: getCitraVersionStep
+        displayName: Get Citra version
+      - script: .\build\bin\Debug\tests
+        displayName: Run tests
+      - powershell: |
+          # Tests
+          Remove-Item ".\build\bin\Debug\tests.exe"
+          Remove-Item ".\build\bin\Debug\tests.pdb"
 
-        # Rename bin to citra-valentin-linux-$(getCitraVersionStep.CITRA_VERSION).
-        Rename-Item "./build/bin" "citra-valentin-linux-$(getCitraVersionStep.CITRA_VERSION)"
-      displayName: 'Cleanup'
-    - task: CopyFiles@2
-      inputs:
-        SourceFolder: '.'
-        Contents: |
-          readme.md
-          license.txt
-        TargetFolder: 'build/citra-valentin-linux-$(getCitraVersionStep.CITRA_VERSION)'
-      displayName: 'Copy readme.md and license.txt'
-    - task: CopyFiles@2
-      inputs:
-        SourceFolder: 'dist/scripting'
-        Contents: |
-          **
-        TargetFolder: 'build/citra-valentin-linux-$(getCitraVersionStep.CITRA_VERSION)/scripting'
-      displayName: 'Copy scripting files'
-    - task: ArchiveFiles@2
-      inputs:
-        rootFolderOrFile: 'build/citra-valentin-linux-$(getCitraVersionStep.CITRA_VERSION)'
-        includeRootFolder: true
-        archiveType: 'tar'
-        archiveFile: '$(Build.ArtifactStagingDirectory)/citra-valentin-linux-$(getCitraVersionStep.CITRA_VERSION).tar.gz'
-        replaceExistingArchive: true
-    - task: PublishBuildArtifacts@1
-      inputs:
-        PathtoPublish: '$(Build.ArtifactStagingDirectory)'
-        ArtifactName: 'linux-release'
-        publishLocation: 'Container'
-- job: WindowsDebug
-  timeoutInMinutes: 60
-  pool:
-    vmImage: 'windows-2019'
-  steps:
-    - script: git submodule update --init --recursive
-      displayName: 'Fetch submodules'
-    - script: mkdir build
-      displayName: 'Create build directory'
-    - task: CMake@1
-      inputs:
-        cmakeArgs: '-DCITRA_USE_BUNDLED_QT=ON -DCITRA_USE_BUNDLED_SDL2=ON  -DCITRA_ENABLE_DISCORD_RP=ON -DENABLE_MF=ON -DENABLE_FFMPEG_VIDEO_DUMPER=ON ..'
-    - task: VSBuild@1
-      inputs:
-        platform: 'x64'
-        solution: 'build/citra.sln'
-        configuration: 'Debug'
-        msbuildArgs: ""
-    - powershell: |
-        $CITRA_VERSION = (.\build\bin\Debug\citra-valentin --version) -replace "Citra Valentin ", ""
-        Write-Host "Citra Version: $CITRA_VERSION"
-        Write-Host "##vso[task.setvariable variable=CITRA_VERSION;isOutput=true]$CITRA_VERSION"
-      name: getCitraVersionStep
-      displayName: 'Get Citra version'
-    - script: .\build\bin\Debug\tests
-      displayName: 'Run tests'
-    - powershell: |
-        # Tests
-        Remove-Item ".\build\bin\Debug\tests.exe"
-        Remove-Item ".\build\bin\Debug\tests.pdb"
+          Get-ChildItem -Path ".\build\bin\Debug" *.exp | foreach { Remove-Item -Path $_.FullName }
+          Get-ChildItem -Path ".\build\bin\Debug" *.lib | foreach { Remove-Item -Path $_.FullName }
+          Get-ChildItem -Path ".\build\bin\Debug" *.ilk | foreach { Remove-Item -Path $_.FullName }
 
-        Get-ChildItem -Path ".\build\bin\Debug" *.exp | foreach { Remove-Item -Path $_.FullName }
-        Get-ChildItem -Path ".\build\bin\Debug" *.lib | foreach { Remove-Item -Path $_.FullName }
-        Get-ChildItem -Path ".\build\bin\Debug" *.ilk | foreach { Remove-Item -Path $_.FullName }
+          # Move PDBs
+          robocopy .\build\bin\Debug .\build\bin\pdbs /E /IF *.pdb /MOVE; if ($lastexitcode -lt 8) { $global:LASTEXITCODE = $null }
 
-        # Move PDBs
-        robocopy .\build\bin\Debug .\build\bin\pdbs /E /IF *.pdb /MOVE; if ($lastexitcode -lt 8) { $global:LASTEXITCODE = $null }
+          # Rename Debug to citra-valentin-windows-$(getCitraVersionStep.CITRA_VERSION).
+          Rename-Item ".\build\bin\Debug" "citra-valentin-windows-$(getCitraVersionStep.CITRA_VERSION)"
+        displayName: Cleanup
+      - task: CopyFiles@2
+        inputs:
+          SourceFolder: .
+          Contents: |
+            readme.md
+            license.txt
+          TargetFolder: build/bin/citra-valentin-windows-$(getCitraVersionStep.CITRA_VERSION)
+        displayName: Copy readme.md and license.txt
+      - task: CopyFiles@2
+        inputs:
+          SourceFolder: dist/scripting
+          Contents: |
+            **
+          TargetFolder: build/bin/citra-valentin-windows-$(getCitraVersionStep.CITRA_VERSION)/scripting
+        displayName: Copy scripting files
+      - task: ArchiveFiles@2
+        inputs:
+          rootFolderOrFile: build/bin/citra-valentin-windows-$(getCitraVersionStep.CITRA_VERSION)
+          includeRootFolder: true
+          archiveType: tar
+          archiveFile: $(Build.ArtifactStagingDirectory)/citra-valentin-windows-$(getCitraVersionStep.CITRA_VERSION).tar.gz
+          replaceExistingArchive: true
+      - task: ArchiveFiles@2
+        inputs:
+          rootFolderOrFile: build/bin/pdbs
+          includeRootFolder: true
+          archiveType: tar
+          archiveFile: $(Build.ArtifactStagingDirectory)/citra-valentin-windows-$(getCitraVersionStep.CITRA_VERSION)-pdbs.tar.gz
+          replaceExistingArchive: true
+      - task: PublishBuildArtifacts@1
+        inputs:
+          PathtoPublish: $(Build.ArtifactStagingDirectory)
+          ArtifactName: windows-debug
+          publishLocation: Container
+  - job: WindowsRelease
+    timeoutInMinutes: 60
+    pool:
+      vmImage: windows-2019
+    steps:
+      - script: |
+          git submodule update --init --recursive
+        displayName: Fetch submodules
+      - script: |
+          mkdir build
+        displayName: Create build directory
+      - task: CMake@1
+        inputs:
+          cmakeArgs: -DCITRA_USE_BUNDLED_QT=ON -DCITRA_USE_BUNDLED_SDL2=ON  -DCITRA_ENABLE_DISCORD_RP=ON -DENABLE_MF=ON -DENABLE_FFMPEG_VIDEO_DUMPER=ON ..
+      - task: VSBuild@1
+        inputs:
+          platform: x64
+          solution: build/citra.sln
+          configuration: Release
+      - powershell: |
+          $CITRA_VERSION = (.\build\bin\Release\citra-valentin --version) -replace "Citra Valentin ", ""
+          Write-Host "Citra Version: $CITRA_VERSION"
+          Write-Host "##vso[task.setvariable variable=CITRA_VERSION;isOutput=true]$CITRA_VERSION"
+        name: getCitraVersionStep
+        displayName: Get Citra version
+      - script: .\build\bin\Release\tests
+        displayName: Run tests
+      - powershell: |
+          # Tests
+          Remove-Item ".\build\bin\Release\tests.exe"
+          Remove-Item ".\build\bin\Release\tests.pdb"
 
-        # Rename Debug to citra-valentin-windows-$(getCitraVersionStep.CITRA_VERSION).
-        Rename-Item ".\build\bin\Debug" "citra-valentin-windows-$(getCitraVersionStep.CITRA_VERSION)"
-      displayName: 'Cleanup'
-    - task: CopyFiles@2
-      inputs:
-        SourceFolder: '.'
-        Contents: |
-          readme.md
-          license.txt
-        TargetFolder: 'build/bin/citra-valentin-windows-$(getCitraVersionStep.CITRA_VERSION)'
-      displayName: 'Copy readme.md and license.txt'
-    - task: CopyFiles@2
-      inputs:
-        SourceFolder: 'dist/scripting'
-        Contents: |
-          **
-        TargetFolder: 'build/bin/citra-valentin-windows-$(getCitraVersionStep.CITRA_VERSION)/scripting'
-      displayName: 'Copy scripting files'
-    - task: ArchiveFiles@2
-      inputs:
-        rootFolderOrFile: 'build/bin/citra-valentin-windows-$(getCitraVersionStep.CITRA_VERSION)'
-        includeRootFolder: true
-        archiveType: 'tar'
-        archiveFile: '$(Build.ArtifactStagingDirectory)/citra-valentin-windows-$(getCitraVersionStep.CITRA_VERSION).tar.gz'
-        replaceExistingArchive: true
-    - task: ArchiveFiles@2
-      inputs:
-        rootFolderOrFile: 'build/bin/pdbs'
-        includeRootFolder: true
-        archiveType: 'tar'
-        archiveFile: '$(Build.ArtifactStagingDirectory)/citra-valentin-windows-$(getCitraVersionStep.CITRA_VERSION)-pdbs.tar.gz'
-        replaceExistingArchive: true
-    - task: PublishBuildArtifacts@1
-      inputs:
-        PathtoPublish: '$(Build.ArtifactStagingDirectory)'
-        ArtifactName: 'windows-debug'
-        publishLocation: 'Container'
-- job: WindowsRelease
-  timeoutInMinutes: 60
-  pool:
-    vmImage: 'windows-2019'
-  steps:
-    - script: |
-        git submodule update --init --recursive
-      displayName: 'Fetch submodules'
-    - script: |
-        mkdir build
-      displayName: 'Create build directory'
-    - task: CMake@1
-      inputs:
-        cmakeArgs: '-DCITRA_USE_BUNDLED_QT=ON -DCITRA_USE_BUNDLED_SDL2=ON  -DCITRA_ENABLE_DISCORD_RP=ON -DENABLE_MF=ON -DENABLE_FFMPEG_VIDEO_DUMPER=ON ..'
-    - task: VSBuild@1
-      inputs:
-        platform: 'x64'
-        solution: 'build/citra.sln'
-        configuration: 'Release'
-        msbuildArgs: ""
-    - powershell: |
-        $CITRA_VERSION = (.\build\bin\Release\citra-valentin --version) -replace "Citra Valentin ", ""
-        Write-Host "Citra Version: $CITRA_VERSION"
-        Write-Host "##vso[task.setvariable variable=CITRA_VERSION;isOutput=true]$CITRA_VERSION"
-      name: getCitraVersionStep
-      displayName: 'Get Citra version'
-    - script: .\build\bin\Release\tests
-      displayName: 'Run tests'
-    - powershell: |
-        # Tests
-        Remove-Item ".\build\bin\Release\tests.exe"
-        Remove-Item ".\build\bin\Release\tests.pdb"
+          Get-ChildItem -Path ".\build\bin\Release" *.exp | foreach { Remove-Item -Path $_.FullName }
+          Get-ChildItem -Path ".\build\bin\Release" *.lib | foreach { Remove-Item -Path $_.FullName }
 
-        Get-ChildItem -Path ".\build\bin\Release" *.exp | foreach { Remove-Item -Path $_.FullName }
-        Get-ChildItem -Path ".\build\bin\Release" *.lib | foreach { Remove-Item -Path $_.FullName }
-        
-        # Move PDBs
-        robocopy .\build\bin\Release .\build\bin\pdbs /E /IF *.pdb /MOVE; if ($lastexitcode -lt 8) { $global:LASTEXITCODE = $null }
+          # Move PDBs
+          robocopy .\build\bin\Release .\build\bin\pdbs /E /IF *.pdb /MOVE; if ($lastexitcode -lt 8) { $global:LASTEXITCODE = $null }
 
-        # Rename Release to citra-valentin-windows-$(getCitraVersionStep.CITRA_VERSION).
-        Rename-Item ".\build\bin\Release" "citra-valentin-windows-$(getCitraVersionStep.CITRA_VERSION)"
-      displayName: 'Cleanup'
-    - task: CopyFiles@2
-      inputs:
-        SourceFolder: '.'
-        Contents: |
-          readme.md
-          license.txt
-        TargetFolder: 'build/bin/citra-valentin-windows-$(getCitraVersionStep.CITRA_VERSION)'
-      displayName: 'Copy readme.md and license.txt'
-    - task: CopyFiles@2
-      inputs:
-        SourceFolder: 'dist/scripting'
-        Contents: |
-          **
-        TargetFolder: 'build/bin/citra-valentin-windows-$(getCitraVersionStep.CITRA_VERSION)/scripting'
-      displayName: 'Copy scripting files'
-    - task: ArchiveFiles@2
-      inputs:
-        rootFolderOrFile: 'build/bin/citra-valentin-windows-$(getCitraVersionStep.CITRA_VERSION)'
-        includeRootFolder: true
-        archiveType: 'tar'
-        archiveFile: '$(Build.ArtifactStagingDirectory)/citra-valentin-windows-$(getCitraVersionStep.CITRA_VERSION).tar.gz'
-        replaceExistingArchive: true
-    - task: ArchiveFiles@2
-      inputs:
-        rootFolderOrFile: 'build/bin/pdbs'
-        includeRootFolder: true
-        archiveType: 'tar'
-        archiveFile: '$(Build.ArtifactStagingDirectory)/citra-valentin-windows-$(getCitraVersionStep.CITRA_VERSION)-pdbs.tar.gz'
-        replaceExistingArchive: true
-    - task: PublishBuildArtifacts@1
-      inputs:
-        PathtoPublish: '$(Build.ArtifactStagingDirectory)'
-        ArtifactName: 'windows-release'
-        publishLocation: 'Container'
-- job: ClangFormat
-  timeoutInMinutes: 60
-  pool:
-    vmImage: 'ubuntu-18.04'
-  steps:
-    - script: |
-        sudo apt-get update
-        sudo apt-get remove -qq -y clang-6.0 libclang-common-6.0-dev libclang1-6.0 libllvm6.0
-        sudo apt-get install -qq -y clang-format-6.0
-      displayName: 'Install clang-format'
-    - bash: |
-        if [ "$(Build.Reason)" = "PullRequest" ]; then
-            # Get list of every file modified in this pull request
-            files_to_lint="$(git diff --name-only --diff-filter=ACMRTUXB $TRAVIS_COMMIT_RANGE | grep '^src/[^.]*[.]\(cpp\|h\)$' || true)"
-        else
-            # Check everything for branch pushes
-            files_to_lint="$(find src/ -name '*.cpp' -or -name '*.h')"
-        fi
+          # Rename Release to citra-valentin-windows-$(getCitraVersionStep.CITRA_VERSION).
+          Rename-Item ".\build\bin\Release" "citra-valentin-windows-$(getCitraVersionStep.CITRA_VERSION)"
+        displayName: Cleanup
+      - task: CopyFiles@2
+        inputs:
+          SourceFolder: .
+          Contents: |
+            readme.md
+            license.txt
+          TargetFolder: build/bin/citra-valentin-windows-$(getCitraVersionStep.CITRA_VERSION)
+        displayName: Copy readme.md and license.txt
+      - task: CopyFiles@2
+        inputs:
+          SourceFolder: dist/scripting
+          Contents: '**'
+          TargetFolder: build/bin/citra-valentin-windows-$(getCitraVersionStep.CITRA_VERSION)/scripting
+        displayName: Copy scripting files
+      - task: ArchiveFiles@2
+        inputs:
+          rootFolderOrFile: build/bin/citra-valentin-windows-$(getCitraVersionStep.CITRA_VERSION)
+          includeRootFolder: true
+          archiveType: tar
+          archiveFile: $(Build.ArtifactStagingDirectory)/citra-valentin-windows-$(getCitraVersionStep.CITRA_VERSION).tar.gz
+          replaceExistingArchive: true
+      - task: ArchiveFiles@2
+        inputs:
+          rootFolderOrFile: build/bin/pdbs
+          includeRootFolder: true
+          archiveType: tar
+          archiveFile: $(Build.ArtifactStagingDirectory)/citra-valentin-windows-$(getCitraVersionStep.CITRA_VERSION)-pdbs.tar.gz
+          replaceExistingArchive: true
+      - task: PublishBuildArtifacts@1
+        inputs:
+          PathtoPublish: $(Build.ArtifactStagingDirectory)
+          ArtifactName: windows-release
+          publishLocation: Container
+  - job: ClangFormat
+    timeoutInMinutes: 60
+    pool:
+      vmImage: ubuntu-18.04
+    steps:
+      - script: |
+          sudo apt-get update
+          sudo apt-get remove -qq -y clang-6.0 libclang-common-6.0-dev libclang1-6.0 libllvm6.0
+          sudo apt-get install -qq -y clang-format-6.0
+        displayName: Install ClangFormat
+      - bash: |
+          if [ "$(Build.Reason)" = "PullRequest" ]; then
+              # Get list of every file modified in this pull request
+              files_to_lint="$(git diff --name-only --diff-filter=ACMRTUXB $TRAVIS_COMMIT_RANGE | grep '^src/[^.]*[.]\(cpp\|h\)$' || true)"
+          else
+              # Check everything for branch pushes
+              files_to_lint="$(find src/ -name '*.cpp' -or -name '*.h')"
+          fi
 
-        # Turn off tracing for this because it's too verbose
-        set +x
+          # Turn off tracing for this because it's too verbose
+          set +x
 
-        for f in $files_to_lint; do
-            d=$(diff -u "$f" <(clang-format-6.0 "$f") || true)
-            if ! [ -z "$d" ]; then
-                echo "!!! $f not compliant to coding style, here is the fix:"
-                echo "$d"
-                fail=1
-            fi
-        done
+          for f in $files_to_lint; do
+              d=$(diff -u "$f" <(clang-format-6.0 "$f") || true)
+              if ! [ -z "$d" ]; then
+                  echo "!!! $f not compliant to coding style, here is the fix:"
+                  echo "$d"
+                  fail=1
+              fi
+          done
 
-        set -x
+          set -x
 
-        if [ "$fail" = 1 ]; then
-            exit 1
-        fi
-      displayName: 'clang-format check'
-- job: Release
-  dependsOn:
-    - LinuxDebug
-    - LinuxRelease
-    - WindowsDebug
-    - WindowsRelease
-  variables:
-    CITRA_VERSION: $[ dependencies.LinuxRelease.outputs['getCitraVersionStep.CITRA_VERSION'] ]
-  steps:
-    - task: DownloadPipelineArtifact@2
-      condition: and(succeeded(), eq(variables['Build.SourceBranch'], 'refs/heads/master'), not(contains(variables['Build.SourceVersionMessage'], '[skip release]')))
-      inputs:
-        buildType: 'current'
-        artifactName: 'linux-release'
-        targetPath: '$(Build.ArtifactStagingDirectory)'
-    - task: DownloadPipelineArtifact@2
-      condition: and(succeeded(), eq(variables['Build.SourceBranch'], 'refs/heads/master'), not(contains(variables['Build.SourceVersionMessage'], '[skip release]')))
-      inputs:
-        buildType: 'current'
-        artifactName: 'windows-release'
-        itemPattern: 'windows-release/citra-valentin-windows-$(CITRA_VERSION).tar.gz'
-        targetPath: '$(Build.ArtifactStagingDirectory)'
-    - task: GitHubRelease@1
-      condition: and(succeeded(), eq(variables['Build.SourceBranch'], 'refs/heads/master'), not(contains(variables['Build.SourceVersionMessage'], '[skip release]')))
-      inputs:
-        gitHubConnection: 'GitHub Releases'
-        repositoryName: '$(Build.Repository.Name)'
-        action: 'create'
-        target: '$(Build.SourceVersion)'
-        tagSource: 'userSpecifiedTag'
-        tag: '$(CITRA_VERSION)'
-        changeLogCompareToRelease: 'lastFullRelease'
-        changeLogType: 'commitBased'
+          if [ "$fail" = 1 ]; then
+              exit 1
+          fi
+        displayName: ClangFormat
+  - job: Release
+    dependsOn:
+      - LinuxDebug
+      - LinuxRelease
+      - WindowsDebug
+      - WindowsRelease
+    variables:
+      CITRA_VERSION: $[ dependencies.LinuxRelease.outputs['getCitraVersionStep.CITRA_VERSION'] ]
+    steps:
+      - task: DownloadPipelineArtifact@2
+        condition: and(succeeded(), eq(variables['Build.SourceBranch'], 'refs/heads/master'), not(contains(variables['Build.SourceVersionMessage'], '[skip release]')))
+        inputs:
+          buildType: current
+          artifactName: linux-release
+          targetPath: $(Build.ArtifactStagingDirectory)
+      - task: DownloadPipelineArtifact@2
+        condition: and(succeeded(), eq(variables['Build.SourceBranch'], 'refs/heads/master'), not(contains(variables['Build.SourceVersionMessage'], '[skip release]')))
+        inputs:
+          buildType: current
+          artifactName: windows-release
+          itemPattern: windows-release/citra-valentin-windows-$(CITRA_VERSION).tar.gz
+          targetPath: $(Build.ArtifactStagingDirectory)
+      - task: GitHubRelease@1
+        condition: and(succeeded(), eq(variables['Build.SourceBranch'], 'refs/heads/master'), not(contains(variables['Build.SourceVersionMessage'], '[skip release]')))
+        inputs:
+          gitHubConnection: GitHub Releases
+          repositoryName: $(Build.Repository.Name)
+          action: create
+          target: $(Build.SourceVersion)
+          tagSource: userSpecifiedTag
+          tag: $(CITRA_VERSION)
+          changeLogCompareToRelease: lastFullRelease
+          changeLogType: commitBased

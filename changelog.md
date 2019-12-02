@@ -17,6 +17,7 @@
 ## Minor Changes
 
 - Externals: Bump `fmt` from `3bc28fc` to `7111a1eb`
+- Add `.prettierrc.json`
 
 # 4.0.0
 
