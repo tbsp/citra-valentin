@@ -1,5 +1,6 @@
 # Versions
 
+[4.1.1](#411)  
 [4.1.0](#410)  
 [4.0.2](#402)  
 [4.0.1](#401)  
@@ -14,6 +15,10 @@
 [2.10.3](#2103)  
 [2.10.2](#2102)  
 [2.10.1](#2101)
+
+# 4.1.1
+
+- Qt: [Remove high dpi scaling flag as it needs more work first](https://github.com/citra-emu/citra/pull/4940/commits/9ae3eb4a3038c6664b0be7c88b5beb1cc735cf6d)
 
 # 4.1.0
 

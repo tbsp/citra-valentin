@@ -2130,7 +2130,6 @@ int main(int argc, char* argv[]) {
     format.setSwapBehavior(QSurfaceFormat::DefaultSwapBehavior);
     QSurfaceFormat::setDefaultFormat(format);
 
-    QCoreApplication::setAttribute(Qt::AA_EnableHighDpiScaling);
     QCoreApplication::setAttribute(Qt::AA_DontCheckOpenGLContextThreadAffinity);
     QCoreApplication::setAttribute(Qt::AA_ShareOpenGLContexts);
     QApplication app(argc, argv);
