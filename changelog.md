@@ -18,6 +18,10 @@
 [2.10.2](#2102)  
 [2.10.1](#2101)
 
+# Unreleased
+
+- Qt/ConfigureGraphics: Make Sharper Distant Objects unchangeable while emulation is running
+
 # 4.3.1
 
 ## Fixes
