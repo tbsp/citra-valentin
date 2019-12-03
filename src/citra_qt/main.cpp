@@ -634,17 +634,36 @@ void GMainWindow::InitializeHotkeys() {
                                              : QStringLiteral("Custom Layout: Off"));
             });
 
-
     connect(hotkey_registry.GetHotkey(QStringLiteral("Main Window"),
                                       QStringLiteral("Toggle Custom Screen Refresh Rate"), this),
             &QShortcut::activated, this, [this] {
-                Settings::values.custom_screen_refresh_rate = !Settings::values.custom_screen_refresh_rate;
+                Settings::values.custom_screen_refresh_rate =
+                    !Settings::values.custom_screen_refresh_rate;
                 Settings::Apply();
                 Settings::LogSettings();
 
                 statusBar()->showMessage(Settings::values.custom_screen_refresh_rate
                                              ? QStringLiteral("Custom Screen Refresh Rate: On")
                                              : QStringLiteral("Custom Screen Refresh Rate: Off"));
+            });
+
+    connect(hotkey_registry.GetHotkey(QStringLiteral("Main Window"),
+                                      QStringLiteral("Change Custom Screen Refresh Rate"), this),
+            &QShortcut::activated, this, [this] {
+                if (Settings::values.custom_screen_refresh_rate) {
+                    bool ok;
+                    const double new_value = QInputDialog::getDouble(
+                        this, QStringLiteral("Citra Valentin"),
+                        QStringLiteral("Enter the new custom screen refresh rate"),
+                        Settings::values.screen_refresh_rate, 15.0, 240.0, 0, &ok,
+                        Qt::WindowSystemMenuHint | Qt::WindowTitleHint | Qt::WindowCloseButtonHint,
+                        15.0);
+                    if (ok) {
+                        Settings::values.screen_refresh_rate = new_value;
+                        Settings::Apply();
+                        Settings::LogSettings();
+                    }
+                }
             });
 }
 

@@ -21,12 +21,15 @@
 
 ## Features
 
-- Qt: Toggle Custom Screen Refresh Rate hotkey (default: Ctrl+R), requested by `OHU#3151` in [the HunsterVerse Discord server](https://hunstermonter.net)
+### Qt: Custom Screen Refresh Rate Hotkeys (requested by `OHU#3151` in the [HunsterVerse Discord server](https://hunstermonter.net))
+
+- Toggle Custom Screen Refresh Rate (default: Ctrl+R)
+- Change Custom Screen Refresh Rate (default: Ctrl+Alt+R)
 
 ## Minor Changes
 
+- Externals: Bump [fmt](https://github.com/fmtlib/fmt) from [5981588](https://github.com/fmtlib/fmt/commit/5981588565191fe7c8934021f711286f8ea61d93) to [a64f60c8](https://github.com/fmtlib/fmt/commit/a64f60c8499dcca96868e9beda4c76915baae29a)
 - [Externals: Bump `zstd` from `d3ec368` to `e8faa09` (Citra Valentin PR 71)](https://github.com/vvanelslande/citra/pull/71)
-- [Externals: Bump `fmt` from `5981588` to `b160123` (Citra Valentin PR 73)](https://github.com/vvanelslande/citra/pull/73)
 - [Externals: Bump `teakra` from `549796e` to `bcb0ade` (Citra Valentin PR 72)](https://github.com/vvanelslande/citra/pull/72)
 
 # 4.2.0
@@ -44,7 +47,7 @@
 
 ## Features
 
-- Qt: Toggle Custom Layout hotkey (default: Ctrl+C), requested by `adyhawk#6980` in [the HunsterVerse Discord server](https://hunstermonter.net)
+- Qt: Toggle Custom Layout hotkey (default: Ctrl+C), requested by `adyhawk#6980` in the [HunsterVerse Discord server](https://hunstermonter.net)
 
 ## Minor Changes
 
