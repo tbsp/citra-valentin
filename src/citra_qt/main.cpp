@@ -633,6 +633,19 @@ void GMainWindow::InitializeHotkeys() {
                                              ? QStringLiteral("Custom Layout: On")
                                              : QStringLiteral("Custom Layout: Off"));
             });
+
+
+    connect(hotkey_registry.GetHotkey(QStringLiteral("Main Window"),
+                                      QStringLiteral("Toggle Custom Screen Refresh Rate"), this),
+            &QShortcut::activated, this, [this] {
+                Settings::values.custom_screen_refresh_rate = !Settings::values.custom_screen_refresh_rate;
+                Settings::Apply();
+                Settings::LogSettings();
+
+                statusBar()->showMessage(Settings::values.custom_screen_refresh_rate
+                                             ? QStringLiteral("Custom Screen Refresh Rate: On")
+                                             : QStringLiteral("Custom Screen Refresh Rate: Off"));
+            });
 }
 
 void GMainWindow::SetDefaultUIGeometry() {

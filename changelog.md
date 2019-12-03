@@ -1,5 +1,6 @@
 # Versions
 
+[4.3.0](#430)  
 [4.2.0](#420)  
 [4.1.0](#410)  
 [4.0.2](#402)  
@@ -16,7 +17,11 @@
 [2.10.2](#2102)  
 [2.10.1](#2101)
 
-# Unreleased
+# 4.3.0
+
+## Features
+
+- Qt: Toggle Custom Screen Refresh Rate hotkey (default: Ctrl+R), requested by `OHU#3151` in [the HunsterVerse Discord server](https://hunstermonter.net)
 
 ## Minor Changes
 
