@@ -656,8 +656,7 @@ void GMainWindow::InitializeHotkeys() {
                         this, QStringLiteral("Citra Valentin"),
                         QStringLiteral("Enter the new custom screen refresh rate"),
                         Settings::values.screen_refresh_rate, 15.0, 240.0, 0, &ok,
-                        Qt::WindowSystemMenuHint | Qt::WindowTitleHint | Qt::WindowCloseButtonHint,
-                        15.0);
+                        Qt::WindowSystemMenuHint | Qt::WindowTitleHint | Qt::WindowCloseButtonHint);
                     if (ok) {
                         Settings::values.screen_refresh_rate = new_value;
                         Settings::Apply();
