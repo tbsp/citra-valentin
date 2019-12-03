@@ -621,6 +621,18 @@ void GMainWindow::InitializeHotkeys() {
                                              ? QStringLiteral("Hardware Shader: On")
                                              : QStringLiteral("Hardware Shader: Off"));
             });
+
+    connect(hotkey_registry.GetHotkey(QStringLiteral("Main Window"),
+                                      QStringLiteral("Toggle Custom Layout"), this),
+            &QShortcut::activated, this, [this] {
+                Settings::values.custom_layout = !Settings::values.custom_layout;
+                Settings::Apply();
+                Settings::LogSettings();
+
+                statusBar()->showMessage(Settings::values.custom_layout
+                                             ? QStringLiteral("Custom Layout: On")
+                                             : QStringLiteral("Custom Layout: Off"));
+            });
 }
 
 void GMainWindow::SetDefaultUIGeometry() {

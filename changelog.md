@@ -1,5 +1,6 @@
 # Versions
 
+[4.1.0](#410)  
 [4.0.2](#402)  
 [4.0.1](#401)  
 [4.0.0](#400)  
@@ -14,7 +15,11 @@
 [2.10.2](#2102)  
 [2.10.1](#2101)
 
-# Unreleased
+# 4.1.0
+
+## Features
+
+- Qt: Toggle Custom Layout hotkey (default: Ctrl+C), requested by `adyhawk#6980` in [the HunsterVerse Discord server](https://hunstermonter.net)
 
 ## Minor Changes
 

@@ -7,7 +7,7 @@
 #include "citra_qt/uisettings.h"
 
 // clang-format off
-const std::array<UISettings::Shortcut, 33> default_hotkeys{
+const std::array<UISettings::Shortcut, 34> default_hotkeys{
     {{QStringLiteral("2x Native Internal Resolution"),  QStringLiteral("Main Window"), {QStringLiteral("Alt+2"), Qt::ApplicationShortcut}},
      {QStringLiteral("3x Native Internal Resolution"),  QStringLiteral("Main Window"), {QStringLiteral("Alt+3"), Qt::ApplicationShortcut}},
      {QStringLiteral("4x Native Internal Resolution"),  QStringLiteral("Main Window"), {QStringLiteral("Alt+4"), Qt::ApplicationShortcut}},
@@ -40,7 +40,8 @@ const std::array<UISettings::Shortcut, 33> default_hotkeys{
      {QStringLiteral("Toggle Speed Limit"),             QStringLiteral("Main Window"), {QStringLiteral("Ctrl+Z"), Qt::ApplicationShortcut}},
      {QStringLiteral("Toggle Status Bar"),              QStringLiteral("Main Window"), {QStringLiteral("Ctrl+S"), Qt::WindowShortcut}},
      {QStringLiteral("Toggle Texture Dumping"),         QStringLiteral("Main Window"), {QStringLiteral("Ctrl+D"), Qt::ApplicationShortcut}},
-     {QStringLiteral("Toggle Hardware Shader"),         QStringLiteral("Main Window"), {QStringLiteral("Ctrl+H"), Qt::ApplicationShortcut}}}};
+     {QStringLiteral("Toggle Hardware Shader"),         QStringLiteral("Main Window"), {QStringLiteral("Ctrl+H"), Qt::ApplicationShortcut}},
+     {QStringLiteral("Toggle Custom Layout"),           QStringLiteral("Main Window"), {QStringLiteral("Ctrl+C"), Qt::ApplicationShortcut}}}};
 // clang-format on
 
 void Config::ReadShortcutsValues() {
