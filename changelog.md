@@ -16,6 +16,14 @@
 [2.10.2](#2102)  
 [2.10.1](#2101)
 
+# Unreleased
+
+## Minor Changes
+
+- [Externals: Bump `zstd` from `d3ec368` to `e8faa09` (Citra Valentin PR 71)](https://github.com/vvanelslande/citra/pull/71)
+- [Externals: Bump `fmt` from `5981588` to `b160123` (Citra Valentin PR 73)](https://github.com/vvanelslande/citra/pull/73)
+- [Externals: Bump `teakra` from `549796e` to `bcb0ade` (Citra Valentin PR 72)](https://github.com/vvanelslande/citra/pull/72)
+
 # 4.2.0
 
 ## Features
