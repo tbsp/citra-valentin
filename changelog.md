@@ -26,7 +26,7 @@
 
 ## Fixes
 
-- Luigi's Mansion 2 / Dark Moon ghost capture crash for CPU shaders
+- Luigi's Mansion 2 / Dark Moon ghost capture crash
 
 # 4.3.0
 
