@@ -41,7 +41,7 @@ jobs:
       - task: CopyFiles@2
         inputs:
           SourceFolder: dist/scripting
-          Contents: '**'
+          Contents: "**"
           TargetFolder: build/citra-valentin-linux-$(getCitraVersionStep.CITRA_VERSION)/scripting
         displayName: Copy scripting files
       - task: ArchiveFiles@2
@@ -243,7 +243,7 @@ jobs:
       - task: CopyFiles@2
         inputs:
           SourceFolder: dist/scripting
-          Contents: '**'
+          Contents: "**"
           TargetFolder: build/bin/citra-valentin-windows-$(getCitraVersionStep.CITRA_VERSION)/scripting
         displayName: Copy scripting files
       - task: ArchiveFiles@2
@@ -326,6 +326,7 @@ jobs:
           itemPattern: windows-release/citra-valentin-windows-$(CITRA_VERSION).tar.gz
           targetPath: $(Build.ArtifactStagingDirectory)
       - task: GitHubRelease@1
+        condition: and(succeeded(), eq(variables['Build.SourceBranch'], 'refs/heads/master'), not(contains(variables['Build.SourceVersionMessage'], '[skip release]')))
         inputs:
           gitHubConnection: GitHub Releases
           repositoryName: $(Build.Repository.Name)
@@ -334,5 +335,5 @@ jobs:
           tagSource: userSpecifiedTag
           tag: $(CITRA_VERSION)
           releaseNotesSource: inline
-          releaseNotesInline: '[Changelog](https://github.com/vvanelslande/citra/blob/master/changelog.md#$(CITRA_VERSION_NUMBER))'
+          releaseNotesInline: "[Changelog](https://github.com/vvanelslande/citra/blob/master/changelog.md#$(CITRA_VERSION_NUMBER))"
           addChangeLog: false
