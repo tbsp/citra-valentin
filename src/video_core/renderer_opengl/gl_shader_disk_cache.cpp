@@ -152,7 +152,7 @@ std::optional<std::vector<ShaderDiskCacheRaw>> ShaderDiskCache::LoadTransferable
         }
     }
 
-    LOG_INFO(Render_OpenGL, "Loaded {} raws", raws.size());
+    LOG_INFO(Render_OpenGL, "Found a transferable disk cache with {} entries", raws.size());
 
     return raws;
 }
@@ -215,7 +215,7 @@ ShaderDiskCache::LoadPrecompiledFile(FileUtil::IOFile& file) {
                 return std::nullopt;
             }
 
-            auto entry = LoadDecompiledEntry();
+            std::optional<OpenGL::ShaderDiskCacheDecompiled> entry = LoadDecompiledEntry();
             if (!entry) {
                 return std::nullopt;
             }
@@ -250,8 +250,11 @@ ShaderDiskCache::LoadPrecompiledFile(FileUtil::IOFile& file) {
             return std::nullopt;
         }
     }
-    LOG_INFO(Render_OpenGL, "Loaded {} decompiled", decompiled.size());
-    LOG_INFO(Render_OpenGL, "Loaded {} dumps", dumps.size());
+
+    LOG_INFO(Render_OpenGL,
+             "Found a precompiled disk cache with {} decompiled entries and {} binary entries",
+             decompiled.size(), dumps.size());
+
     return {{decompiled, dumps}};
 }
 

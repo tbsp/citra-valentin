@@ -24,6 +24,7 @@
 
 ## Minor Changes
 
+- OpenGL disk shader cache: change entry count log messages
 - [Qt: Remove high dpi scaling flag as it needs more work first](https://github.com/citra-emu/citra/pull/4940/commits/9ae3eb4a3038c6664b0be7c88b5beb1cc735cf6d)
 
 # 4.1.0
