@@ -20,7 +20,13 @@
 
 # Unreleased
 
+## Fixes
+
 - Qt/ConfigureGraphics: Make Sharper Distant Objects unchangeable while emulation is running
+
+## Minor Changes
+
+- Externals: Update fmt and zstd
 
 # 4.3.1
 
