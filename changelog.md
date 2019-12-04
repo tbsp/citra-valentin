@@ -26,7 +26,7 @@
 
 ## Minor Changes
 
-- Externals: Update fmt and zstd
+- Externals: Update fmt, zstd and cubeb
 
 # 4.3.1
 
