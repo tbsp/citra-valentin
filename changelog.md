@@ -26,6 +26,7 @@
 
 ## Minor Changes
 
+- CMakeLists: Remove `if (ENABLE_QT_TRANSLATION)`
 - Externals: Update fmt, zstd and cubeb
 
 # 4.3.1
