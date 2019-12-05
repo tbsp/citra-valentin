@@ -147,6 +147,9 @@ private:
     bool ConfirmChangeGame();
     void closeEvent(QCloseEvent* event) override;
 
+    void SendTelemetry() const;
+    void ShowTelemetryCallout();
+
 private slots:
     void OnStartGame();
     void OnPauseGame();
@@ -163,7 +166,7 @@ private slots:
     void OnCIAInstallReport(Service::AM::InstallStatus status, QString filepath);
     void OnCIAInstallFinished();
     void OnMenuRecentFile();
-    void OnConfigure();
+    void OnConfigure(const bool goto_web = false);
     void OnLoadAmiibo();
     void OnRemoveAmiibo();
     void OnOpenCitraFolder();

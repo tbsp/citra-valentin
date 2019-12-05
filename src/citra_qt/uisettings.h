@@ -97,11 +97,12 @@ struct Values {
     QStringList recent_files;
 
     QString theme;
+    u32 callout_flags;
 
     // Shortcut name <Shortcut, context>
     std::vector<Shortcut> shortcuts;
 
-    // multiplayer settings
+    // Multiplayer settings
     QString nickname;
     QString ip;
     QString port;
@@ -114,11 +115,31 @@ struct Values {
     QString room_description;
     std::pair<std::vector<std::string>, std::vector<std::string>> ban_list;
 
-    // logging
+    // Logging
     bool show_console;
+
+    // Web
+    QString cv_web_api_url;
+    bool telemetry_send_os_version;
+    bool telemetry_send_cpu_string;
+    bool telemetry_send_gpu_information;
+    bool telemetry_send_version;
+    bool telemetry_send_citra_account_username;
+    bool telemetry_send_game_name;
+    bool telemetry_send_use_cpu_jit;
+    bool telemetry_send_use_shader_jit;
+    bool telemetry_send_use_gdbstub;
+    bool telemetry_send_gdbstub_port;
+    bool telemetry_send_enable_hardware_shader;
+    bool telemetry_send_hardware_shader_accurate_multiplication;
+    bool telemetry_send_enable_dsp_lle;
+    bool telemetry_send_enable_dsp_lle_multithread;
+    bool telemetry_send_log_filter;
 
 #ifdef CITRA_ENABLE_DISCORD_RP
     bool enable_discord_rp;
+    bool discord_rp_show_game_name;
+    bool discord_rp_show_room_information;
 #endif
 };
 

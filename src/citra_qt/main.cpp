@@ -15,6 +15,7 @@
 #include <QtGui>
 #include <QtWidgets>
 #include <fmt/format.h>
+#include <json.hpp>
 #ifdef _WIN32
 #include <windows.h>
 #endif
@@ -77,6 +78,7 @@
 #include "core/settings.h"
 #include "video_core/renderer_base.h"
 #include "video_core/video_core.h"
+#include "web_service/web_backend.h"
 
 #ifdef QT_STATICPLUGIN
 Q_IMPORT_PLUGIN(QWindowsIntegrationPlugin);
@@ -88,6 +90,33 @@ extern "C" {
 __declspec(dllexport) unsigned long NvOptimusEnablement = 0x00000001;
 }
 #endif
+
+/**
+ * "Callouts" are one-time instructional messages shown to the user. In UISettings, there
+ * is a bitfield "callout_flags" options, used to track if a message has already been shown to the
+ * user. This is 32-bits - if we have more than 32 callouts, we should retire and recyle old ones.
+ */
+enum class CalloutFlag : u32 {
+    Telemetry = 0x1,
+};
+
+void GMainWindow::ShowTelemetryCallout() {
+    if (UISettings::values.callout_flags & static_cast<u32>(CalloutFlag::Telemetry)) {
+        return;
+    }
+
+    UISettings::values.callout_flags |= static_cast<uint32_t>(CalloutFlag::Telemetry);
+    config->Save();
+
+    if (QMessageBox::question(
+            this, QStringLiteral("Telemetry"),
+            QStringLiteral("Usage data is collected to help improve Citra Valentin. "
+                           "<br/><br/>Would you like to share your usage data with us? Clicking "
+                           "Yes will open the Web tab in the configuration dialog.")) ==
+        QMessageBox::Yes) {
+        OnConfigure(true);
+    }
+}
 
 const int GMainWindow::max_recent_files_item;
 
@@ -153,6 +182,9 @@ GMainWindow::GMainWindow()
     show();
 
     game_list->PopulateAsync(UISettings::values.game_dirs);
+
+    // Show one-time "callout" messages to the user
+    ShowTelemetryCallout();
 
     QStringList args = QApplication::arguments();
     if (args.length() >= 2) {
@@ -1105,8 +1137,8 @@ void GMainWindow::ShutdownGame() {
     }
 
     AllowOSSleep();
-
     OnStopRecordingPlayback();
+
     emu_thread->RequestStop();
 
     // Release emu threads from any breakpoints
@@ -1160,6 +1192,8 @@ void GMainWindow::ShutdownGame() {
     emu_frametime_label->setVisible(false);
 
     emulation_running = false;
+
+    SendTelemetry();
 
     game_title.clear();
     UpdateWindowTitle();
@@ -1571,14 +1605,17 @@ void GMainWindow::OnCheats() {
     cheat_dialog.exec();
 }
 
-void GMainWindow::OnConfigure() {
-    ConfigureDialog configureDialog(this, hotkey_registry,
+void GMainWindow::OnConfigure(const bool goto_web) {
+    ConfigureDialog configureDialog(this, hotkey_registry, goto_web,
                                     !multiplayer_state->IsHostingPublicRoom());
     const QString old_theme = UISettings::values.theme;
     const int old_input_profile_index = Settings::values.current_input_profile_index;
     const std::vector<Settings::InputProfile> old_input_profiles = Settings::values.input_profiles;
 #ifdef CITRA_ENABLE_DISCORD_RP
     const bool enable_discord_rp = UISettings::values.enable_discord_rp;
+    const bool discord_rp_show_game_name = UISettings::values.discord_rp_show_game_name;
+    const bool discord_rp_show_room_information =
+        UISettings::values.discord_rp_show_room_information;
 #endif
     const int result = configureDialog.exec();
     if (result == QDialog::Accepted) {
@@ -1591,7 +1628,10 @@ void GMainWindow::OnConfigure() {
             multiplayer_state->UpdateCredentials();
         }
 #ifdef CITRA_ENABLE_DISCORD_RP
-        if (UISettings::values.enable_discord_rp != enable_discord_rp) {
+        if (UISettings::values.enable_discord_rp != enable_discord_rp ||
+            UISettings::values.discord_rp_show_game_name != discord_rp_show_game_name ||
+            UISettings::values.discord_rp_show_room_information !=
+                discord_rp_show_room_information) {
             discord_rp.Update();
         }
 #endif
@@ -2142,6 +2182,116 @@ void GMainWindow::SyncMenuUISettings() {
     ui.action_Screen_Layout_Side_by_Side->setChecked(Settings::values.layout_option ==
                                                      Settings::LayoutOption::SideScreen);
     ui.action_Screen_Layout_Swap_Screens->setChecked(Settings::values.swap_screen);
+}
+
+void GMainWindow::SendTelemetry() const {
+    const auto WillOneOrMoreSettingsBeSent = [] {
+        return UISettings::values.telemetry_send_use_cpu_jit ||
+               UISettings::values.telemetry_send_use_shader_jit ||
+               UISettings::values.telemetry_send_use_gdbstub ||
+               UISettings::values.telemetry_send_gdbstub_port ||
+               UISettings::values.telemetry_send_enable_hardware_shader ||
+               UISettings::values.telemetry_send_hardware_shader_accurate_multiplication ||
+               UISettings::values.telemetry_send_enable_dsp_lle ||
+               UISettings::values.telemetry_send_enable_dsp_lle_multithread ||
+               UISettings::values.telemetry_send_log_filter;
+    };
+
+    const auto IsTelemetryEnabled = [WillOneOrMoreSettingsBeSent] {
+        return UISettings::values.telemetry_send_os_version ||
+               UISettings::values.telemetry_send_cpu_string ||
+               UISettings::values.telemetry_send_version ||
+               UISettings::values.telemetry_send_citra_account_username ||
+               UISettings::values.telemetry_send_game_name || WillOneOrMoreSettingsBeSent();
+    };
+
+    if (IsTelemetryEnabled()) {
+        WebService::Client client(UISettings::values.cv_web_api_url.toStdString(), "", "");
+        nlohmann::json json;
+        if (UISettings::values.telemetry_send_os_version) {
+            json["os_version"] = QSysInfo::prettyProductName().toStdString();
+        }
+        if (UISettings::values.telemetry_send_cpu_string) {
+#ifdef ARCHITECTURE_x86_64
+            json["cpu_string"] =
+                QString::fromStdString(Common::GetCPUCaps().cpu_string).trimmed().toStdString();
+#else
+            LOG_WARNING(Frontend, "Unimplemented Common::GetCPUCaps for your CPU");
+#endif
+        }
+        if (UISettings::values.telemetry_send_gpu_information) {
+            QOffscreenSurface surface;
+            surface.create();
+
+            QOpenGLContext context;
+            context.create();
+            context.makeCurrent(&surface);
+
+            QOpenGLFunctions_3_3_Core* f = context.versionFunctions<QOpenGLFunctions_3_3_Core>();
+            if (f) {
+                const char* gl_version{reinterpret_cast<char const*>(f->glGetString(GL_VERSION))};
+                const char* gpu_vendor{reinterpret_cast<char const*>(f->glGetString(GL_VENDOR))};
+                const char* gpu_model{reinterpret_cast<char const*>(f->glGetString(GL_RENDERER))};
+
+                json["gl_version"] = gl_version;
+                json["gpu_vendor"] = gpu_vendor;
+                json["gpu_model"] = gpu_model;
+            } else {
+                ASSERT_MSG("woot");
+            }
+        }
+        if (UISettings::values.telemetry_send_version) {
+            json["version"] =
+                QStringLiteral(
+                    "Citra Valentin %1.%2.%3 (Network v%4, Movie v%5, OpenGL shader cache v%6)")
+                    .arg(QString::number(Version::major), QString::number(Version::minor),
+                         QString::number(Version::patch), QString::number(Version::network),
+                         QString::number(Version::movie), QString::number(Version::shader_cache))
+                    .toStdString();
+        }
+        if (UISettings::values.telemetry_send_citra_account_username &&
+            !Settings::values.citra_username.empty()) {
+            json["citra_account_username"] = Settings::values.citra_username;
+        }
+        if (UISettings::values.telemetry_send_game_name) {
+            json["game_name"] = game_title.toStdString();
+        }
+        if (WillOneOrMoreSettingsBeSent()) {
+            nlohmann::json settings_json;
+            if (UISettings::values.telemetry_send_use_cpu_jit) {
+                settings_json["use_cpu_jit"] = Settings::values.use_cpu_jit;
+            }
+            if (UISettings::values.telemetry_send_use_shader_jit) {
+                settings_json["use_shader_jit"] = Settings::values.use_shader_jit;
+            }
+            if (UISettings::values.telemetry_send_use_gdbstub) {
+                settings_json["use_gdbstub"] = Settings::values.use_gdbstub;
+            }
+            if (UISettings::values.telemetry_send_gdbstub_port) {
+                settings_json["gdbstub_port"] = Settings::values.gdbstub_port;
+            }
+            if (UISettings::values.telemetry_send_enable_hardware_shader) {
+                settings_json["enable_hardware_shader"] = Settings::values.use_hw_shader;
+            }
+            if (UISettings::values.telemetry_send_hardware_shader_accurate_multiplication) {
+                settings_json["hardware_shader_accurate_multiplication"] =
+                    Settings::values.shaders_accurate_mul;
+            }
+            if (UISettings::values.telemetry_send_enable_dsp_lle) {
+                settings_json["enable_dsp_lle"] = Settings::values.enable_dsp_lle;
+            }
+            if (UISettings::values.telemetry_send_enable_dsp_lle_multithread) {
+                settings_json["enable_dsp_lle_multithread"] =
+                    Settings::values.enable_dsp_lle_multithread;
+            }
+            if (UISettings::values.telemetry_send_log_filter) {
+                settings_json["log_filter"] = Settings::values.log_filter;
+            }
+            json["settings"] = settings_json;
+        }
+
+        client.PostJson("/telemetry", json.dump(), true);
+    }
 }
 
 #ifdef main

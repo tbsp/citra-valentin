@@ -12,7 +12,7 @@ void Config::ReadUiValues() {
         ReadSetting(QStringLiteral("theme"), UISettings::themes[0].second).toString();
     UISettings::values.screenshot_resolution_factor =
         static_cast<u16>(ReadSetting(QStringLiteral("screenshot_resolution_factor"), 0).toUInt());
-
+    UISettings::values.callout_flags = ReadSetting(QStringLiteral("callout_flags"), 0).toUInt();
     UISettings::values.single_window_mode =
         ReadSetting(QStringLiteral("singleWindowMode"), true).toBool();
     UISettings::values.fullscreen = ReadSetting(QStringLiteral("fullscreen"), false).toBool();
@@ -41,6 +41,7 @@ void Config::SaveUiValues() {
     WriteSetting(QStringLiteral("theme"), UISettings::values.theme, UISettings::themes[0].second);
     WriteSetting(QStringLiteral("screenshot_resolution_factor"),
                  UISettings::values.screenshot_resolution_factor, 0);
+    WriteSetting(QStringLiteral("callout_flags"), UISettings::values.callout_flags, 0);
     WriteSetting(QStringLiteral("singleWindowMode"), UISettings::values.single_window_mode, true);
     WriteSetting(QStringLiteral("fullscreen"), UISettings::values.fullscreen, false);
     WriteSetting(QStringLiteral("displayTitleBars"), UISettings::values.display_titlebar, true);

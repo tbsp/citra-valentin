@@ -1,5 +1,6 @@
 # Versions
 
+[4.4.0][#440]  
 [4.3.1](#431)  
 [4.3.0](#430)  
 [4.2.0](#420)  
@@ -18,10 +19,16 @@
 [2.10.2](#2102)  
 [2.10.1](#2101)
 
-# Unreleased
+# 4.4.0
+
+## Features
+
+- Qt: Discord RP settings to choose what is sent
+- Qt: Telemetry, you choose what is sent and where it's sent.
 
 ## Fixes
 
+- Discord server invite updated
 - Qt/ConfigureGraphics: Make Sharper Distant Objects unchangeable while emulation is running
 
 ## Minor Changes
@@ -33,7 +40,7 @@
 
 ## Fixes
 
-- Luigi's Mansion 2 / Dark Moon ghost capture crash
+- [LLE audio required, otherwise your PC will freeze] Luigi's Mansion 2 / Dark Moon ghost capture crash
 
 # 4.3.0
 

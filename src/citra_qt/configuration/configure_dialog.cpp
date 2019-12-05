@@ -10,7 +10,8 @@
 #include "core/settings.h"
 #include "ui_configure.h"
 
-ConfigureDialog::ConfigureDialog(QWidget* parent, HotkeyRegistry& registry, bool enable_web_config)
+ConfigureDialog::ConfigureDialog(QWidget* parent, HotkeyRegistry& registry, const bool goto_web,
+                                 bool enable_web_config)
     : QDialog(parent), ui(new Ui::ConfigureDialog), registry(registry) {
     ui->setupUi(this);
     ui->hotkeysTab->Populate(registry);
@@ -35,6 +36,10 @@ ConfigureDialog::ConfigureDialog(QWidget* parent, HotkeyRegistry& registry, bool
     // Synchronise lists upon initialisation
     ui->inputTab->EmitInputKeysChanged();
     ui->hotkeysTab->EmitHotkeysChanged();
+
+    if (goto_web) {
+        ui->tabWidget->setCurrentWidget(ui->webTab);
+    }
 }
 
 ConfigureDialog::~ConfigureDialog() = default;

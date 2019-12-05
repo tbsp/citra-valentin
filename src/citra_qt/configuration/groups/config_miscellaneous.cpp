@@ -18,6 +18,10 @@ void Config::ReadMiscellaneousValues() {
 #ifdef CITRA_ENABLE_DISCORD_RP
     UISettings::values.enable_discord_rp =
         ReadSetting(QStringLiteral("enable_discord_rp"), true).toBool();
+    UISettings::values.discord_rp_show_game_name =
+        ReadSetting(QStringLiteral("discord_rp_show_game_name"), true).toBool();
+    UISettings::values.discord_rp_show_room_information =
+        ReadSetting(QStringLiteral("discord_rp_show_room_information"), true).toBool();
 #endif
     qt_config->endGroup();
 }
@@ -28,6 +32,10 @@ void Config::SaveMiscellaneousValues() {
                  QStringLiteral("*:Info"));
 #ifdef CITRA_ENABLE_DISCORD_RP
     WriteSetting(QStringLiteral("enable_discord_rp"), UISettings::values.enable_discord_rp, true);
+    WriteSetting(QStringLiteral("discord_rp_show_game_name"),
+                 UISettings::values.discord_rp_show_game_name, true);
+    WriteSetting(QStringLiteral("discord_rp_show_room_information"),
+                 UISettings::values.discord_rp_show_room_information, true);
 #endif
     qt_config->endGroup();
 }
