@@ -84,7 +84,7 @@ void Config::SaveWebServiceValues() {
                  UISettings::values.telemetry_send_enable_hardware_shader, false);
     WriteSetting(QStringLiteral("telemetry_send_hardware_shader_accurate_multiplication"),
                  UISettings::values.telemetry_send_hardware_shader_accurate_multiplication, false);
-    WriteSetting(QStringLiteral("telemetry_send_use_low_level_audio"),
+    WriteSetting(QStringLiteral("telemetry_send_enable_dsp_lle"),
                  UISettings::values.telemetry_send_enable_dsp_lle, false);
     WriteSetting(QStringLiteral("telemetry_send_enable_dsp_lle_multithread"),
                  UISettings::values.telemetry_send_enable_dsp_lle_multithread, false);
