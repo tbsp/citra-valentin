@@ -24,6 +24,7 @@
 
 ## Fixes
 
+- Discord server invite updated
 - Qt/ConfigureWeb/Telemetry: DSP LLE not saved
 
 # 4.4.0
@@ -35,7 +36,6 @@
 
 ## Fixes
 
-- Discord server invite updated
 - Qt/ConfigureGraphics: Make Sharper Distant Objects unchangeable while emulation is running
 
 ## Minor Changes
