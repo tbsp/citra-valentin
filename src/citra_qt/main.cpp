@@ -169,7 +169,7 @@ GMainWindow::GMainWindow()
     ConnectWidgetEvents();
     ConnectMenuEvents();
 
-    LOG_INFO(Frontend, "Version: {}.{}.{}", Version::major, Version::minor, Version::patch);
+    LOG_INFO(Frontend, "Version: {}", Version::citra_valentin.to_string());
     LOG_INFO(Frontend, "Network Version: {}", Version::network);
     LOG_INFO(Frontend, "Movie Version: {}", Version::movie);
     LOG_INFO(Frontend, "Shader Cache Version: {}", Version::shader_cache);
@@ -877,9 +877,8 @@ void GMainWindow::ConnectMenuEvents() {
 
     connect(ui.action_Changelog, &QAction::triggered, this, [] {
         QDesktopServices::openUrl(
-            QUrl(QStringLiteral("https://github.com/vvanelslande/citra/blob/master/changelog.md#") +
-                 QString::number(Version::major) + QString::number(Version::minor) +
-                 QString::number(Version::patch)));
+            QUrl(QStringLiteral("https://github.com/vvanelslande/citra/blob/master/changelog.md#%1")
+                     .arg(QString::fromStdString(Version::citra_valentin.to_string()))));
     });
 
 #ifdef _WIN32
@@ -2160,13 +2159,12 @@ void GMainWindow::OnMoviePlaybackCompleted() {
 
 void GMainWindow::UpdateWindowTitle() {
     if (game_title.isEmpty()) {
-        setWindowTitle(QStringLiteral("Citra Valentin %1.%2.%3")
-                           .arg(QString::number(Version::major), QString::number(Version::minor),
-                                QString::number(Version::patch)));
+        setWindowTitle(QStringLiteral("Citra Valentin %1")
+                           .arg(QString::fromStdString(Version::citra_valentin.to_string())));
     } else {
-        setWindowTitle(QStringLiteral("Citra Valentin %1.%2.%3 | %4")
-                           .arg(QString::number(Version::major), QString::number(Version::minor),
-                                QString::number(Version::patch), game_title));
+        setWindowTitle(
+            QStringLiteral("Citra Valentin %1 | %2")
+                .arg(QString::fromStdString(Version::citra_valentin.to_string()), game_title));
     }
 }
 
@@ -2243,10 +2241,10 @@ void GMainWindow::SendTelemetry() const {
         if (UISettings::values.telemetry_send_version) {
             json["version"] =
                 QStringLiteral(
-                    "Citra Valentin %1.%2.%3 (Network v%4, Movie v%5, OpenGL shader cache v%6)")
-                    .arg(QString::number(Version::major), QString::number(Version::minor),
-                         QString::number(Version::patch), QString::number(Version::network),
-                         QString::number(Version::movie), QString::number(Version::shader_cache))
+                    "Citra Valentin %1 (Network v%2, Movie v%3, OpenGL shader cache v%4)")
+                    .arg(QString::fromStdString(Version::citra_valentin.to_string()),
+                         QString::number(Version::network), QString::number(Version::movie),
+                         QString::number(Version::shader_cache))
                     .toStdString();
         }
         if (UISettings::values.telemetry_send_citra_account_username &&

@@ -88,6 +88,9 @@ add_executable(citra-qt
     configuration/configure_ui.cpp
     configuration/configure_ui.h
     configuration/configure_ui.ui
+    configuration/configure_versions.cpp
+    configuration/configure_versions.h
+    configuration/configure_versions.ui
     configuration/configure_web.cpp
     configuration/configure_web.h
     configuration/configure_web.ui
@@ -169,6 +172,18 @@ add_executable(citra-qt
     util/spinbox.h
     util/util.cpp
     util/util.h
+    $<$<BOOL:${UNIX}>:
+        configuration/configure_versions_linux.cpp
+    >
+    $<$<BOOL:${WIN32}>:
+        configuration/configure_versions_windows.cpp
+        camera/dshow_camera.cpp
+        camera/dshow_camera.h
+    >
+    $<$<BOOL:${CITRA_ENABLE_DISCORD_RP}>:
+        discord_rp.cpp
+        discord_rp.h
+    >
 )
 
 file(GLOB_RECURSE ICONS ${PROJECT_SOURCE_DIR}/dist/icons/*)
@@ -190,16 +205,8 @@ endif()
 set_target_properties(citra-qt PROPERTIES OUTPUT_NAME "citra-valentin-qt")
 
 if(WIN32)
-    # DirectShow camera
-    target_sources(citra-qt PRIVATE
-        camera/dshow_camera.cpp
-        camera/dshow_camera.h
-    )
-
-    target_link_libraries(citra-qt PRIVATE libdshowcapture)
-
-    # compile as a win32 gui application instead of a console application
-    target_link_libraries(citra-qt PRIVATE Qt5::WinMain)
+    # Compile as a Win32 GUI application instead of a console application
+    target_link_libraries(citra-qt PRIVATE libdshowcapture Qt5::WinMain)
     set_target_properties(citra-qt PROPERTIES LINK_FLAGS_RELEASE "/SUBSYSTEM:WINDOWS")
 endif()
 

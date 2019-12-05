@@ -4,13 +4,13 @@
 
 #pragma once
 
+#include <ostream>
 #include "common/common_types.h"
+#include "semver.hpp"
 
 namespace Version {
 // Citra Valentin version
-extern const u16 major;
-extern const u16 minor;
-extern const u16 patch;
+extern const semver::version citra_valentin;
 
 extern const u32 network;
 extern const u8 movie;

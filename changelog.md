@@ -1,5 +1,6 @@
 # Versions
 
+[4.5.0](#450)  
 [4.4.1](#441)  
 [4.4.0](#440)  
 [4.3.1](#431)  
@@ -19,6 +20,19 @@
 [2.10.3](#2103)  
 [2.10.2](#2102)  
 [2.10.1](#2101)
+
+# 4.5.0
+
+## Features
+
+### Qt Versions tab
+
+- Installed Versions: versions installed using [CVU](https://github.com/vvanelslande/cvu). right click a version to start it, open the changelog in your browser, open it's location or delete it (if it's not the version you're using).
+- Recent Releases: shows the release list, double click a version to open the release in your browser.
+
+## Minor Changes
+
+- Common: LinearDiskCache removed, it wasn't used.
 
 # 4.4.1
 

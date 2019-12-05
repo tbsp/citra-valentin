@@ -19,7 +19,7 @@ create_target_directory_groups(citra)
 set_target_properties(citra PROPERTIES OUTPUT_NAME "citra-valentin")
 
 target_link_libraries(citra PRIVATE common core input_common network)
-target_link_libraries(citra PRIVATE inih glad lodepng)
+target_link_libraries(citra PRIVATE inih glad lodepng semver)
 if (MSVC)
     target_link_libraries(citra PRIVATE getopt)
 endif()

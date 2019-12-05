@@ -379,10 +379,10 @@ FileUtil::IOFile ShaderDiskCache::AppendTransferableFile() {
         return {};
     }
     if (!existed || file.GetSize() == 0) {
-        // If the file didn't exist, write its major version
+        // If the file didn't exist, write its version
         if (file.WriteBytes(&Version::shader_cache, sizeof(Version::shader_cache)) !=
             sizeof(Version::shader_cache)) {
-            LOG_ERROR(Render_OpenGL, "Failed to write transferable cache major version in path={}",
+            LOG_ERROR(Render_OpenGL, "Failed to write transferable cache version in path={}",
                       transferable_path);
             return {};
         }
@@ -404,7 +404,7 @@ void ShaderDiskCache::SaveVirtualPrecompiledFile() {
     }
     if (file.WriteBytes(&Version::shader_cache, sizeof(Version::shader_cache)) !=
         sizeof(Version::shader_cache)) {
-        LOG_ERROR(Render_OpenGL, "Failed to write precompiled cache major version");
+        LOG_ERROR(Render_OpenGL, "Failed to write precompiled cache version");
         return;
     }
     if (file.WriteBytes(compressed.data(), compressed.size()) != compressed.size()) {

@@ -52,3 +52,6 @@
 [submodule "libdshowcapture"]
     path = externals/libdshowcapture
     url = https://github.com/vvanelslande/libdshowcapture.git
+[submodule "semver"]
+    path = externals/semver
+    url = https://github.com/Neargye/semver.git

@@ -83,7 +83,8 @@ void ConfigureDialog::PopulateSelectionList() {
     ui->selectorList->clear();
 
     const std::array<std::pair<QString, QList<QWidget*>>, 4> items{
-        {{QStringLiteral("General"), {ui->generalTab, ui->webTab, ui->debugTab, ui->uiTab}},
+        {{QStringLiteral("General"),
+          {ui->generalTab, ui->webTab, ui->debugTab, ui->uiTab, ui->versionsTab}},
          {QStringLiteral("System"), {ui->systemTab, ui->audioTab, ui->cameraTab}},
          {QStringLiteral("Graphics"), {ui->enhancementsTab, ui->graphicsTab, ui->customLayoutTab}},
          {QStringLiteral("Controls"), {ui->inputTab, ui->hotkeysTab}}}};
@@ -114,7 +115,9 @@ void ConfigureDialog::UpdateVisibleTabs() {
         {ui->cameraTab, QStringLiteral("Camera")},
         {ui->debugTab, QStringLiteral("Debug")},
         {ui->webTab, QStringLiteral("Web")},
-        {ui->uiTab, QStringLiteral("UI")}};
+        {ui->uiTab, QStringLiteral("UI")},
+        {ui->versionsTab, QStringLiteral("Versions")},
+    };
 
     ui->tabWidget->clear();
 

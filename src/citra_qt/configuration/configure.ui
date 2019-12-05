@@ -2,6 +2,7 @@
 <ui version="4.0">
  <class>ConfigureDialog</class>
  <widget class="QDialog" name="ConfigureDialog">
+
   <property name="windowTitle">
    <string>Citra Valentin Configuration</string>
   </property>
@@ -14,7 +15,7 @@
      <item>
       <widget class="QTabWidget" name="tabWidget">
        <property name="currentIndex">
-        <number>6</number>
+        <number>7</number>
        </property>
        <widget class="ConfigureGeneral" name="generalTab">
         <attribute name="title">
@@ -49,6 +50,11 @@
        <widget class="ConfigureCustomLayout" name="customLayoutTab">
         <attribute name="title">
          <string>Custom Layout</string>
+        </attribute>
+       </widget>
+       <widget class="ConfigureVersions" name="versionsTab">
+        <attribute name="title">
+         <string>Versions</string>
         </attribute>
        </widget>
        <widget class="ConfigureAudio" name="audioTab">
@@ -160,6 +166,12 @@
    <class>ConfigureCustomLayout</class>
    <extends>QWidget</extends>
    <header>configuration/configure_custom_layout.h</header>
+   <container>1</container>
+  </customwidget>
+  <customwidget>
+   <class>ConfigureVersions</class>
+   <extends>QWidget</extends>
+   <header>configuration/configure_versions.h</header>
    <container>1</container>
   </customwidget>
  </customwidgets>

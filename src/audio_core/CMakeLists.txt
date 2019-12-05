@@ -29,8 +29,16 @@ add_library(audio_core STATIC
     time_stretch.cpp
     time_stretch.h
 
-    $<$<BOOL:${SDL2_FOUND}>:sdl2_sink.cpp sdl2_sink.h>
-    $<$<BOOL:${ENABLE_CUBEB}>:cubeb_sink.cpp cubeb_sink.h cubeb_input.cpp cubeb_input.h>
+    $<$<BOOL:${SDL2_FOUND}>:
+        sdl2_sink.cpp
+        sdl2_sink.h
+    >
+    $<$<BOOL:${ENABLE_CUBEB}>:
+        cubeb_sink.cpp
+        cubeb_sink.h
+        cubeb_input.cpp
+        cubeb_input.h
+    >
 )
 
 create_target_directory_groups(audio_core)

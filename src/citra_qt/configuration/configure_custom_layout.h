@@ -21,7 +21,5 @@ public:
     void ApplyConfiguration();
 
 private:
-    void updateShaders(bool anaglyph);
-
     Ui::ConfigureCustomLayout* ui;
 };

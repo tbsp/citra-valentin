@@ -15,8 +15,8 @@ DiscordRP::DiscordRP(Core::System& system) : system(system) {
         start_timestamp = std::chrono::duration_cast<std::chrono::seconds>(
                               std::chrono::system_clock::now().time_since_epoch())
                               .count();
-        version = fmt::format("Citra Valentin Nintendo 3DS Emulator version {}.{}.{}",
-                              Version::major, Version::minor, Version::patch);
+        version = fmt::format("Citra Valentin Nintendo 3DS emulator version {}",
+                              Version::citra_valentin.to_string());
 
         Discord_Initialize("633487273413050418", NULL, 0, NULL);
         discord_initialized = true;
@@ -37,8 +37,8 @@ void DiscordRP::Update() {
         start_timestamp = std::chrono::duration_cast<std::chrono::seconds>(
                               std::chrono::system_clock::now().time_since_epoch())
                               .count();
-        version = fmt::format("Citra Valentin Nintendo 3DS Emulator version {}.{}.{}",
-                              Version::major, Version::minor, Version::patch);
+        version = fmt::format("Citra Valentin Nintendo 3DS Emulator version {}",
+                              Version::citra_valentin.to_string());
 
         Discord_Initialize("633487273413050418", NULL, 0, NULL);
         discord_initialized = true;

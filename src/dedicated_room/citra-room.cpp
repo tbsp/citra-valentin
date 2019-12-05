@@ -62,8 +62,7 @@ static void PrintHelp(const char* argv0) {
 }
 
 static void PrintVersion() {
-    std::cout << "Citra Valentin " << Version::major << "." << Version::minor << "."
-              << Version::patch << std::endl
+    std::cout << "Citra Valentin " << Version::citra_valentin.to_string() << std::endl
               << "Network version: " << Version::network << std::endl;
 }
 

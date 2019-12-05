@@ -16,7 +16,6 @@ add_library(common STATIC
     file_util.cpp
     file_util.h
     hash.h
-    linear_disk_cache.h
     logging/backend.cpp
     logging/backend.h
     logging/filter.cpp
@@ -66,7 +65,7 @@ endif()
 
 create_target_directory_groups(common)
 
-target_link_libraries(common PUBLIC fmt microprofile PRIVATE libzstd_static)
+target_link_libraries(common PUBLIC fmt microprofile semver PRIVATE libzstd_static)
 if (ARCHITECTURE_x86_64)
     target_link_libraries(common PRIVATE xbyak)
 endif()

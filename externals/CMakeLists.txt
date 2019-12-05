@@ -106,6 +106,9 @@ target_include_directories(cpp-jwt INTERFACE ./cpp-jwt/include)
 # lodepng
 add_subdirectory(lodepng)
 
+# semver
+add_subdirectory(semver)
+
 if(CITRA_ENABLE_DISCORD_RP)
     # Discord RP
     set(BUILD_EXAMPLES OFF CACHE BOOL "")
