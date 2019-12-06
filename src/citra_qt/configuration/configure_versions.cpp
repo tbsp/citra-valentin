@@ -5,11 +5,13 @@
 #include <QDesktopServices>
 #include <QFile>
 #include <QFileDialog>
+#include <QFileInfo>
 #include <QFutureWatcher>
 #include <QMenu>
 #include <QMessageBox>
 #include <QProgressDialog>
 #include <QStandardPaths>
+#include <QStringList>
 #include <QTimer>
 #include <QUrl>
 #include <QtConcurrent/QtConcurrentRun>
@@ -18,19 +20,24 @@
 #include <json.hpp>
 #include "citra_qt/configuration/configure_versions.h"
 #include "ui_configure_versions.h"
-#include "web_service/web_backend.h"
+
+const QRegularExpression HTTP_LINK_REGEX(QStringLiteral("<(?P<link>.*)>; rel=\"(?P<rel>[^\"]*)\""));
+constexpr int AssetsRole = Qt::UserRole;
 
 ConfigureVersions::ConfigureVersions(QWidget* parent)
     : QWidget(parent), ui(std::make_unique<Ui::ConfigureVersions>()) {
     ui->setupUi(this);
 
     ui->versions_installed_using_cvu->setContextMenuPolicy(Qt::CustomContextMenu);
-    ui->recent_releases->setContextMenuPolicy(Qt::CustomContextMenu);
+    ui->releases->setContextMenuPolicy(Qt::CustomContextMenu);
+
+    qRegisterMetaType<std::vector<std::shared_ptr<httplib::Response>>>(
+        "std::vector<std::shared_ptr<httplib::Response>>");
 
     connect(
-        ui->recent_releases, &QListWidget::customContextMenuRequested, this,
+        ui->releases, &QListWidget::customContextMenuRequested, this,
         [this](const QPoint& position) {
-            QListWidgetItem* item = ui->recent_releases->currentItem();
+            QListWidgetItem* item = ui->releases->currentItem();
             if (item == nullptr) {
                 return;
             }
@@ -38,61 +45,42 @@ ConfigureVersions::ConfigureVersions(QWidget* parent)
             const semver::version version(item->text().toStdString());
             QMenu menu(item->text(), this);
 
-            QAction action_open_release(QStringLiteral("Open Release"), this);
-            connect(&action_open_release, &QAction::triggered, this, [this, item] {
-                QDesktopServices::openUrl(
-                    QUrl(QStringLiteral("https://github.com/vvanelslande/citra/releases/tag/%1")
-                             .arg(item->text())));
-            });
-            menu.addAction(&action_open_release);
-
-            QAction action_open_changelog(QStringLiteral("Open Changelog"), this);
-            // There's no changelog for versions before 2.10.1 currently.
-            if (version >= semver::version{2, 10, 1}) {
-                connect(&action_open_changelog, &QAction::triggered, this, [this, item] {
-                    QDesktopServices::openUrl(
-                        QUrl(QStringLiteral("https://github.com/vvanelslande/citra/blob/"
-                                            "master/changelog.md#%1")
-                                 .arg(item->text().remove(QLatin1Char{'.'}))));
-                });
-
-                menu.addAction(&action_open_changelog);
-            }
-
-            const auto DownloadBuild = [this, item, &version](const std::string& os) {
+            const auto DownloadAsset = [this, version](const std::string& name) {
                 const QString path = QFileDialog::getSaveFileName(
-                    this,
-                    QStringLiteral("Save citra-valentin-%1-%2.tar.gz")
-                        .arg(QString::fromStdString(os),
-                             QString::fromStdString(version.to_string())),
+                    this, QStringLiteral("Save %1").arg(QString::fromStdString(name)),
                     QStandardPaths::writableLocation(QStandardPaths::DesktopLocation) +
-                        QStringLiteral("/citra-valentin-%1-%2.tar.gz")
-                            .arg(QString::fromStdString(os),
-                                 QString::fromStdString(version.to_string())),
-                    QStringLiteral("Gzipped Tarball (*.tar.gz);;All Files (*.*)"));
+                        QStringLiteral("/%1").arg(QString::fromStdString(name)));
 
                 if (path.isEmpty()) {
                     return;
                 }
 
-                http_future_watcher =
-                    std::make_unique<QFutureWatcher<std::shared_ptr<httplib::Response>>>();
+                http_responses_future_watcher = std::make_unique<
+                    QFutureWatcher<std::vector<std::shared_ptr<httplib::Response>>>>();
                 progress_dialog = std::make_unique<QProgressDialog>(
-                    QStringLiteral("Downloading Build"), QString(), 0, 100, this,
+                    QStringLiteral("Downloading Asset"), QString(), 0, 100, this,
                     Qt::WindowTitleHint | Qt::WindowSystemMenuHint);
-                progress_dialog->setWindowTitle(QStringLiteral("Downloading Build"));
+                progress_dialog->setWindowTitle(QStringLiteral("Downloading Asset"));
                 connect(
-                    http_future_watcher.get(),
-                    &QFutureWatcher<std::shared_ptr<httplib::Response>>::finished, this,
-                    [this, path] {
-                        const std::shared_ptr<httplib::Response> result =
-                            http_future_watcher->result();
+                    http_responses_future_watcher.get(),
+                    &QFutureWatcher<std::vector<std::shared_ptr<httplib::Response>>>::finished,
+                    this, [this, path] {
+                        const std::vector<std::shared_ptr<httplib::Response>> responses =
+                            http_responses_future_watcher->result();
 
-                        if (result != nullptr) {
+                        http_responses_future_watcher.reset();
+                        progress_dialog.reset();
+
+                        if (responses.empty()) {
+                            QMessageBox::critical(
+                                this, QStringLiteral("Error"),
+                                QStringLiteral("Error while downloading the asset."));
+                            return;
+                        } else {
                             QFile file(path);
                             file.open(QFile::WriteOnly);
-                            if (file.write(result->body.data(), result->body.size()) ==
-                                result->body.size()) {
+                            if (file.write(responses[0]->body.data(), responses[0]->body.size()) ==
+                                responses[0]->body.size()) {
                                 QMessageBox::information(this, QStringLiteral("File Saved"),
                                                          QStringLiteral("File saved"));
                             } else {
@@ -108,19 +96,15 @@ ConfigureVersions::ConfigureVersions(QWidget* parent)
                                 }
                             }
                         }
-
-                        http_future_watcher.reset();
-                        progress_dialog.reset();
                     });
-                QFuture<std::shared_ptr<httplib::Response>> future = QtConcurrent::run(
-                    [this, &version, &os]() -> std::shared_ptr<httplib::Response> {
+                QFuture<std::vector<std::shared_ptr<httplib::Response>>> future =
+                    QtConcurrent::run([this, &name, version] {
                         httplib::SSLClient client("github.com", 443);
                         client.follow_location(true);
 
                         std::shared_ptr<httplib::Response> response =
-                            client.Get(fmt::format("/vvanelslande/citra/releases/download/{0}/"
-                                                   "citra-valentin-{1}-{0}.tar.gz",
-                                                   version.to_string(), os)
+                            client.Get(fmt::format("/vvanelslande/citra/releases/download/{}/{}",
+                                                   version.to_string(), name)
                                            .c_str(),
                                        [this](u64 current, u64 total) {
                                            QTimer::singleShot(0, qApp, [this, current, total] {
@@ -132,68 +116,153 @@ ConfigureVersions::ConfigureVersions(QWidget* parent)
                                            return true;
                                        });
 
-                        if (response == nullptr) {
-                            return nullptr;
+                        if (response == nullptr || response->status != 200) {
+                            return std::vector<std::shared_ptr<httplib::Response>>();
                         }
 
-                        return response;
+                        return std::vector<std::shared_ptr<httplib::Response>>{response};
                     });
-                http_future_watcher->setFuture(future);
+                http_responses_future_watcher->setFuture(future);
                 progress_dialog->exec();
             };
 
-            QAction action_download_linux_build(QStringLiteral("Download Linux Build"), this);
-            connect(&action_download_linux_build, &QAction::triggered, this,
-                    [DownloadBuild] { DownloadBuild("linux"); });
-            menu.addAction(&action_download_linux_build);
+            QAction action_open_release(QStringLiteral("Open Release"), &menu);
+            connect(&action_open_release, &QAction::triggered, this, [this, item] {
+                QDesktopServices::openUrl(
+                    QUrl(QStringLiteral("https://github.com/vvanelslande/citra/releases/tag/%1")
+                             .arg(item->text())));
+            });
+            menu.addAction(&action_open_release);
 
-            QAction action_download_windows_build(QStringLiteral("Download Windows Build"), this);
-            connect(&action_download_windows_build, &QAction::triggered, this,
-                    [DownloadBuild] { DownloadBuild("windows"); });
-            menu.addAction(&action_download_windows_build);
+            // There's no changelog for versions before 2.10.1 currently.
+            if (version >= semver::version{2, 10, 1}) {
+                QAction* action_open_changelog =
+                    new QAction(QStringLiteral("Open Changelog"), &menu);
 
-            menu.exec(ui->recent_releases->mapToGlobal(position));
+                connect(action_open_changelog, &QAction::triggered, this, [this, item] {
+                    QDesktopServices::openUrl(
+                        QUrl(QStringLiteral("https://github.com/vvanelslande/citra/blob/"
+                                            "master/changelog.md#%1")
+                                 .arg(item->text().remove(QLatin1Char{'.'}))));
+                });
+
+                menu.addAction(action_open_changelog);
+            }
+
+            const QStringList assets = item->data(AssetsRole).toStringList();
+            if (!assets.isEmpty()) {
+                menu.addSeparator();
+
+                for (const QString& asset : assets) {
+                    QAction* action = new QAction(QStringLiteral("Download %1").arg(asset), &menu);
+                    connect(action, &QAction::triggered, this,
+                            [asset = asset.toStdString(), DownloadAsset] { DownloadAsset(asset); });
+                    menu.addAction(action);
+                }
+            }
+
+            menu.exec(ui->releases->mapToGlobal(position));
         });
 
-    connect(ui->recent_releases_button, &QPushButton::clicked, this, [this] {
-        web_result_future_watcher = std::make_unique<QFutureWatcher<Common::WebResult>>();
-        progress_dialog = std::make_unique<QProgressDialog>(
-            QStringLiteral("Fetching recent releases"), QString(), 0, 0, this,
-            Qt::WindowTitleHint | Qt::WindowSystemMenuHint);
-        progress_dialog->setWindowTitle(QStringLiteral("Fetching recent releases"));
+    connect(ui->releases_button, &QPushButton::clicked, this, [this] {
+        http_responses_future_watcher =
+            std::make_unique<QFutureWatcher<std::vector<std::shared_ptr<httplib::Response>>>>();
+        progress_dialog =
+            std::make_unique<QProgressDialog>(QStringLiteral("Fetching releases"), QString(), 0, 0,
+                                              this, Qt::WindowTitleHint | Qt::WindowSystemMenuHint);
+        progress_dialog->setWindowTitle(QStringLiteral("Fetching releases"));
 
-        connect(web_result_future_watcher.get(), &QFutureWatcher<Common::WebResult>::finished, this,
+        connect(http_responses_future_watcher.get(),
+                &QFutureWatcher<std::vector<std::shared_ptr<httplib::Response>>>::finished, this,
                 [this] {
-                    const Common::WebResult result = web_result_future_watcher->result();
+                    const std::vector<std::shared_ptr<httplib::Response>> responses =
+                        http_responses_future_watcher->result();
 
-                    web_result_future_watcher.reset();
-                    ui->recent_releases_button->setEnabled(true);
+                    http_responses_future_watcher.reset();
+                    ui->releases_button->setEnabled(true);
 
                     progress_dialog.reset();
 
-                    if (result.result_code == Common::WebResult::Code::Success) {
-                        if (!ui->recent_releases->isEnabled()) {
-                            ui->recent_releases->setEnabled(true);
-                            ui->recent_releases_button->setText(QStringLiteral("Update"));
+                    if (responses.empty()) {
+                        QMessageBox::critical(this, QStringLiteral("Error"),
+                                              QStringLiteral("Error while fetching the releases."));
+                        return;
+                    }
+
+                    ui->releases->clear();
+
+                    for (const std::shared_ptr<httplib::Response>& response : responses) {
+                        if (!ui->releases->isEnabled()) {
+                            ui->releases->setEnabled(true);
+                            ui->releases_button->setText(QStringLiteral("Update"));
                         }
 
-                        ui->recent_releases->clear();
+                        const nlohmann::json json = nlohmann::json::parse(response->body);
+                        for (const nlohmann::json release : json) {
+                            // Validate the version
+                            if (semver::from_string_noexcept(release["tag_name"].get<std::string>())
+                                    .has_value()) {
+                                QListWidgetItem* item = new QListWidgetItem(
+                                    QString::fromStdString(release["tag_name"]));
 
-                        const nlohmann::json json = nlohmann::json::parse(result.returned_data);
-                        for (std::size_t i = 0; i < json.size(); i++) {
-                            const nlohmann::json release = json[i];
+                                QStringList assets;
+                                for (const nlohmann::json asset : release["assets"]) {
+                                    assets
+                                        << QString::fromStdString(asset["name"].get<std::string>());
+                                }
 
-                            ui->recent_releases->addItem(
-                                QString::fromStdString(release["tag_name"]));
+                                item->setData(AssetsRole, assets);
+                                ui->releases->addItem(item);
+                            }
                         }
                     }
                 });
-        QFuture<Common::WebResult> future = QtConcurrent::run([] {
-            WebService::Client client("https://api.github.com", "", "");
-            return client.GetJson("/repos/vvanelslande/citra/releases", true);
+        QFuture<std::vector<std::shared_ptr<httplib::Response>>> future = QtConcurrent::run([] {
+            httplib::SSLClient client("api.github.com", 443);
+            std::vector<std::shared_ptr<httplib::Response>> responses;
+            const std::function<bool(const std::string&)> Next = [&Next, &client, &responses](
+                                                                     const std::string& path) {
+                std::shared_ptr<httplib::Response> response = client.Get(path.c_str());
+                if (response != nullptr && response->status == 200) {
+                    const auto content_type = response->headers.find("Content-Type");
+                    if (content_type != response->headers.end() &&
+                        content_type->second.find("application/json") == 0) {
+                        responses.push_back(response);
+
+                        const auto link = response->headers.find("Link");
+                        if (link != response->headers.end()) {
+                            const QString qlink = QString::fromStdString(link->second);
+                            const QStringList links = qlink.split(", ");
+
+                            // Find the next link
+                            for (const QString& link : links) {
+                                const QRegularExpressionMatch match = HTTP_LINK_REGEX.match(link);
+                                if (match.hasMatch()) {
+                                    const QString rel = match.captured(QStringViewLiteral("rel"));
+                                    if (rel == QStringLiteral("next")) {
+                                        const QString link =
+                                            match.captured(QStringViewLiteral("link"));
+                                        const QUrl url(link);
+                                        // Go to next page
+                                        Next(static_cast<QString>(url.path() + QLatin1Char{'?'} +
+                                                                  url.query())
+                                                 .toStdString());
+                                        break;
+                                    }
+                                }
+                            }
+                        }
+
+                        return true;
+                    }
+                }
+                return false;
+            };
+            Next("/repos/vvanelslande/citra/releases");
+            return responses;
         });
-        web_result_future_watcher->setFuture(future);
-        ui->recent_releases_button->setEnabled(false);
+        http_responses_future_watcher->setFuture(future);
+        ui->releases_button->setEnabled(false);
         progress_dialog->exec();
     });
 

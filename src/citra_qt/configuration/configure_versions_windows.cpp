@@ -57,7 +57,7 @@ void ConfigureVersions::Initialize() {
             const semver::version version = item->data(VersionRole).value<semver::version>();
             QMenu menu(QString::fromStdString(version.to_string()), this);
 
-            QAction action_start(QStringLiteral("Start"), this);
+            QAction action_start(QStringLiteral("Start"), &menu);
             connect(&action_start, &QAction::triggered, this, [this, item] {
                 QProcess* process = new QProcess(this);
                 process->startDetached(
@@ -66,35 +66,35 @@ void ConfigureVersions::Initialize() {
             });
             menu.addAction(&action_start);
 
-            QAction action_open_changelog(QStringLiteral("Open Changelog"), this);
             // There's no changelog for versions before 2.10.1 currently.
             if (version >= semver::version{2, 10, 1}) {
-                connect(&action_open_changelog, &QAction::triggered, this, [this, &version] {
+                QAction* action_open_changelog =
+                    new QAction(QStringLiteral("Open Changelog"), &menu);
+                connect(action_open_changelog, &QAction::triggered, this, [this, &version] {
                     QDesktopServices::openUrl(
                         QUrl(QStringLiteral("https://github.com/vvanelslande/citra/blob/"
                                             "master/changelog.md#%1")
                                  .arg(QString::fromStdString(version.to_string())
                                           .remove(QLatin1Char{'.'}))));
                 });
-
-                menu.addAction(&action_open_changelog);
+                menu.addAction(action_open_changelog);
             }
 
-            QAction action_open_location(QStringLiteral("Open Location"), this);
+            QAction action_open_location(QStringLiteral("Open Location"), &menu);
             connect(&action_open_location, &QAction::triggered, this, [this, item] {
                 QDesktopServices::openUrl(QUrl::fromLocalFile(item->data(PathRole).toString()));
             });
 
             menu.addAction(&action_open_location);
 
-            QAction action_delete(QStringLiteral("Delete"), this);
             if (version != Version::citra_valentin) {
-                connect(&action_delete, &QAction::triggered, this, [this, item] {
+                QAction* action_delete = new QAction(QStringLiteral("Delete"), &menu);
+                connect(action_delete, &QAction::triggered, this, [this, item] {
                     QDir dir(item->data(PathRole).toString());
                     dir.removeRecursively();
                     delete item;
                 });
-                menu.addAction(&action_delete);
+                menu.addAction(action_delete);
             }
 
             menu.exec(ui->versions_installed_using_cvu->mapToGlobal(position));

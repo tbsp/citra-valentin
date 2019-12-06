@@ -5,9 +5,9 @@
 #pragma once
 
 #include <memory>
+#include <vector>
 #include <QWidget>
 #include "common/version.h"
-#include "common/web_result.h"
 
 namespace Ui {
 class ConfigureVersions;
@@ -40,8 +40,7 @@ private:
     void Initialize();
     void UpdateInstalledVersions();
 
-    std::unique_ptr<QFutureWatcher<Common::WebResult>> web_result_future_watcher;
-    std::unique_ptr<QFutureWatcher<std::shared_ptr<httplib::Response>>> http_future_watcher;
+    std::unique_ptr<QFutureWatcher<std::vector<std::shared_ptr<httplib::Response>>>> http_responses_future_watcher;
     std::unique_ptr<QProgressDialog> progress_dialog;
 
 #ifdef _WIN32

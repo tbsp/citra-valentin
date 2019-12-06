@@ -93,7 +93,7 @@ __declspec(dllexport) unsigned long NvOptimusEnablement = 0x00000001;
 
 /**
  * "Callouts" are one-time instructional messages shown to the user. In UISettings, there
- * is a bitfield "callout_flags" options, used to track if a message has already been shown to the
+ * is a bitfield "callout_flags", used to track if a message has already been shown to the
  * user. This is 32-bits - if we have more than 32 callouts, we should retire and recyle old ones.
  */
 enum class CalloutFlag : u32 {

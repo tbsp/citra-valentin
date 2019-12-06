@@ -2,6 +2,14 @@
 <ui version="4.0">
  <class>ConfigureVersions</class>
  <widget class="QWidget" name="ConfigureVersions">
+  <property name="geometry">
+   <rect>
+    <x>0</x>
+    <y>0</y>
+    <width>294</width>
+    <height>666</height>
+   </rect>
+  </property>
   <property name="minimumSize">
    <size>
     <width>0</width>
@@ -65,13 +73,13 @@
    <item>
     <widget class="QGroupBox" name="groupBox_2">
      <property name="title">
-      <string>Recent Releases</string>
+      <string>Releases</string>
      </property>
      <layout class="QVBoxLayout" name="verticalLayout_2">
       <item>
        <widget class="QLabel" name="label_2">
         <property name="text">
-         <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Right click a version to open the release in your browser, open the changelog in your browser, download the Linux build or download the Windows build.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+         <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Right click a version to open the release in your browser, open the changelog in your browser or download assets.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
         </property>
         <property name="wordWrap">
          <bool>true</bool>
@@ -79,14 +87,14 @@
        </widget>
       </item>
       <item>
-       <widget class="QListWidget" name="recent_releases">
+       <widget class="QListWidget" name="releases">
         <property name="enabled">
          <bool>false</bool>
         </property>
        </widget>
       </item>
       <item>
-       <widget class="QPushButton" name="recent_releases_button">
+       <widget class="QPushButton" name="releases_button">
         <property name="text">
          <string>Load</string>
         </property>
