@@ -47,7 +47,7 @@ void ConfigureVersions::Initialize() {
             &ConfigureVersions::UpdateInstalledVersions);
 
     connect(
-        ui->versions_installed_using_cvu_group, &QListWidget::customContextMenuRequested, this,
+        ui->versions_installed_using_cvu, &QListWidget::customContextMenuRequested, this,
         [this](const QPoint& position) {
             QListWidgetItem* item = ui->versions_installed_using_cvu->currentItem();
             if (item == nullptr) {
