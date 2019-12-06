@@ -5,8 +5,8 @@
 #pragma once
 
 #include <ostream>
+#include <semver.hpp>
 #include "common/common_types.h"
-#include "semver.hpp"
 
 namespace Version {
 // Citra Valentin version
