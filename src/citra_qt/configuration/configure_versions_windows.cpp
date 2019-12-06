@@ -23,7 +23,7 @@ const QRegularExpression DIR_REGEX(
                    "buildmetadata>[0-9a-zA-Z-]+(?:\\.[0-9a-zA-Z-]+)*))?)"));
 
 void ConfigureVersions::Initialize() {
-    ui->versions_installed_using_cvu_versions_group->setEnabled(true);
+    ui->versions_installed_using_cvu_group->setEnabled(true);
 
     // Set the installation directory
     char* cvu_install_dir = getenv("CVU_INSTALL_DIR");
@@ -47,8 +47,8 @@ void ConfigureVersions::Initialize() {
             &ConfigureVersions::UpdateInstalledVersions);
 
     connect(
-        ui->versions_installed_using_cvu_versions_group, &QListWidget::customContextMenuRequested,
-        this, [this](const QPoint& position) {
+        ui->versions_installed_using_cvu_group, &QListWidget::customContextMenuRequested, this,
+        [this](const QPoint& position) {
             QListWidgetItem* item = ui->versions_installed_using_cvu->currentItem();
             if (item == nullptr) {
                 return;

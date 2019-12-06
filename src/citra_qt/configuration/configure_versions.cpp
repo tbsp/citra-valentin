@@ -20,7 +20,7 @@ ConfigureVersions::ConfigureVersions(QWidget* parent)
     : QWidget(parent), ui(std::make_unique<Ui::ConfigureVersions>()) {
     ui->setupUi(this);
 
-    ui->versions_installed_using_cvu_versions_group->setContextMenuPolicy(Qt::CustomContextMenu);
+    ui->versions_installed_using_cvu_group->setContextMenuPolicy(Qt::CustomContextMenu);
     ui->recent_releases->setContextMenuPolicy(Qt::CustomContextMenu);
 
     connect(ui->recent_releases, &QListWidget::doubleClicked, this, [this] {

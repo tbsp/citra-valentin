@@ -27,13 +27,14 @@
 
 ### Qt Versions tab
 
-- Installed Versions: versions installed using [CVU](https://github.com/vvanelslande/cvu). right click a version to start it, open the changelog in your browser, open it's location or delete it (if it's not the version you're using).
+- Versions Installed Using [CVU](https://github.com/vvanelslande/cvu): right click a version to start it, open the changelog in your browser, open it's location or delete it (if it's not the version you're using).
 - Recent Releases: shows the release list, double click a version to open the release in your browser.
 
 ## Minor Changes
 
 - Qt: rename Open EXE Location to Open Executable Location, use a cross platform function and show the option on Linux.
 - Common: LinearDiskCache removed, it wasn't used.
+- Externals: Update fmt, [commits](https://github.com/fmtlib/fmt/compare/d22e4ad85b477b4f2b4ffb034d1212cc9afcfe49...1219b65f2167fabe58ce77f4bd7447da5fa02611)
 
 # 4.4.1
 
