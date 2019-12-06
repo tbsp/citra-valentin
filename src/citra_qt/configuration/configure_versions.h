@@ -6,6 +6,7 @@
 
 #include <memory>
 #include <QWidget>
+#include "common/version.h"
 #include "common/web_result.h"
 
 namespace Ui {
@@ -23,7 +24,6 @@ class QProgressDialog;
 
 #ifdef _WIN32
 #include <QString>
-#include "semver.hpp"
 
 constexpr int VersionRole = Qt::UserRole;
 constexpr int PathRole = Qt::UserRole + 1;
