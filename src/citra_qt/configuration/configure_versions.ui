@@ -2,7 +2,6 @@
 <ui version="4.0">
  <class>ConfigureVersions</class>
  <widget class="QWidget" name="ConfigureVersions">
-
   <property name="minimumSize">
    <size>
     <width>0</width>
@@ -31,6 +30,24 @@
          <bool>true</bool>
         </property>
        </widget>
+      </item>
+      <item>
+       <layout class="QHBoxLayout" name="horizontalLayout">
+        <item>
+         <widget class="QLabel" name="cvu_install_dir">
+          <property name="text">
+           <string>Installation Directory: </string>
+          </property>
+         </widget>
+        </item>
+        <item>
+         <widget class="QPushButton" name="open_cvu_install_dir">
+          <property name="text">
+           <string>Open</string>
+          </property>
+         </widget>
+        </item>
+       </layout>
       </item>
       <item>
        <widget class="QListWidget" name="versions_installed_using_cvu"/>

@@ -32,6 +32,7 @@
 
 ## Minor Changes
 
+- Qt: rename Open EXE Location to Open Executable Location, use a cross platform function and show the option on Linux.
 - Common: LinearDiskCache removed, it wasn't used.
 
 # 4.4.1

@@ -6,6 +6,7 @@
 #include <QDir>
 #include <QDirIterator>
 #include <QMenu>
+#include <QMessageBox>
 #include <QProcess>
 #include <QRegularExpression>
 #include <QStandardPaths>
@@ -27,9 +28,20 @@ void ConfigureVersions::Initialize() {
     // Set the installation directory
     char* cvu_install_dir = getenv("CVU_INSTALL_DIR");
     install_dir = cvu_install_dir == nullptr
-                      ? QStandardPaths::writableLocation(QStandardPaths::AppLocalDataLocation) +
-                            "/citra-valentin"
+                      ? QStandardPaths::writableLocation(QStandardPaths::HomeLocation) +
+                            "/AppData/Local/citra-valentin"
                       : QString::fromLocal8Bit(cvu_install_dir);
+
+    ui->cvu_install_dir->setText(QStringLiteral("Installation Directory: %1").arg(install_dir));
+    connect(ui->open_cvu_install_dir, &QPushButton::clicked, this, [this] {
+        QDir dir(install_dir);
+        if (!dir.exists() && !dir.mkdir(install_dir)) {
+            QMessageBox::critical(this, QStringLiteral("Error"),
+                                  QStringLiteral("Failed to create %1").arg(install_dir));
+        }
+
+        QDesktopServices::openUrl(QUrl::fromLocalFile(install_dir));
+    });
 
     connect(ui->update_versions_installed_using_cvu, &QPushButton::clicked, this,
             &ConfigureVersions::UpdateInstalledVersions);

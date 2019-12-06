@@ -881,14 +881,9 @@ void GMainWindow::ConnectMenuEvents() {
                      .arg(QString::fromStdString(Version::citra_valentin.to_string()))));
     });
 
-#ifdef _WIN32
-    connect(ui.action_Open_EXE_Location, &QAction::triggered, this, [] {
-        QDesktopServices::openUrl(
-            QUrl::fromLocalFile(QString::fromStdString(FileUtil::GetExeDirectory())));
+    connect(ui.action_Open_Executable_Location, &QAction::triggered, this, [] {
+        QDesktopServices::openUrl(QUrl::fromLocalFile(QCoreApplication::applicationDirPath()));
     });
-#else
-    ui.action_Open_EXE_Location->setVisible(false);
-#endif
 }
 
 void GMainWindow::OnDisplayTitleBars(bool show) {
@@ -2234,8 +2229,6 @@ void GMainWindow::SendTelemetry() const {
                 json["gl_version"] = gl_version;
                 json["gpu_vendor"] = gpu_vendor;
                 json["gpu_model"] = gpu_model;
-            } else {
-                ASSERT_MSG("woot");
             }
         }
         if (UISettings::values.telemetry_send_version) {

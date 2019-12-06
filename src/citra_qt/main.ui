@@ -72,7 +72,7 @@
     <addaction name="menu_Amiibo"/>
     <addaction name="separator"/>
     <addaction name="action_Open_Citra_Folder"/>
-    <addaction name="action_Open_EXE_Location"/>
+    <addaction name="action_Open_Executable_Location"/>
     <addaction name="separator"/>
     <addaction name="action_Exit"/>
    </widget>
@@ -446,9 +446,9 @@
     <string>Configure...</string>
    </property>
   </action>
-  <action name="action_Open_EXE_Location">
+  <action name="action_Open_Executable_Location">
    <property name="text">
-    <string>Open EXE Location</string>
+    <string>Open Executable Location</string>
    </property>
    <property name="toolTip">
     <string>Useful to paste user folder</string>
