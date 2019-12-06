@@ -28,7 +28,7 @@
 ### Qt Versions tab
 
 - Versions Installed Using [CVU](https://github.com/vvanelslande/cvu): right click a version to start it, open the changelog in your browser, open it's location or delete it (if it's not the version you're using).
-- Recent Releases: shows the release list, double click a version to open the release in your browser.
+- Recent Releases: double click a version to open the release in your browser.
 
 ## Minor Changes
 
