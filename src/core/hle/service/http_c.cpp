@@ -85,10 +85,12 @@ void Context::MakeRequest() {
     request.method = request_method_strings.at(method);
     request.path = url;
     // TODO(B3N30): Add post data body
-    request.progress = [this](u64 current, u64 total) -> void {
+    request.progress = [this](u64 current, u64 total) {
         // TODO(B3N30): Is there a state that shows response header are available
         current_download_size_bytes = current;
         total_download_size_bytes = total;
+
+        return true;
     };
 
     for (const auto& header : headers) {

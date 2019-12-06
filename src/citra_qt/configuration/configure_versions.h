@@ -12,10 +12,14 @@ namespace Ui {
 class ConfigureVersions;
 } // namespace Ui
 
+namespace httplib {
+struct Response;
+} // namespace httplib
+
 template <typename>
 class QFutureWatcher;
 
-class QDialog;
+class QProgressDialog;
 
 #ifdef _WIN32
 #include <QString>
@@ -36,8 +40,9 @@ private:
     void Initialize();
     void UpdateInstalledVersions();
 
-    std::unique_ptr<QFutureWatcher<Common::WebResult>> fetch_recent_releases_watcher;
-    std::unique_ptr<QDialog> fetching_recent_releases_dialog;
+    std::unique_ptr<QFutureWatcher<Common::WebResult>> web_result_future_watcher;
+    std::unique_ptr<QFutureWatcher<std::shared_ptr<httplib::Response>>> http_future_watcher;
+    std::unique_ptr<QProgressDialog> progress_dialog;
 
 #ifdef _WIN32
     QString install_dir;

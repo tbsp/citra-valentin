@@ -97,7 +97,7 @@ void ConfigureVersions::Initialize() {
                 menu.addAction(&action_delete);
             }
 
-            menu.exec(mapToGlobal(position));
+            menu.exec(ui->versions_installed_using_cvu->mapToGlobal(position));
         });
 }
 

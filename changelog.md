@@ -1,5 +1,6 @@
 # Versions
 
+[4.6.0](#460)  
 [4.5.0](#450)  
 [4.4.1](#441)  
 [4.4.0](#440)  
@@ -20,6 +21,12 @@
 [2.10.3](#2103)  
 [2.10.2](#2102)  
 [2.10.1](#2101)
+
+# 4.6.0
+
+## Features
+
+- Qt/ConfigureVersions/Recent Releases: Change double click to right click and add Open Changelog and options to download builds for Linux and Windows
 
 # 4.5.0
 
