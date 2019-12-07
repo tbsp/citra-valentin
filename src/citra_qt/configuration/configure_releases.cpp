@@ -175,9 +175,9 @@ void ConfigureReleases::FetchReleases() {
                         for (const QString& link : links) {
                             const QRegularExpressionMatch match = HTTP_LINK_REGEX.match(link);
                             if (match.hasMatch()) {
-                                const QString rel = match.captured(QStringViewLiteral("rel"));
+                                const QString rel = match.captured(QStringLiteral("rel"));
                                 if (rel == QStringLiteral("next")) {
-                                    const QString link = match.captured(QStringViewLiteral("link"));
+                                    const QString link = match.captured(QStringLiteral("link"));
                                     const QUrl url(link);
                                     // Go to next page
                                     Next(static_cast<QString>(url.path() + QLatin1Char{'?'} +
