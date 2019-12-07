@@ -27,12 +27,12 @@
 
 ## Features
 
-- Qt: Add Windows-only updater (CVU) release list
+- Qt: Windows-only updater (CVU) release list
 - Qt: Disk shader cache loading progress bar
 
 ## Fixes
 
-- DSP HLE: Luigi's Mansion 2 / Dark Moon freeze, ZeusIota helped me in the Citra Valentin Discord server. If the audio loops infinitely, create a issue and include the log file (`citra-valentin.log` for the CLI or `citra-valentin-qt.log` for the GUI).
+- DSP HLE: Luigi's Mansion 2 / Dark Moon freeze, ZeusIota wrote the fix but the fix broke Super Mario 3D Land's audio. I fixed that by changing `MAX_SAMPLES` to `791408`. If the audio loops infinitely, create a issue and include the log file (`citra-valentin.log` for the CLI or `citra-valentin-qt.log` for the GUI).
 
 ## Minor Changes
 
