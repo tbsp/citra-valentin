@@ -1,5 +1,6 @@
 # Versions
 
+[4.7.0](#470)  
 [4.6.0](#460)  
 [4.5.0](#450)  
 [4.4.1](#441)  
@@ -21,6 +22,22 @@
 [2.10.3](#2103)  
 [2.10.2](#2102)  
 [2.10.1](#2101)
+
+# 4.7.0
+
+## Features
+
+- Qt: Add Windows-only updater (CVU) release list
+- Qt: Disk shader cache loading progress bar
+
+## Fixes
+
+- DSP HLE: Luigi's Mansion 2 / Dark Moon freeze, ZeusIota helped me in the Citra Valentin Discord server. If the audio loops infinitely, create a issue and include the log file (`citra-valentin.log` for the CLI or `citra-valentin-qt.log` for the GUI).
+
+## Minor Changes
+
+- Qt: Add Discord server invite callout
+- Qt: Rename Versions tab to Releases
 
 # 4.6.0
 

@@ -88,9 +88,9 @@ add_executable(citra-qt
     configuration/configure_ui.cpp
     configuration/configure_ui.h
     configuration/configure_ui.ui
-    configuration/configure_versions.cpp
-    configuration/configure_versions.h
-    configuration/configure_versions.ui
+    configuration/configure_releases.cpp
+    configuration/configure_releases.h
+    configuration/configure_releases.ui
     configuration/configure_web.cpp
     configuration/configure_web.h
     configuration/configure_web.ui
@@ -172,11 +172,7 @@ add_executable(citra-qt
     util/spinbox.h
     util/util.cpp
     util/util.h
-    $<$<BOOL:${UNIX}>:
-        configuration/configure_versions_linux.cpp
-    >
     $<$<BOOL:${WIN32}>:
-        configuration/configure_versions_windows.cpp
         camera/dshow_camera.cpp
         camera/dshow_camera.h
     >

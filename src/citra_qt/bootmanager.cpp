@@ -49,6 +49,10 @@ void EmuThread::run() {
         stop_run, [this](VideoCore::LoadCallbackStage stage, std::size_t value, std::size_t total) {
             LOG_DEBUG(Frontend, "Loading stage {} progress {} {}", static_cast<u32>(stage), value,
                       total);
+            // QTimer::singleShot(0, qApp, [this, stage, value, total] {
+            // });
+            // TODO(vvanelslande): use QTimer for this. reason: call stacks are more useful.
+            emit DiskShaderCacheLoadingProgress(stage, value, total);
         });
 
     // Holds whether the cpu was running during the last iteration,

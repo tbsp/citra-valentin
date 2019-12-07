@@ -442,7 +442,8 @@ void ShaderProgramManager::LoadDiskCache(const std::atomic_bool& stop_loading,
                   "Cannot load disk cache as separate shader programs are unsupported!");
         return;
     }
-    auto& disk_cache = impl->disk_cache;
+
+    OpenGL::ShaderDiskCache& disk_cache = impl->disk_cache;
     const auto transferable = disk_cache.LoadTransferable();
     if (!transferable) {
         LOG_INFO(Render_OpenGL,
@@ -611,6 +612,10 @@ void ShaderProgramManager::LoadDiskCache(const std::atomic_bool& stop_loading,
 
     if (precompiled_cache_altered) {
         disk_cache.SaveVirtualPrecompiledFile();
+    }
+
+    if (callback) {
+        callback(VideoCore::LoadCallbackStage::Complete, 0, 0);
     }
 }
 

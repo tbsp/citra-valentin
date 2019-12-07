@@ -18,6 +18,7 @@
 #include "core/core.h"
 #include "core/hle/service/am/am.h"
 #include "ui_main.h"
+#include "video_core/rasterizer_interface.h"
 
 class AboutDialog;
 class Config;
@@ -40,6 +41,7 @@ class MultiplayerState;
 template <typename>
 class QFutureWatcher;
 class QProgressBar;
+class QProgressDialog;
 class RegistersWidget;
 class WaitTreeWidget;
 
@@ -93,6 +95,7 @@ signals:
     void UpdateProgress(std::size_t written, std::size_t total);
     void CIAInstallReport(Service::AM::InstallStatus status, QString filepath);
     void CIAInstallFinished();
+
     // Signal that tells widgets to update icons to use the current theme
     void UpdateThemedIcons();
 
@@ -148,7 +151,10 @@ private:
     void closeEvent(QCloseEvent* event) override;
 
     void SendTelemetry() const;
+
+    // Callouts (one-time messages)
     void ShowTelemetryCallout();
+    void ShowDiscordServerCallout();
 
 private slots:
     void OnStartGame();
@@ -189,6 +195,8 @@ private slots:
     void OnStartVideoDumping();
     void OnStopVideoDumping();
     void OnCoreError(Core::System::ResultStatus, std::string);
+    void OnDiskShaderCacheLoadingProgress(VideoCore::LoadCallbackStage stage, std::size_t value,
+                                          std::size_t total);
 
     /// Called whenever a user selects Help->About Citra Valentin
     void OnMenuAboutCitraValentin();
@@ -205,6 +213,8 @@ private:
     GRenderWindow* render_window;
 
     GameListPlaceholder* game_list_placeholder;
+
+    std::unique_ptr<QProgressDialog> progress_dialog;
 
     // Status bar elements
     QProgressBar* progress_bar = nullptr;

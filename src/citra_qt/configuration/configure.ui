@@ -52,9 +52,9 @@
          <string>Custom Layout</string>
         </attribute>
        </widget>
-       <widget class="ConfigureVersions" name="versionsTab">
+       <widget class="ConfigureReleases" name="releasesTab">
         <attribute name="title">
-         <string>Versions</string>
+         <string>Releases</string>
         </attribute>
        </widget>
        <widget class="ConfigureAudio" name="audioTab">
@@ -169,9 +169,9 @@
    <container>1</container>
   </customwidget>
   <customwidget>
-   <class>ConfigureVersions</class>
+   <class>ConfigureReleases</class>
    <extends>QWidget</extends>
-   <header>configuration/configure_versions.h</header>
+   <header>configuration/configure_releases.h</header>
    <container>1</container>
   </customwidget>
  </customwidgets>

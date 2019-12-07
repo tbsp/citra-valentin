@@ -348,4 +348,8 @@ SourceStatus::Status Source::GetCurrentStatus() {
     return ret;
 }
 
+std::size_t Source::GetBiggestAdpcmSampleCount() const {
+    return state.adpcm_state.biggest_sample_count;
+}
+
 } // namespace AudioCore::HLE

@@ -6,11 +6,12 @@
 
 #include <memory>
 #include <vector>
+#include <QPoint>
 #include <QWidget>
 #include "common/version.h"
 
 namespace Ui {
-class ConfigureVersions;
+class ConfigureReleases;
 } // namespace Ui
 
 namespace httplib {
@@ -24,32 +25,32 @@ class QProgressDialog;
 
 #ifdef _WIN32
 #include <QString>
-
-constexpr int VersionRole = Qt::UserRole;
-constexpr int PathRole = Qt::UserRole + 1;
 #endif
 
-class ConfigureVersions : public QWidget {
+class ConfigureReleases : public QWidget {
     Q_OBJECT
 
 public:
-    explicit ConfigureVersions(QWidget* parent = nullptr);
-    ~ConfigureVersions();
+    explicit ConfigureReleases(QWidget* parent = nullptr);
+    ~ConfigureReleases();
+
+private slots:
+    void FetchReleases();
+    void FetchWindowsUpdaterReleases();
+
+    void ShowContextMenuForReleases(const QPoint& position);
+    void ShowContextMenuForWindowsUpdater(const QPoint& position);
 
 private:
-    void Initialize();
-    void UpdateInstalledVersions();
-
-    std::unique_ptr<QFutureWatcher<std::vector<std::shared_ptr<httplib::Response>>>> http_responses_future_watcher;
+    std::unique_ptr<QFutureWatcher<std::vector<std::shared_ptr<httplib::Response>>>>
+        http_responses_future_watcher;
     std::unique_ptr<QProgressDialog> progress_dialog;
 
 #ifdef _WIN32
     QString install_dir;
 #endif
 
-    std::unique_ptr<Ui::ConfigureVersions> ui;
+    std::unique_ptr<Ui::ConfigureReleases> ui;
 };
 
-#ifdef _WIN32
 Q_DECLARE_METATYPE(semver::version);
-#endif

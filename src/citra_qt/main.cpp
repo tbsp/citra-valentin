@@ -10,6 +10,7 @@
 #include <QFutureWatcher>
 #include <QMessageBox>
 #include <QOpenGLFunctions_3_3_Core>
+#include <QProgressDialog>
 #include <QSysInfo>
 #include <QtConcurrent/QtConcurrentRun>
 #include <QtGui>
@@ -97,7 +98,8 @@ __declspec(dllexport) unsigned long NvOptimusEnablement = 0x00000001;
  * user. This is 32-bits - if we have more than 32 callouts, we should retire and recyle old ones.
  */
 enum class CalloutFlag : u32 {
-    Telemetry = 0x1,
+    Telemetry = 1,
+    DiscordServer,
 };
 
 void GMainWindow::ShowTelemetryCallout() {
@@ -115,6 +117,21 @@ void GMainWindow::ShowTelemetryCallout() {
                            "Yes will open the Web tab in the configuration dialog.")) ==
         QMessageBox::Yes) {
         OnConfigure(true);
+    }
+}
+
+void GMainWindow::ShowDiscordServerCallout() {
+    if (UISettings::values.callout_flags & static_cast<u32>(CalloutFlag::DiscordServer)) {
+        return;
+    }
+
+    UISettings::values.callout_flags |= static_cast<uint32_t>(CalloutFlag::DiscordServer);
+    config->Save();
+
+    if (QMessageBox::question(this, QStringLiteral("Discord Server"),
+                              QStringLiteral("Would you like to join our Discord server?")) ==
+        QMessageBox::Yes) {
+        QDesktopServices::openUrl(QUrl(QStringLiteral("https://discord.gg/fPmDUaY")));
     }
 }
 
@@ -144,8 +161,9 @@ GMainWindow::GMainWindow()
     Debugger::ToggleConsole();
     Settings::LogSettings();
 
-    // register types to use in slots and signals
+    // Register types to use in slots and signals
     qRegisterMetaType<std::size_t>("std::size_t");
+    qRegisterMetaType<VideoCore::LoadCallbackStage>("VideoCore::LoadCallbackStage");
     qRegisterMetaType<Service::AM::InstallStatus>("Service::AM::InstallStatus");
 
     Pica::g_debug_context = Pica::DebugContext::Construct();
@@ -185,6 +203,7 @@ GMainWindow::GMainWindow()
 
     // Show one-time "callout" messages to the user
     ShowTelemetryCallout();
+    ShowDiscordServerCallout();
 
     QStringList args = QApplication::arguments();
     if (args.length() >= 2) {
@@ -193,9 +212,10 @@ GMainWindow::GMainWindow()
 }
 
 GMainWindow::~GMainWindow() {
-    // will get automatically deleted otherwise
-    if (render_window->parent() == nullptr)
+    // Will get automatically deleted otherwise
+    if (render_window->parent() == nullptr) {
         delete render_window;
+    }
 
     Pica::g_debug_context.reset();
     Network::Shutdown();
@@ -1110,6 +1130,9 @@ void GMainWindow::BootGame(const QString& filename) {
     qRegisterMetaType<std::string>("std::string");
     connect(emu_thread.get(), &EmuThread::ErrorThrown, this, &GMainWindow::OnCoreError);
 
+    connect(emu_thread.get(), &EmuThread::DiskShaderCacheLoadingProgress, this,
+            &GMainWindow::OnDiskShaderCacheLoadingProgress);
+
 #ifdef CITRA_ENABLE_DISCORD_RP
     discord_rp.Update();
 #endif
@@ -1993,6 +2016,55 @@ void GMainWindow::OnCoreError(Core::System::ResultStatus result, std::string det
             message_label->setText(status_message);
             message_label->setVisible(true);
         }
+    }
+}
+
+void GMainWindow::OnDiskShaderCacheLoadingProgress(VideoCore::LoadCallbackStage stage,
+                                                   std::size_t value, std::size_t total) {
+    if (thread() != QThread::currentThread()) {
+        QMetaObject::invokeMethod(this, "OnDiskShaderCacheLoadingProgress",
+                                  Qt::BlockingQueuedConnection,
+                                  Q_ARG(VideoCore::LoadCallbackStage, stage),
+                                  Q_ARG(std::size_t, value), Q_ARG(std::size_t, total));
+        return;
+    }
+
+    switch (stage) {
+    case VideoCore::LoadCallbackStage::Decompile: {
+        if (progress_dialog == nullptr) {
+            progress_dialog = std::make_unique<QProgressDialog>(
+                QStringLiteral("Preparing"), QString(), 0, 0, this,
+                Qt::WindowTitleHint | Qt::WindowSystemMenuHint);
+            progress_dialog->setModal(false);
+            progress_dialog->setWindowTitle(QStringLiteral("Loading Disk Shader Cache"));
+            progress_dialog->show();
+        }
+        progress_dialog->setLabelText(QStringLiteral("Decompiling"));
+        progress_dialog->setMaximum(static_cast<int>(total));
+        progress_dialog->setValue(static_cast<int>(value));
+        break;
+    }
+    case VideoCore::LoadCallbackStage::Build: {
+        if (progress_dialog == nullptr) {
+            progress_dialog = std::make_unique<QProgressDialog>(
+                QStringLiteral("Preparing"), QString(), 0, 0, this,
+                Qt::WindowTitleHint | Qt::WindowSystemMenuHint);
+            progress_dialog->setModal(false);
+            progress_dialog->setWindowTitle(QStringLiteral("Loading Disk Shader Cache"));
+            progress_dialog->show();
+        }
+        progress_dialog->setLabelText(QStringLiteral("Building"));
+        progress_dialog->setMaximum(static_cast<int>(total));
+        progress_dialog->setValue(static_cast<int>(value));
+        break;
+    }
+    case VideoCore::LoadCallbackStage::Complete: {
+        if (progress_dialog != nullptr) {
+            progress_dialog.reset();
+        }
+        break;
+    }
+    default: { break; }
     }
 }
 

@@ -13,11 +13,18 @@
 
 namespace AudioCore::Codec {
 
-StereoBuffer16 DecodeADPCM(const u8* const data, const std::size_t sample_count,
+StereoBuffer16 DecodeADPCM(const u8* const data, std::size_t sample_count,
                            const std::array<s16, 16>& adpcm_coeff, ADPCMState& state) {
     // GC-ADPCM with scale factor and variable coefficients.
     // Frames are 8 bytes long containing 14 samples each.
     // Samples are 4 bits (one nibble) long.
+
+    // Biggest sample count used in Super Mario 3D Land.
+    constexpr std::size_t MAX_SAMPLES = 791408;
+    if (sample_count > state.biggest_sample_count) {
+        state.biggest_sample_count = sample_count;
+    }
+    sample_count = std::clamp(sample_count, static_cast<std::size_t>(0), MAX_SAMPLES);
 
     constexpr std::size_t FRAME_LEN = 8;
     constexpr std::size_t SAMPLES_PER_FRAME = 14;
