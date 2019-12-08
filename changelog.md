@@ -35,9 +35,13 @@
 
 - Qt: Options and hotkeys to capture screenshot then copy it to clipboard and capture screenshot then send it to #screenshots-from-cv in the [Discord server](https://discord.gg/fPmDUaY)
 
-## Minor Changes
+## Fixes
 
 - Qt: Make configuration window smaller
+
+## Minor Changes
+
+- Update externals
 
 ## Qt: New Capture Screenshot Hotkey Defaults
 
