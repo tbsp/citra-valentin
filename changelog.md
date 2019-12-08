@@ -33,6 +33,10 @@
 
 - Qt: Change Capture Screenshot Then Send To Discord Server hotkey to a button, now that feature can be used with a gamepad.
 
+## Fixes
+
+- Qt: Capture Screenshot Then Send To Discord Server: Always include game name
+
 # 5.0.1
 
 ## Fixes
