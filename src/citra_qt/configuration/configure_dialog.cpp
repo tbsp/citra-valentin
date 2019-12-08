@@ -24,7 +24,7 @@ ConfigureDialog::ConfigureDialog(QWidget* parent, HotkeyRegistry& registry, cons
     connect(ui->selectorList, &QListWidget::itemSelectionChanged, this,
             &ConfigureDialog::UpdateVisibleTabs);
 
-    adjustSize();
+    resize(minimumSizeHint());
     ui->selectorList->setCurrentRow(0);
 
     // Set up used key list synchronisation
