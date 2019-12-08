@@ -4,6 +4,7 @@
 
 #include <QSettings>
 #include "citra_qt/configuration/config.h"
+#include "citra_qt/uisettings.h"
 #include "input_common/main.h"
 #include "input_common/udp/client.h"
 
@@ -103,6 +104,11 @@ void Config::ReadControlsValues() {
 
     Settings::LoadProfile(Settings::values.current_input_profile_index);
 
+    UISettings::values.capture_screenshot_then_send_to_discord_server_button =
+        ReadSetting(QStringLiteral("capture_screenshot_then_send_to_discord_server_button"),
+                    QStringLiteral("[empty]"))
+            .toString();
+
     qt_config->endGroup();
 }
 
@@ -142,5 +148,9 @@ void Config::SaveControlsValues() {
         WriteSetting(QStringLiteral("udp_pad_index"), profile.udp_pad_index, 0);
     }
     qt_config->endArray();
+
+    WriteSetting(QStringLiteral("capture_screenshot_then_send_to_discord_server_button"),
+                 UISettings::values.capture_screenshot_then_send_to_discord_server_button,
+                 QStringLiteral("[empty]"));
     qt_config->endGroup();
 }

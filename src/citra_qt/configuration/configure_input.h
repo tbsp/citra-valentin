@@ -24,7 +24,12 @@ class QTimer;
 
 namespace Ui {
 class ConfigureInput;
-}
+} // namespace Ui
+
+namespace QtButtons {
+// Button IDs
+constexpr int CaptureScreenshotThenSendToDiscordServer = 0;
+} // namespace QtButtons
 
 class ConfigureInput : public QWidget {
     Q_OBJECT
@@ -35,6 +40,7 @@ public:
 
     /// Save all button configurations to settings file
     void ApplyConfiguration();
+    void ApplyQtButtonsConfiguration();
 
     /// Load configuration settings.
     void LoadConfiguration();

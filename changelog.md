@@ -1,5 +1,6 @@
 # Versions
 
+[6.0.0](#600)  
 [5.0.1](#501)  
 [5.0.0](#500)  
 [4.7.0](#470)  
@@ -25,6 +26,12 @@
 [2.10.3](#2103)  
 [2.10.2](#2102)  
 [2.10.1](#2101)
+
+# 6.0.0
+
+## Breaking Changes
+
+- Qt: Change Capture Screenshot Then Send To Discord Server hotkey to a button, now that feature can be used with a gamepad.
 
 # 5.0.1
 

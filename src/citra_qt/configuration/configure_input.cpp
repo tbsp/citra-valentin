@@ -12,6 +12,7 @@
 #include "citra_qt/configuration/config.h"
 #include "citra_qt/configuration/configure_input.h"
 #include "citra_qt/configuration/configure_motion_touch.h"
+#include "citra_qt/uisettings.h"
 #include "common/param_package.h"
 
 const std::array<std::string, ConfigureInput::ANALOG_SUB_BUTTONS_NUM>
@@ -156,39 +157,49 @@ ConfigureInput::ConfigureInput(QWidget* parent)
 
     analog_map_stick = {ui->buttonCircleAnalog, ui->buttonCStickAnalog};
 
-    for (int button_id = 0; button_id < Settings::NativeButton::NumButtons; button_id++) {
-        if (!button_map[button_id])
-            continue;
-        button_map[button_id]->setContextMenuPolicy(Qt::CustomContextMenu);
-        connect(button_map[button_id], &QPushButton::clicked, [=]() {
-            HandleClick(button_map[button_id],
+    const auto SetupMenuForButton = [this](QPushButton* button, const bool is_qt_button,
+                                           const std::size_t button_id) {
+        button->setContextMenuPolicy(Qt::CustomContextMenu);
+        connect(button, &QPushButton::clicked, [=] {
+            HandleClick(button,
                         [=](const Common::ParamPackage& params) {
-                            buttons_param[button_id] = params;
-                            // If the user closes the dialog, the changes are reverted in
-                            // `GMainWindow::OnConfigure()`
-                            ApplyConfiguration();
-                            Settings::SaveProfile(ui->profile->currentIndex());
+                            button->setProperty("params",
+                                                QString::fromStdString(params.Serialize()));
+
+                            if (!is_qt_button) {
+                                buttons_param[button_id] = params;
+                                // If the user closes the dialog, the changes are reverted in
+                                // `GMainWindow::OnConfigure()`
+                                ApplyConfiguration();
+                                Settings::SaveProfile(ui->profile->currentIndex());
+                            }
                         },
                         InputCommon::Polling::DeviceType::Button);
         });
-        connect(button_map[button_id], &QPushButton::customContextMenuRequested,
-                [=](const QPoint& menu_location) {
-                    QMenu context_menu;
-                    context_menu.addAction(QStringLiteral("Clear"), [&] {
-                        buttons_param[button_id].Clear();
-                        button_map[button_id]->setText(QStringLiteral("[not set]"));
-                        ApplyConfiguration();
-                        Settings::SaveProfile(ui->profile->currentIndex());
-                    });
-                    context_menu.addAction(QStringLiteral("Restore Default"), [&] {
-                        buttons_param[button_id] = Common::ParamPackage{
-                            InputCommon::GenerateKeyboardParam(Config::default_buttons[button_id])};
-                        button_map[button_id]->setText(ButtonToText(buttons_param[button_id]));
-                        ApplyConfiguration();
-                        Settings::SaveProfile(ui->profile->currentIndex());
-                    });
-                    context_menu.exec(button_map[button_id]->mapToGlobal(menu_location));
-                });
+        connect(button, &QPushButton::customContextMenuRequested, [=](const QPoint& menu_location) {
+            QMenu context_menu;
+            context_menu.addAction(QStringLiteral("Clear"), [&] {
+                button->setText(QStringLiteral("[not set]"));
+                button->setProperty("params", QString());
+
+                if (!is_qt_button) {
+                    buttons_param[button_id].Clear();
+                    ApplyConfiguration();
+                    Settings::SaveProfile(ui->profile->currentIndex());
+                }
+            });
+            context_menu.exec(button->mapToGlobal(menu_location));
+        });
+    };
+
+    ui->button_capture_screenshot_then_send_to_discord_server->setProperty(
+        "params", UISettings::values.capture_screenshot_then_send_to_discord_server_button);
+    SetupMenuForButton(ui->button_capture_screenshot_then_send_to_discord_server, true, 0);
+
+    for (int button_id = 0; button_id < Settings::NativeButton::NumButtons; button_id++) {
+        if (!button_map[button_id])
+            continue;
+        SetupMenuForButton(button_map[button_id], false, button_id);
     }
 
     for (int analog_id = 0; analog_id < Settings::NativeAnalog::NumAnalogs; analog_id++) {
@@ -301,6 +312,11 @@ void ConfigureInput::ApplyConfiguration() {
                    [](const Common::ParamPackage& param) { return param.Serialize(); });
 }
 
+void ConfigureInput::ApplyQtButtonsConfiguration() {
+    UISettings::values.capture_screenshot_then_send_to_discord_server_button =
+        ui->button_capture_screenshot_then_send_to_discord_server->property("params").toString();
+}
+
 void ConfigureInput::ApplyProfile() {
     Settings::values.current_input_profile_index = ui->profile->currentIndex();
 }
@@ -326,6 +342,15 @@ QList<QKeySequence> ConfigureInput::GetUsedKeyboardKeys() {
             list << QKeySequence(button_param.Get("code", 0));
         }
     }
+
+    const Common::ParamPackage params(
+        ui->button_capture_screenshot_then_send_to_discord_server->property("params")
+            .toString()
+            .toStdString());
+    if (params.Get("engine", "") == "keyboard") {
+        list << QKeySequence(params.Get("code", 0));
+    }
+
     return list;
 }
 
@@ -375,6 +400,12 @@ void ConfigureInput::UpdateButtonLabels() {
         if (button_map[button])
             button_map[button]->setText(ButtonToText(buttons_param[button]));
     }
+
+    ui->button_capture_screenshot_then_send_to_discord_server->setText(
+        ButtonToText(Common::ParamPackage(
+            ui->button_capture_screenshot_then_send_to_discord_server->property("params")
+                .toString()
+                .toStdString())));
 
     for (int analog_id = 0; analog_id < Settings::NativeAnalog::NumAnalogs; analog_id++) {
         for (int sub_button_id = 0; sub_button_id < ANALOG_SUB_BUTTONS_NUM; sub_button_id++) {

@@ -16,6 +16,7 @@
 #include <fmt/format.h>
 #include "citra_qt/bootmanager.h"
 #include "citra_qt/main.h"
+#include "citra_qt/uisettings.h"
 #include "common/microprofile.h"
 #include "core/3ds.h"
 #include "core/core.h"
@@ -28,7 +29,9 @@
 #include "video_core/renderer_base.h"
 #include "video_core/video_core.h"
 
-EmuThread::EmuThread(Frontend::GraphicsContext& core_context) : core_context(core_context) {}
+EmuThread::EmuThread(Frontend::GraphicsContext& core_context) : core_context(core_context) {
+    UpdateQtButtons();
+}
 
 EmuThread::~EmuThread() = default;
 
@@ -49,9 +52,6 @@ void EmuThread::run() {
         stop_run, [this](VideoCore::LoadCallbackStage stage, std::size_t value, std::size_t total) {
             LOG_DEBUG(Frontend, "Loading stage {} progress {} {}", static_cast<u32>(stage), value,
                       total);
-            // QTimer::singleShot(0, qApp, [this, stage, value, total] {
-            // });
-            // TODO(vvanelslande): use QTimer for this. reason: call stacks are more useful.
             emit DiskShaderCacheLoadingProgress(stage, value, total);
         });
 
@@ -63,6 +63,10 @@ void EmuThread::run() {
         if (running) {
             if (!was_active)
                 emit DebugModeLeft();
+
+            if (capture_screenshot_then_send_to_discord_server_button->GetStatus()) {
+                emit CaptureScreenshotThenSendToDiscordServerRequested();
+            }
 
             Core::System::ResultStatus result = Core::System::GetInstance().RunLoop();
             if (result == Core::System::ResultStatus::ShutdownRequested) {
@@ -101,6 +105,12 @@ void EmuThread::run() {
 #if MICROPROFILE_ENABLED
     MicroProfileOnThreadExit();
 #endif
+}
+
+void EmuThread::UpdateQtButtons() {
+    capture_screenshot_then_send_to_discord_server_button =
+        Input::CreateDevice<Input::ButtonDevice>(
+            UISettings::values.capture_screenshot_then_send_to_discord_server_button.toStdString());
 }
 
 OpenGLWindow::OpenGLWindow(QWindow* parent, QWidget* event_handler, QOpenGLContext* shared_context)

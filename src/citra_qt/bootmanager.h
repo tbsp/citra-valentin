@@ -13,6 +13,7 @@
 #include "common/thread.h"
 #include "core/core.h"
 #include "core/frontend/emu_window.h"
+#include "core/frontend/input.h"
 #include "video_core/rasterizer_interface.h"
 
 class QKeyEvent;
@@ -86,7 +87,9 @@ public:
     void RequestStop() {
         stop_run = true;
         SetRunning(false);
-    };
+    }
+
+    void UpdateQtButtons();
 
 private:
     bool exec_step = false;
@@ -96,6 +99,9 @@ private:
     std::condition_variable running_cv;
 
     Frontend::GraphicsContext& core_context;
+
+    // Qt frontend only buttons
+    std::unique_ptr<Input::ButtonDevice> capture_screenshot_then_send_to_discord_server_button;
 
 signals:
     /**
@@ -119,6 +125,8 @@ signals:
     void ErrorThrown(Core::System::ResultStatus, std::string);
     void DiskShaderCacheLoadingProgress(VideoCore::LoadCallbackStage stage, std::size_t value,
                                         std::size_t total);
+
+    void CaptureScreenshotThenSendToDiscordServerRequested();
 };
 
 class OpenGLWindow : public QWindow {

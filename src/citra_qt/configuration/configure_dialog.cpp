@@ -62,6 +62,7 @@ void ConfigureDialog::ApplyConfiguration() {
     ui->generalTab->ApplyConfiguration();
     ui->systemTab->ApplyConfiguration();
     ui->inputTab->ApplyConfiguration();
+    ui->inputTab->ApplyQtButtonsConfiguration();
     ui->inputTab->ApplyProfile();
     ui->hotkeysTab->ApplyConfiguration(registry);
     ui->graphicsTab->ApplyConfiguration();

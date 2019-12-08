@@ -9,17 +9,16 @@
 #include <QMainWindow>
 #include <QMutex>
 #include <QTimer>
-
-#ifdef CITRA_ENABLE_DISCORD_RP
-#include "citra_qt/discord_rp.h"
-#endif
-
 #include "citra_qt/hotkeys.h"
 #include "common/announce_multiplayer_room.h"
 #include "core/core.h"
 #include "core/hle/service/am/am.h"
 #include "ui_main.h"
 #include "video_core/rasterizer_interface.h"
+
+#ifdef CITRA_ENABLE_DISCORD_RP
+#include "citra_qt/discord_rp.h"
+#endif
 
 class AboutDialog;
 class Config;
@@ -74,6 +73,9 @@ public:
 
 public slots:
     void OnAppFocusStateChanged(Qt::ApplicationState state);
+
+    // Screenshots
+    void CaptureScreenshotThenSendToDiscordServer();
 
 signals:
 
@@ -160,7 +162,6 @@ private:
     // Screenshots
     void CaptureScreenshotToFile();
     void CaptureScreenshotToClipboard();
-    void CaptureScreenshotThenSendToDiscordServer();
 
     bool ValidateMovie(const QString& path, u64 program_id = 0);
     Q_INVOKABLE void OnMoviePlaybackCompleted();

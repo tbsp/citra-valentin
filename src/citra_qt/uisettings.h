@@ -99,6 +99,9 @@ struct Values {
     QString theme;
     u32 callout_flags;
 
+    // Qt frontend only buttons
+    QString capture_screenshot_then_send_to_discord_server_button;
+
     // Shortcut name <Shortcut, context>
     std::vector<Shortcut> shortcuts;
 

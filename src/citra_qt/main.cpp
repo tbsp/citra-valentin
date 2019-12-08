@@ -531,15 +531,6 @@ void GMainWindow::InitializeHotkeys() {
                 }
             });
 
-    connect(hotkey_registry.GetHotkey(
-                QStringLiteral("Main Window"),
-                QStringLiteral("Capture Screenshot Then Send To Discord Server"), this),
-            &QShortcut::activated, this, [&] {
-                if (emulation_running) {
-                    CaptureScreenshotThenSendToDiscordServer();
-                }
-            });
-
     connect(hotkey_registry.GetHotkey(QStringLiteral("Main Window"),
                                       QStringLiteral("Toggle Custom Ticks"), this),
             &QShortcut::activated, this, [this] {
@@ -1155,10 +1146,14 @@ void GMainWindow::BootGame(const QString& filename) {
 
     qRegisterMetaType<Core::System::ResultStatus>("Core::System::ResultStatus");
     qRegisterMetaType<std::string>("std::string");
+
     connect(emu_thread.get(), &EmuThread::ErrorThrown, this, &GMainWindow::OnCoreError);
 
     connect(emu_thread.get(), &EmuThread::DiskShaderCacheLoadingProgress, this,
             &GMainWindow::OnDiskShaderCacheLoadingProgress);
+
+    connect(emu_thread.get(), &EmuThread::CaptureScreenshotThenSendToDiscordServerRequested, this,
+            &GMainWindow::CaptureScreenshotThenSendToDiscordServer);
 
 #ifdef CITRA_ENABLE_DISCORD_RP
     discord_rp.Update();
@@ -1673,6 +1668,9 @@ void GMainWindow::OnConfigure(const bool goto_web) {
     if (result == QDialog::Accepted) {
         configureDialog.ApplyConfiguration();
         InitializeHotkeys();
+        if (emu_thread != nullptr) {
+            emu_thread->UpdateQtButtons();
+        }
         if (UISettings::values.theme != old_theme) {
             UpdateUITheme();
         }
