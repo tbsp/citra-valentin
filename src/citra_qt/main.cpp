@@ -2494,7 +2494,9 @@ void GMainWindow::CaptureScreenshotThenSendToDiscordServer() {
 
             nlohmann::json json;
 
-            if (!Settings::values.citra_username.empty()) {
+            if (Settings::values.citra_username.empty()) {
+                json["username"] = fmt::format("Someone playing {}", game_title.toStdString());
+            } else {
                 httplib::SSLClient forum_client("community.citra-emu.org");
                 std::shared_ptr<httplib::Response> forum_summary_response = forum_client.Get(
                     fmt::format("https://community.citra-emu.org/u/{}/summary.json",
