@@ -212,14 +212,12 @@ void ConfigureReleases::ShowContextMenuForReleases(const QPoint& position) {
 
 #ifdef _WIN32
     if (!item->data(PathRole).toString().isEmpty()) {
-        QAction* action_start = new QAction(QStringLiteral("Start"), &menu);
-        connect(action_start, &QAction::triggered, this, [this, item] {
+        menu.addAction(QStringLiteral("Start"), [this, item] {
             QProcess* process = new QProcess(this);
             process->startDetached(
                 QStringLiteral("%1/citra-valentin-qt.exe").arg(item->data(PathRole).toString()),
                 QStringList());
         });
-        menu.addAction(action_start);
     }
 #endif
 
@@ -310,35 +308,29 @@ void ConfigureReleases::ShowContextMenuForReleases(const QPoint& position) {
 
     // There's no changelog for versions before 2.10.1 currently.
     if (version >= semver::version{2, 10, 1}) {
-        QAction* action_open_changelog = new QAction(QStringLiteral("Open Changelog"), &menu);
-        connect(action_open_changelog, &QAction::triggered, this, [this, item, version] {
+        menu.addAction(QStringLiteral("Open Changelog"), [this, version] {
             QDesktopServices::openUrl(QUrl(
                 QStringLiteral("https://github.com/vvanelslande/citra/blob/"
                                "master/changelog.md#%1")
                     .arg(QString::fromStdString(version.to_string()).remove(QLatin1Char{'.'}))));
         });
-        menu.addAction(action_open_changelog);
     }
 
 #ifdef _WIN32
     if (!item->data(PathRole).toString().isEmpty()) {
-        QAction* action_open_location = new QAction(QStringLiteral("Open Location"), &menu);
-        connect(action_open_location, &QAction::triggered, this, [this, item] {
+        menu.addAction(QStringLiteral("Open Location"), [this, item] {
             QDesktopServices::openUrl(QUrl::fromLocalFile(item->data(PathRole).toString()));
         });
-        menu.addAction(action_open_location);
     }
 #endif
 
 #ifdef _WIN32
     if (!item->data(PathRole).toString().isEmpty() && version != Version::citra_valentin) {
-        QAction* action_delete = new QAction(QStringLiteral("Delete"), &menu);
-        connect(action_delete, &QAction::triggered, this, [this, item] {
+        menu.addAction(QStringLiteral("Delete"), [this, item] {
             QDir dir(item->data(PathRole).toString());
             dir.removeRecursively();
             FetchReleases();
         });
-        menu.addAction(action_delete);
     }
 #endif
 
@@ -347,10 +339,8 @@ void ConfigureReleases::ShowContextMenuForReleases(const QPoint& position) {
         menu.addSeparator();
 
         for (const QString& asset : assets) {
-            QAction* action = new QAction(QStringLiteral("Download %1").arg(asset), &menu);
-            connect(action, &QAction::triggered, this,
-                    [asset = asset.toStdString(), DownloadAsset] { DownloadAsset(asset); });
-            menu.addAction(action);
+            menu.addAction(QStringLiteral("Download %1").arg(asset),
+                           [asset = asset.toStdString(), DownloadAsset] { DownloadAsset(asset); });
         }
     }
 
@@ -550,23 +540,19 @@ void ConfigureReleases::ShowContextMenuForWindowsUpdater(const QPoint& position)
     });
     menu.addAction(&action_open_release);
 
-    QAction* action_open_changelog = new QAction(QStringLiteral("Open Changelog"), &menu);
-    connect(action_open_changelog, &QAction::triggered, this, [this, item, version] {
+    menu.addAction(QStringLiteral("Open Changelog"), [this, item, version] {
         QDesktopServices::openUrl(
             QUrl(QStringLiteral("https://github.com/vvanelslande/cvu/blob/master/changelog.md#%1")
                      .arg(QString::fromStdString(version.to_string()).remove(QLatin1Char{'.'}))));
     });
-    menu.addAction(action_open_changelog);
 
     const QStringList assets = item->data(AssetsRole).toStringList();
     if (!assets.isEmpty()) {
         menu.addSeparator();
 
         for (const QString& asset : assets) {
-            QAction* action = new QAction(QStringLiteral("Download %1").arg(asset), &menu);
-            connect(action, &QAction::triggered, this,
-                    [asset = asset.toStdString(), DownloadAsset] { DownloadAsset(asset); });
-            menu.addAction(action);
+            menu.addAction(QStringLiteral("Download %1").arg(asset),
+                           [asset = asset.toStdString(), DownloadAsset] { DownloadAsset(asset); });
         }
     }
 

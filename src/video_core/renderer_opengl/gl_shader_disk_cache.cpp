@@ -196,8 +196,10 @@ ShaderDiskCache::LoadPrecompiledFile(FileUtil::IOFile& file) {
     // Read compressed file from disk and decompress to virtual precompiled cache file
     std::vector<u8> compressed(file.GetSize() - sizeof(version));
     file.ReadBytes(compressed.data(), compressed.size());
-    const std::vector<u8> decompressed = Common::Compression::DecompressDataZSTD(compressed);
-    SaveArrayToPrecompiled(decompressed.data(), decompressed.size());
+    {
+        const std::vector<u8> decompressed = Common::Compression::DecompressDataZSTD(compressed);
+        SaveArrayToPrecompiled(decompressed.data(), decompressed.size());
+    }
     decompressed_precompiled_cache_offset = 0;
 
     std::unordered_map<u64, ShaderDiskCacheDecompiled> decompiled;
