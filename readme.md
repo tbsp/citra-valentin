@@ -1,6 +1,6 @@
-# Citra Valentin
+# Citra Valentin ![Discord server](https://img.shields.io/discord/643578573244071956)
 
-Citra Valentin is an experimental open-source Nintendo 3DS emulator/debugger written in C++ tested on Ubuntu 18.04 and Windows 10.
+Citra Valentin is a open-source Nintendo 3DS emulator/debugger written in C++ tested on Ubuntu 18.04 and Windows 10.
 
 Citra Valentin emulates a subset of 3DS hardware and therefore is useful for running/debugging homebrew applications, and it's also able to run many commercial games! Some of these do not run at a playable state.
 
