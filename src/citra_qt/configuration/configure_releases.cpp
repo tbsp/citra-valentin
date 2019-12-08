@@ -155,7 +155,7 @@ void ConfigureReleases::FetchReleases() {
             }
         });
     QFuture<std::vector<std::shared_ptr<httplib::Response>>> future = QtConcurrent::run([] {
-        httplib::SSLClient client("api.github.com", 443);
+        httplib::SSLClient client("api.github.com");
         std::vector<std::shared_ptr<httplib::Response>> responses;
         const std::function<bool(const std::string&)> Next = [&Next, &client,
                                                               &responses](const std::string& path) {
@@ -274,7 +274,7 @@ void ConfigureReleases::ShowContextMenuForReleases(const QPoint& position) {
                 });
         QFuture<std::vector<std::shared_ptr<httplib::Response>>> future =
             QtConcurrent::run([this, &name, version] {
-                httplib::SSLClient client("github.com", 443);
+                httplib::SSLClient client("github.com");
                 client.follow_location(true);
 
                 std::shared_ptr<httplib::Response> response = client.Get(
@@ -410,7 +410,7 @@ void ConfigureReleases::FetchWindowsUpdaterReleases() {
             }
         });
     QFuture<std::vector<std::shared_ptr<httplib::Response>>> future = QtConcurrent::run([] {
-        httplib::SSLClient client("api.github.com", 443);
+        httplib::SSLClient client("api.github.com");
         std::vector<std::shared_ptr<httplib::Response>> responses;
         const std::function<bool(const std::string&)> Next = [&Next, &client,
                                                               &responses](const std::string& path) {
@@ -516,7 +516,7 @@ void ConfigureReleases::ShowContextMenuForWindowsUpdater(const QPoint& position)
                 });
         QFuture<std::vector<std::shared_ptr<httplib::Response>>> future =
             QtConcurrent::run([this, &name, version] {
-                httplib::SSLClient client("github.com", 443);
+                httplib::SSLClient client("github.com");
                 client.follow_location(true);
 
                 std::shared_ptr<httplib::Response> response = client.Get(

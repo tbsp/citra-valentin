@@ -154,10 +154,21 @@
      <addaction name="action_Enable_Frame_Advancing"/>
      <addaction name="action_Advance_Frame"/>
     </widget>
+    <widget class="QMenu" name="menu_Capture_Screenshot">
+     <property name="enabled">
+      <bool>false</bool>
+     </property>
+     <property name="title">
+      <string>Capture Screenshot</string>
+     </property>
+     <addaction name="action_Capture_Screenshot_Save_To_File"/>
+     <addaction name="action_Capture_Screenshot_Copy_To_Clipboard"/>
+     <addaction name="action_Capture_Screenshot_Send_To_Discord_Server"/>
+    </widget>
     <addaction name="menu_Movie"/>
     <addaction name="menu_Frame_Advance"/>
     <addaction name="separator"/>
-    <addaction name="action_Capture_Screenshot"/>
+    <addaction name="menu_Capture_Screenshot"/>
     <addaction name="action_Dump_Video"/>
    </widget>
    <widget class="QMenu" name="menu_Help">
@@ -301,14 +312,6 @@
    </property>
    <property name="text">
     <string>Advance Frame</string>
-   </property>
-  </action>
-  <action name="action_Capture_Screenshot">
-   <property name="enabled">
-    <bool>false</bool>
-   </property>
-   <property name="text">
-    <string>Capture Screenshot</string>
    </property>
   </action>
   <action name="action_Dump_Video">
@@ -457,6 +460,30 @@
   <action name="action_Changelog">
    <property name="text">
     <string>Changelog</string>
+   </property>
+  </action>
+  <action name="action_Capture_Screenshot_Save_To_File">
+   <property name="enabled">
+    <bool>false</bool>
+   </property>
+   <property name="text">
+    <string>Save To File</string>
+   </property>
+  </action>
+  <action name="action_Capture_Screenshot_Copy_To_Clipboard">
+   <property name="enabled">
+    <bool>false</bool>
+   </property>
+   <property name="text">
+    <string>Copy To Clipboard</string>
+   </property>
+  </action>
+  <action name="action_Capture_Screenshot_Send_To_Discord_Server">
+   <property name="enabled">
+    <bool>false</bool>
+   </property>
+   <property name="text">
+    <string>Send To Discord Server</string>
    </property>
   </action>
  </widget>

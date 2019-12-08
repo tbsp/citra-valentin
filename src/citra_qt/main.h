@@ -156,52 +156,11 @@ private:
     void ShowTelemetryCallout();
     void ShowDiscordServerCallout();
 
-private slots:
-    void OnStartGame();
-    void OnPauseGame();
-    void OnStopGame();
-    /// Called whenever a user selects a game in the game list widget.
-    void OnGameListLoadFile(QString game_path);
-    void OnGameListOpenFolder(u64 program_id, GameListOpenTarget target);
-    void OnGameListOpenDirectory(const QString& directory);
-    void OnGameListAddDirectory();
-    void OnGameListShowList(bool show);
-    void OnMenuLoadFile();
-    void OnMenuInstallCIA();
-    void OnUpdateProgress(std::size_t written, std::size_t total);
-    void OnCIAInstallReport(Service::AM::InstallStatus status, QString filepath);
-    void OnCIAInstallFinished();
-    void OnMenuRecentFile();
-    void OnConfigure(const bool goto_web = false);
-    void OnLoadAmiibo();
-    void OnRemoveAmiibo();
-    void OnOpenCitraFolder();
-    void OnToggleFilterBar();
-    void OnDisplayTitleBars(bool);
-    void InitializeHotkeys();
-    void ToggleFullscreen();
-    void ChangeScreenLayout();
-    void ToggleScreenLayout();
-    void OnSwapScreens();
-    void OnCheats();
-    void ShowFullscreen();
-    void HideFullscreen();
-    void ToggleWindowMode();
-    void OnCreateGraphicsSurfaceViewer();
-    void OnRecordMovie();
-    void OnPlayMovie(const QString& filename);
-    void OnStopRecordingPlayback();
-    void OnCaptureScreenshot();
-    void OnStartVideoDumping();
-    void OnStopVideoDumping();
-    void OnCoreError(Core::System::ResultStatus, std::string);
-    void OnDiskShaderCacheLoadingProgress(VideoCore::LoadCallbackStage stage, std::size_t value,
-                                          std::size_t total);
+    // Screenshots
+    void CaptureScreenshotToFile();
+    void CaptureScreenshotToClipboard();
+    void CaptureScreenshotThenSendToDiscordServer();
 
-    /// Called whenever a user selects Help->About Citra Valentin
-    void OnMenuAboutCitraValentin();
-
-private:
     bool ValidateMovie(const QString& path, u64 program_id = 0);
     Q_INVOKABLE void OnMoviePlaybackCompleted();
     void UpdateStatusBar();
@@ -265,9 +224,56 @@ private:
 
     HotkeyRegistry hotkey_registry;
 
+    QImage screenshot_image;
+
 #ifdef CITRA_ENABLE_DISCORD_RP
     DiscordRP discord_rp;
 #endif
+
+private slots:
+    void OnStartGame();
+    void OnPauseGame();
+    void OnStopGame();
+    /// Called whenever a user selects a game in the game list widget.
+    void OnGameListLoadFile(QString game_path);
+    void OnGameListOpenFolder(u64 program_id, GameListOpenTarget target);
+    void OnGameListOpenDirectory(const QString& directory);
+    void OnGameListAddDirectory();
+    void OnGameListShowList(bool show);
+    void OnMenuLoadFile();
+    void OnMenuInstallCIA();
+    void OnUpdateProgress(std::size_t written, std::size_t total);
+    void OnCIAInstallReport(Service::AM::InstallStatus status, QString filepath);
+    void OnCIAInstallFinished();
+    void OnMenuRecentFile();
+    void OnConfigure(const bool goto_web = false);
+    void OnLoadAmiibo();
+    void OnRemoveAmiibo();
+    void OnOpenCitraFolder();
+    void OnToggleFilterBar();
+    void OnDisplayTitleBars(bool);
+    void InitializeHotkeys();
+    void ToggleFullscreen();
+    void ChangeScreenLayout();
+    void ToggleScreenLayout();
+    void OnSwapScreens();
+    void OnCheats();
+    void ShowFullscreen();
+    void HideFullscreen();
+    void ToggleWindowMode();
+    void OnCreateGraphicsSurfaceViewer();
+    void OnRecordMovie();
+    void OnPlayMovie(const QString& filename);
+    void OnStopRecordingPlayback();
+    void OnStartVideoDumping();
+    void OnStopVideoDumping();
+    void OnCoreError(Core::System::ResultStatus, std::string);
+    void OnDiskShaderCacheLoadingProgress(VideoCore::LoadCallbackStage stage, std::size_t value,
+                                          std::size_t total);
+
+    /// Called whenever a user selects Help->About Citra Valentin
+    void OnMenuAboutCitraValentin();
+
 protected:
     void dropEvent(QDropEvent* event) override;
     void dragEnterEvent(QDragEnterEvent* event) override;

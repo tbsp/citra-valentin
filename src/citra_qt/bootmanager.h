@@ -176,8 +176,6 @@ public:
 
     void InitRenderTarget();
 
-    void CaptureScreenshot(u32 res_scale, const QString& screenshot_path);
-
 public slots:
     void OnEmulationStarting(EmuThread* emu_thread);
     void OnEmulationStopping();
@@ -211,9 +209,6 @@ private:
     QWidget* child_widget = nullptr;
 
     EmuThread* emu_thread;
-
-    /// Temporary storage of the screenshot taken
-    QImage screenshot_image;
 
 protected:
     void showEvent(QShowEvent* event) override;

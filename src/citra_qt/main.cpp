@@ -16,6 +16,7 @@
 #include <QtGui>
 #include <QtWidgets>
 #include <fmt/format.h>
+#include <httplib.h>
 #include <json.hpp>
 #ifdef _WIN32
 #include <windows.h>
@@ -513,10 +514,28 @@ void GMainWindow::InitializeHotkeys() {
             });
 
     connect(hotkey_registry.GetHotkey(QStringLiteral("Main Window"),
-                                      QStringLiteral("Capture Screenshot"), this),
+                                      QStringLiteral("Capture Screenshot Then Save To File"), this),
             &QShortcut::activated, this, [&] {
                 if (emu_thread->IsRunning()) {
-                    OnCaptureScreenshot();
+                    CaptureScreenshotToFile();
+                }
+            });
+
+    connect(hotkey_registry.GetHotkey(QStringLiteral("Main Window"),
+                                      QStringLiteral("Capture Screenshot Then Copy To Clipboard"),
+                                      this),
+            &QShortcut::activated, this, [&] {
+                if (emu_thread->IsRunning()) {
+                    CaptureScreenshotToClipboard();
+                }
+            });
+
+    connect(hotkey_registry.GetHotkey(
+                QStringLiteral("Main Window"),
+                QStringLiteral("Capture Screenshot Then Send To Discord Server"), this),
+            &QShortcut::activated, this, [&] {
+                if (emu_thread->IsRunning()) {
+                    CaptureScreenshotThenSendToDiscordServer();
                 }
             });
 
@@ -875,8 +894,15 @@ void GMainWindow::ConnectMenuEvents() {
             Core::System::GetInstance().frame_limiter.AdvanceFrame();
         }
     });
-    connect(ui.action_Capture_Screenshot, &QAction::triggered, this,
-            &GMainWindow::OnCaptureScreenshot);
+
+    connect(ui.action_Capture_Screenshot_Save_To_File, &QAction::triggered, this,
+            &GMainWindow::CaptureScreenshotToFile);
+
+    connect(ui.action_Capture_Screenshot_Copy_To_Clipboard, &QAction::triggered, this,
+            &GMainWindow::CaptureScreenshotToClipboard);
+
+    connect(ui.action_Capture_Screenshot_Send_To_Discord_Server, &QAction::triggered, this,
+            &GMainWindow::CaptureScreenshotThenSendToDiscordServer);
 
 #ifndef ENABLE_FFMPEG_VIDEO_DUMPER
     ui.action_Dump_Video->setEnabled(false);
@@ -1193,7 +1219,10 @@ void GMainWindow::ShutdownGame() {
     ui.action_Enable_Frame_Advancing->setEnabled(false);
     ui.action_Enable_Frame_Advancing->setChecked(false);
     ui.action_Advance_Frame->setEnabled(false);
-    ui.action_Capture_Screenshot->setEnabled(false);
+    ui.action_Capture_Screenshot_Save_To_File->setEnabled(false);
+    ui.action_Capture_Screenshot_Copy_To_Clipboard->setEnabled(false);
+    ui.action_Capture_Screenshot_Send_To_Discord_Server->setEnabled(false);
+    ui.menu_Capture_Screenshot->setEnabled(false);
     render_window->hide();
     if (game_list->isEmpty()) {
         game_list_placeholder->show();
@@ -1207,6 +1236,10 @@ void GMainWindow::ShutdownGame() {
     message_label->setVisible(false);
     emu_speed_label->setVisible(false);
     emu_frametime_label->setVisible(false);
+
+    if (progress_dialog != nullptr) {
+        progress_dialog.reset();
+    }
 
     emulation_running = false;
 
@@ -1489,7 +1522,10 @@ void GMainWindow::OnStartGame() {
     ui.action_Cheats->setEnabled(true);
     ui.action_Load_Amiibo->setEnabled(true);
     ui.action_Enable_Frame_Advancing->setEnabled(true);
-    ui.action_Capture_Screenshot->setEnabled(true);
+    ui.action_Capture_Screenshot_Save_To_File->setEnabled(true);
+    ui.action_Capture_Screenshot_Copy_To_Clipboard->setEnabled(true);
+    ui.action_Capture_Screenshot_Send_To_Discord_Server->setEnabled(true);
+    ui.menu_Capture_Screenshot->setEnabled(true);
 }
 
 void GMainWindow::OnPauseGame() {
@@ -1498,8 +1534,6 @@ void GMainWindow::OnPauseGame() {
     ui.action_Start->setEnabled(true);
     ui.action_Pause->setEnabled(false);
     ui.action_Stop->setEnabled(true);
-    ui.action_Capture_Screenshot->setEnabled(false);
-
     AllowOSSleep();
 }
 
@@ -1878,22 +1912,6 @@ void GMainWindow::OnStopRecordingPlayback() {
     ui.action_Stop_Recording_Playback->setEnabled(false);
 }
 
-void GMainWindow::OnCaptureScreenshot() {
-    OnPauseGame();
-    QFileDialog png_dialog(this, QStringLiteral("Capture Screenshot"),
-                           UISettings::values.screenshot_path, QStringLiteral("PNG Image (*.png)"));
-    png_dialog.setAcceptMode(QFileDialog::AcceptSave);
-    png_dialog.setDefaultSuffix("png");
-    if (png_dialog.exec()) {
-        const QString path = png_dialog.selectedFiles().first();
-        if (!path.isEmpty()) {
-            UISettings::values.screenshot_path = QFileInfo(path).path();
-            render_window->CaptureScreenshot(UISettings::values.screenshot_resolution_factor, path);
-        }
-    }
-    OnStartGame();
-}
-
 void GMainWindow::OnStartVideoDumping() {
     const QString path = QFileDialog::getSaveFileName(this, QStringLiteral("Save Video"),
                                                       UISettings::values.video_dumping_path,
@@ -1921,13 +1939,14 @@ void GMainWindow::OnStopVideoDumping() {
         video_dumping_path.clear();
     } else {
         const bool was_dumping = Core::System::GetInstance().VideoDumper().IsDumping();
-        if (!was_dumping)
+        if (!was_dumping) {
             return;
+        }
         OnPauseGame();
 
-        auto future =
+        QFuture<void> future =
             QtConcurrent::run([] { Core::System::GetInstance().VideoDumper().StopDumping(); });
-        auto* future_watcher = new QFutureWatcher<void>(this);
+        QFutureWatcher<void>* future_watcher = new QFutureWatcher<void>(this);
         connect(future_watcher, &QFutureWatcher<void>::finished, this, [this] {
             if (game_shutdown_delayed) {
                 game_shutdown_delayed = false;
@@ -2355,6 +2374,215 @@ void GMainWindow::SendTelemetry() const {
 
         client.PostJson("/telemetry", json.dump(), true);
     }
+}
+
+void GMainWindow::CaptureScreenshotToFile() {
+    QFileDialog png_dialog(this, tr("Capture Screenshot"), UISettings::values.screenshot_path,
+                           tr("PNG Image (*.png)"));
+    png_dialog.setAcceptMode(QFileDialog::AcceptSave);
+    png_dialog.setDefaultSuffix("png");
+    const bool was_running = emu_thread->IsRunning();
+    if (was_running) {
+        OnPauseGame();
+    }
+    int result = png_dialog.exec();
+    if (was_running) {
+        OnStartGame();
+    }
+    if (result == QDialog::Accepted) {
+        const QString path = png_dialog.selectedFiles().first();
+        if (!path.isEmpty()) {
+            const QString path_without_filename = QFileInfo(path).path();
+            if (path_without_filename != UISettings::values.screenshot_path) {
+                UISettings::values.screenshot_path = path_without_filename;
+                config->Save();
+            }
+
+            const Layout::FramebufferLayout layout = Layout::FrameLayoutFromResolutionScale(
+                UISettings::values.screenshot_resolution_factor == 0
+                    ? VideoCore::GetResolutionScaleFactor()
+                    : UISettings::values.screenshot_resolution_factor);
+            screenshot_image = QImage(QSize(layout.width, layout.height), QImage::Format_RGB32);
+            VideoCore::RequestScreenshot(
+                screenshot_image.bits(),
+                [this, path] {
+                    const std::string std_screenshot_path = path.toStdString();
+                    if (screenshot_image.mirrored(false, true).save(path)) {
+                        LOG_INFO(Frontend, "Screenshot saved to \"{}\"", std_screenshot_path);
+                    } else {
+                        LOG_ERROR(Frontend, "Failed to save screenshot to \"{}\"",
+                                  std_screenshot_path);
+                    }
+                },
+                layout);
+        }
+    }
+}
+
+void GMainWindow::CaptureScreenshotToClipboard() {
+    const Layout::FramebufferLayout layout = Layout::FrameLayoutFromResolutionScale(
+        UISettings::values.screenshot_resolution_factor == 0
+            ? VideoCore::GetResolutionScaleFactor()
+            : UISettings::values.screenshot_resolution_factor);
+    screenshot_image = QImage(QSize(layout.width, layout.height), QImage::Format_RGB32);
+    VideoCore::RequestScreenshot(screenshot_image.bits(),
+                                 [this] {
+                                     QTimer::singleShot(0, this, [this] {
+                                         QApplication::clipboard()->setImage(
+                                             screenshot_image.mirrored(false, true));
+                                     });
+                                 },
+                                 layout);
+}
+
+void GMainWindow::CaptureScreenshotThenSendToDiscordServer() {
+    const Layout::FramebufferLayout layout = Layout::FrameLayoutFromResolutionScale(
+        UISettings::values.screenshot_resolution_factor == 0
+            ? VideoCore::GetResolutionScaleFactor()
+            : UISettings::values.screenshot_resolution_factor);
+    screenshot_image = QImage(QSize(layout.width, layout.height), QImage::Format_RGB32);
+    VideoCore::RequestScreenshot(
+        screenshot_image.bits(),
+        [this] {
+            const bool was_running = emu_thread->IsRunning();
+
+            QTimer::singleShot(0, this, [this, was_running] {
+                if (was_running) {
+                    OnPauseGame();
+                }
+
+                if (progress_dialog == nullptr) {
+                    progress_dialog = std::make_unique<QProgressDialog>(
+                        QStringLiteral("Sending Screenshot"), QString(), 0, 0, this,
+                        Qt::WindowTitleHint | Qt::WindowSystemMenuHint);
+                    progress_dialog->setModal(false);
+                    progress_dialog->setWindowTitle(QStringLiteral("Sending Screenshot"));
+                    progress_dialog->show();
+                }
+            });
+
+            const QImage mirrored = screenshot_image.mirrored(false, true);
+
+            nlohmann::json json;
+
+            if (!Settings::values.citra_username.empty()) {
+                httplib::SSLClient forum_client("community.citra-emu.org");
+                std::shared_ptr<httplib::Response> forum_summary_response = forum_client.Get(
+                    fmt::format("https://community.citra-emu.org/u/{}/summary.json",
+                                Settings::values.citra_username)
+                        .c_str());
+                if (forum_summary_response == nullptr) {
+                    LOG_ERROR(Frontend, "Forum summary request failed");
+
+                    QTimer::singleShot(0, this, [this, was_running] {
+                        if (progress_dialog != nullptr) {
+                            progress_dialog.reset();
+                        }
+
+                        if (was_running) {
+                            OnStartGame();
+                        }
+                    });
+
+                    return;
+                }
+                if (forum_summary_response->status != 200) {
+                    LOG_ERROR(Frontend, "Forum summary request failed, status code: {}, body: {}",
+                              forum_summary_response->status, forum_summary_response->body);
+
+                    QTimer::singleShot(0, this, [this, was_running] {
+                        if (progress_dialog != nullptr) {
+                            progress_dialog.reset();
+                        }
+
+                        if (was_running) {
+                            OnStartGame();
+                        }
+                    });
+
+                    return;
+                }
+
+                const nlohmann::json forum_summary =
+                    nlohmann::json::parse(forum_summary_response->body);
+                const nlohmann::json user = forum_summary["users"][0];
+
+                const std::string avatar_template = user["avatar_template"].get<std::string>();
+
+                json["username"] = fmt::format("{} playing {}", user["username"].get<std::string>(),
+                                               game_title.toStdString());
+
+                json["avatar_url"] =
+                    QString::fromStdString(std::string("https://community.citra-emu.org") +
+                                           avatar_template)
+                        .replace(QStringLiteral("{size}"), QStringLiteral("128"))
+                        .toStdString();
+            }
+
+            QBuffer buffer;
+            buffer.open(QIODevice::WriteOnly);
+            mirrored.save(&buffer, "PNG");
+
+            json["file"] = "unknown.png";
+
+            const std::string boundary = httplib::detail::make_multipart_data_boundary();
+
+            std::string body;
+            httplib::MultipartFormDataItems items;
+
+            httplib::MultipartFormData json_item;
+            json_item.name = "payload_json";
+            json_item.content = json.dump();
+            json_item.content_type = "application/json";
+            items.push_back(std::move(json_item));
+
+            httplib::MultipartFormData screenshot_item;
+            screenshot_item.name = "screenshot";
+            screenshot_item.filename = "unknown.png";
+            screenshot_item.content = std::string(buffer.buffer().data(), buffer.size());
+            screenshot_item.content_type = "image/png";
+            items.push_back(std::move(screenshot_item));
+
+            for (const httplib::MultipartFormData& item : items) {
+                body += "--" + boundary + "\r\n";
+                body += "Content-Disposition: form-data; name=\"" + item.name + "\"";
+                if (!item.filename.empty()) {
+                    body += "; filename=\"" + item.filename + "\"";
+                }
+                body += "\r\n";
+                if (!item.content_type.empty()) {
+                    body += "Content-Type: " + item.content_type + "\r\n";
+                }
+                body += "\r\n";
+                body += item.content + "\r\n";
+            }
+
+            body += "--" + boundary + "--\r\n";
+
+            httplib::SSLClient discord_client("discordapp.com");
+            std::shared_ptr<httplib::Response> discord_response = discord_client.Post(
+                "/api/webhooks/653071710744215584/"
+                "hDR6t0oJZU4d4SPow-NdH52jVD4c859TUjYSCcqdS_88R6XwojfB9bcGygCPhoPXLpT6",
+                body, ("multipart/form-data; boundary=" + boundary).c_str());
+            if (discord_response == nullptr) {
+                LOG_ERROR(Frontend, "Webhook request failed");
+            }
+            if (discord_response != nullptr && discord_response->status != 200) {
+                LOG_ERROR(Frontend, "Webhook request failed, status code: {}, body: {}",
+                          discord_response->status, discord_response->body);
+            }
+
+            QTimer::singleShot(0, this, [this, was_running] {
+                if (progress_dialog != nullptr) {
+                    progress_dialog.reset();
+                }
+
+                if (was_running) {
+                    OnStartGame();
+                }
+            });
+        },
+        layout);
 }
 
 #ifdef main

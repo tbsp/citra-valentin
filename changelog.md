@@ -1,5 +1,6 @@
 # Versions
 
+[5.0.0](#500)  
 [4.7.0](#470)  
 [4.6.0](#460)  
 [4.5.0](#450)  
@@ -23,6 +24,21 @@
 [2.10.3](#2103)  
 [2.10.2](#2102)  
 [2.10.1](#2101)
+
+# 5.0.0
+
+## Breaking Changes
+
+- Qt: Rename capture screenshot hotkey
+
+## Features
+
+- Qt: Options and hotkeys to capture screenshot then copy it to clipboard and capture screenshot then send it to #screenshots-from-cv in the [Discord server](https://discord.gg/fPmDUaY)
+
+## Qt: New Capture Screenshot Hotkey Defaults
+
+- Capture Screenshot Then Copy To Clipboard: Ctrl+B
+- Capture Screenshot Then Send In Media Discord Channel: Ctrl+M
 
 # 4.7.0
 
