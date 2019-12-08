@@ -2,7 +2,6 @@
 <ui version="4.0">
  <class>ConfigureDialog</class>
  <widget class="QDialog" name="ConfigureDialog">
-
   <property name="windowTitle">
    <string>Citra Valentin Configuration</string>
   </property>
