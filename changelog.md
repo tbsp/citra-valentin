@@ -52,7 +52,7 @@
 ## Qt: New Capture Screenshot Hotkey Defaults
 
 - Capture Screenshot Then Copy To Clipboard: Ctrl+B
-- Capture Screenshot Then Send In Media Discord Channel: Ctrl+M
+- Capture Screenshot Then Send To Discord Server: Ctrl+I
 
 # 4.7.0
 
