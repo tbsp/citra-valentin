@@ -915,8 +915,10 @@ void GMainWindow::ConnectMenuEvents() {
 
     connect(ui.action_Changelog, &QAction::triggered, this, [] {
         QDesktopServices::openUrl(
-            QUrl(QStringLiteral("https://github.com/vvanelslande/citra/blob/master/changelog.md#%1")
-                     .arg(QString::fromStdString(Version::citra_valentin.to_string()))));
+            QUrl(QStringLiteral("https://github.com/vvanelslande/citra/blob/"
+                                "master/changelog.md#%1")
+                     .arg(QString::fromStdString(Version::citra_valentin.to_string())
+                              .remove(QLatin1Char{'.'}))));
     });
 
     connect(ui.action_Open_Executable_Location, &QAction::triggered, this, [] {
