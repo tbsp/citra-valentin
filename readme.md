@@ -8,7 +8,7 @@ Citra Valentin is licensed under the GPLv2 (or any later version). Refer to the 
 
 ## System Requirements
 
-- OS: 64-bit Ubuntu 18.04 or Windows 7+
+- OS: 64-bit Ubuntu 18.04 (or your Ubuntu version if you build) or Windows 7+
 - GPU with OpenGL 3.3 support
 
 ## Prerequisites
