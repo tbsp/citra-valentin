@@ -9,6 +9,7 @@
 #include <QFileDialog>
 #include <QFutureWatcher>
 #include <QMessageBox>
+#include <QMutexLocker>
 #include <QOpenGLFunctions_3_3_Core>
 #include <QProgressDialog>
 #include <QSysInfo>
@@ -516,7 +517,7 @@ void GMainWindow::InitializeHotkeys() {
     connect(hotkey_registry.GetHotkey(QStringLiteral("Main Window"),
                                       QStringLiteral("Capture Screenshot Then Save To File"), this),
             &QShortcut::activated, this, [&] {
-                if (emu_thread->IsRunning()) {
+                if (emulation_running) {
                     CaptureScreenshotToFile();
                 }
             });
@@ -525,7 +526,7 @@ void GMainWindow::InitializeHotkeys() {
                                       QStringLiteral("Capture Screenshot Then Copy To Clipboard"),
                                       this),
             &QShortcut::activated, this, [&] {
-                if (emu_thread->IsRunning()) {
+                if (emulation_running) {
                     CaptureScreenshotToClipboard();
                 }
             });
@@ -534,7 +535,7 @@ void GMainWindow::InitializeHotkeys() {
                 QStringLiteral("Main Window"),
                 QStringLiteral("Capture Screenshot Then Send To Discord Server"), this),
             &QShortcut::activated, this, [&] {
-                if (emu_thread->IsRunning()) {
+                if (emulation_running) {
                     CaptureScreenshotThenSendToDiscordServer();
                 }
             });
@@ -2377,6 +2378,11 @@ void GMainWindow::SendTelemetry() const {
 }
 
 void GMainWindow::CaptureScreenshotToFile() {
+    QMutexLocker screenshot_image_mutex_locker(&screenshot_image_mutex);
+    if (screenshot_image != nullptr || VideoCore::g_renderer_screenshot_requested) {
+        return;
+    }
+
     QFileDialog png_dialog(this, tr("Capture Screenshot"), UISettings::values.screenshot_path,
                            tr("PNG Image (*.png)"));
     png_dialog.setAcceptMode(QFileDialog::AcceptSave);
@@ -2402,17 +2408,20 @@ void GMainWindow::CaptureScreenshotToFile() {
                 UISettings::values.screenshot_resolution_factor == 0
                     ? VideoCore::GetResolutionScaleFactor()
                     : UISettings::values.screenshot_resolution_factor);
-            screenshot_image = QImage(QSize(layout.width, layout.height), QImage::Format_RGB32);
+            screenshot_image =
+                std::make_unique<QImage>(QSize(layout.width, layout.height), QImage::Format_RGB32);
             VideoCore::RequestScreenshot(
-                screenshot_image.bits(),
+                screenshot_image->bits(),
                 [this, path] {
                     const std::string std_screenshot_path = path.toStdString();
-                    if (screenshot_image.mirrored(false, true).save(path)) {
+                    QMutexLocker screenshot_image_mutex_locker(&screenshot_image_mutex);
+                    if (screenshot_image->mirrored(false, true).save(path)) {
                         LOG_INFO(Frontend, "Screenshot saved to \"{}\"", std_screenshot_path);
                     } else {
                         LOG_ERROR(Frontend, "Failed to save screenshot to \"{}\"",
                                   std_screenshot_path);
                     }
+                    screenshot_image.reset();
                 },
                 layout);
         }
@@ -2420,29 +2429,43 @@ void GMainWindow::CaptureScreenshotToFile() {
 }
 
 void GMainWindow::CaptureScreenshotToClipboard() {
+    QMutexLocker screenshot_image_mutex_locker(&screenshot_image_mutex);
+    if (screenshot_image != nullptr || VideoCore::g_renderer_screenshot_requested) {
+        return;
+    }
+
     const Layout::FramebufferLayout layout = Layout::FrameLayoutFromResolutionScale(
         UISettings::values.screenshot_resolution_factor == 0
             ? VideoCore::GetResolutionScaleFactor()
             : UISettings::values.screenshot_resolution_factor);
-    screenshot_image = QImage(QSize(layout.width, layout.height), QImage::Format_RGB32);
-    VideoCore::RequestScreenshot(screenshot_image.bits(),
-                                 [this] {
-                                     QTimer::singleShot(0, this, [this] {
-                                         QApplication::clipboard()->setImage(
-                                             screenshot_image.mirrored(false, true));
-                                     });
-                                 },
-                                 layout);
+    screenshot_image =
+        std::make_unique<QImage>(QSize(layout.width, layout.height), QImage::Format_RGB32);
+    VideoCore::RequestScreenshot(
+        screenshot_image->bits(),
+        [this] {
+            QTimer::singleShot(0, this, [this] {
+                QMutexLocker screenshot_image_mutex_locker(&screenshot_image_mutex);
+                QApplication::clipboard()->setImage(screenshot_image->mirrored(false, true));
+                screenshot_image.reset();
+            });
+        },
+        layout);
 }
 
 void GMainWindow::CaptureScreenshotThenSendToDiscordServer() {
+    QMutexLocker screenshot_image_mutex_locker(&screenshot_image_mutex);
+    if (screenshot_image != nullptr || VideoCore::g_renderer_screenshot_requested) {
+        return;
+    }
+
     const Layout::FramebufferLayout layout = Layout::FrameLayoutFromResolutionScale(
         UISettings::values.screenshot_resolution_factor == 0
             ? VideoCore::GetResolutionScaleFactor()
             : UISettings::values.screenshot_resolution_factor);
-    screenshot_image = QImage(QSize(layout.width, layout.height), QImage::Format_RGB32);
+    screenshot_image =
+        std::make_unique<QImage>(QSize(layout.width, layout.height), QImage::Format_RGB32);
     VideoCore::RequestScreenshot(
-        screenshot_image.bits(),
+        screenshot_image->bits(),
         [this] {
             const bool was_running = emu_thread->IsRunning();
 
@@ -2461,7 +2484,13 @@ void GMainWindow::CaptureScreenshotThenSendToDiscordServer() {
                 }
             });
 
-            const QImage mirrored = screenshot_image.mirrored(false, true);
+            QImage mirrored;
+
+            {
+                QMutexLocker screenshot_image_mutex_locker(&screenshot_image_mutex);
+                mirrored = screenshot_image->mirrored(false, true);
+                screenshot_image.reset();
+            }
 
             nlohmann::json json;
 

@@ -1,5 +1,6 @@
 # Versions
 
+[5.0.1](#501)  
 [5.0.0](#500)  
 [4.7.0](#470)  
 [4.6.0](#460)  
@@ -25,7 +26,11 @@
 [2.10.2](#2102)  
 [2.10.1](#2101)
 
-# Unreleased
+# 5.0.1
+
+## Fixes
+
+- Qt: Screenshot related crashes
 
 ## Minor Changes
 

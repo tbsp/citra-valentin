@@ -7,6 +7,7 @@
 #include <memory>
 #include <QLabel>
 #include <QMainWindow>
+#include <QMutex>
 #include <QTimer>
 
 #ifdef CITRA_ENABLE_DISCORD_RP
@@ -224,7 +225,8 @@ private:
 
     HotkeyRegistry hotkey_registry;
 
-    QImage screenshot_image;
+    std::unique_ptr<QImage> screenshot_image;
+    QMutex screenshot_image_mutex;
 
 #ifdef CITRA_ENABLE_DISCORD_RP
     DiscordRP discord_rp;
