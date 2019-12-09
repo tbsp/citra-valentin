@@ -141,7 +141,6 @@ struct Values {
     // Renderer
     bool use_hw_renderer;
     bool use_hw_shader;
-    bool use_disk_shader_cache;
     bool shaders_accurate_mul;
     bool use_shader_jit;
     u16 resolution_factor;

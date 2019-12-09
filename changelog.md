@@ -1,5 +1,6 @@
 # Versions
 
+[7.0.0](#700)  
 [6.0.0](#600)  
 [5.0.1](#501)  
 [5.0.0](#500)  
@@ -26,6 +27,10 @@
 [2.10.3](#2103)  
 [2.10.2](#2102)  
 [2.10.1](#2101)
+
+# 7.0.0
+
+Disk shader cache was removed because it causes very high memory usage in LM2/LMDM.
 
 # 6.0.0
 

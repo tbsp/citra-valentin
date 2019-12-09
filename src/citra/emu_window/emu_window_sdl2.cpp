@@ -218,7 +218,6 @@ EmuWindow_SDL2::EmuWindow_SDL2(bool fullscreen, int fullscreen_display_index) {
     LOG_INFO(Frontend, "Version: {}", version);
     LOG_INFO(Frontend, "Network version: {}", Version::network);
     LOG_INFO(Frontend, "Movie version: {}", Version::movie);
-    LOG_INFO(Frontend, "Shader cache version: {}", Version::shader_cache);
     Settings::LogSettings();
 }
 

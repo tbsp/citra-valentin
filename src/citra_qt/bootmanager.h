@@ -123,8 +123,6 @@ signals:
     void DebugModeLeft();
 
     void ErrorThrown(Core::System::ResultStatus, std::string);
-    void DiskShaderCacheLoadingProgress(VideoCore::LoadCallbackStage stage, std::size_t value,
-                                        std::size_t total);
 
     void CaptureScreenshotThenSendToDiscordServerRequested();
 };

@@ -6,9 +6,8 @@
 
 namespace Version {
 // Citra Valentin version
-const semver::version citra_valentin{6, 0, 0};
+const semver::version citra_valentin{7, 0, 0};
 
 const u32 network = 4;
 const u8 movie = 1;
-const u16 shader_cache = 2;
 } // namespace Version

@@ -48,13 +48,6 @@ void EmuThread::run() {
     MicroProfileOnThreadCreate("EmuThread");
     Frontend::ScopeAcquireContext scope(core_context);
 
-    Core::System::GetInstance().Renderer().Rasterizer()->LoadDiskResources(
-        stop_run, [this](VideoCore::LoadCallbackStage stage, std::size_t value, std::size_t total) {
-            LOG_DEBUG(Frontend, "Loading stage {} progress {} {}", static_cast<u32>(stage), value,
-                      total);
-            emit DiskShaderCacheLoadingProgress(stage, value, total);
-        });
-
     // Holds whether the cpu was running during the last iteration,
     // so that the DebugModeLeft signal can be emitted before the
     // next execution step.

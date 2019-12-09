@@ -35,7 +35,6 @@ void ConfigureGraphics::SetConfiguration() {
     ui->toggle_hw_shader->setChecked(Settings::values.use_hw_shader);
     ui->toggle_accurate_mul->setChecked(Settings::values.shaders_accurate_mul);
     ui->toggle_shader_jit->setChecked(Settings::values.use_shader_jit);
-    ui->toggle_disk_cache->setChecked(Settings::values.use_disk_shader_cache);
     ui->sharper_distant_objects->setChecked(Settings::values.sharper_distant_objects);
     ui->ignore_format_reinterpretation->setChecked(Settings::values.ignore_format_reinterpretation);
     ui->toggle_custom_screen_refresh_rate->setChecked(Settings::values.custom_screen_refresh_rate);
@@ -48,7 +47,6 @@ void ConfigureGraphics::ApplyConfiguration() {
     Settings::values.use_hw_shader = ui->toggle_hw_shader->isChecked();
     Settings::values.shaders_accurate_mul = ui->toggle_accurate_mul->isChecked();
     Settings::values.use_shader_jit = ui->toggle_shader_jit->isChecked();
-    Settings::values.use_disk_shader_cache = ui->toggle_disk_cache->isChecked();
     Settings::values.sharper_distant_objects = ui->sharper_distant_objects->isChecked();
     Settings::values.ignore_format_reinterpretation =
         ui->ignore_format_reinterpretation->isChecked();

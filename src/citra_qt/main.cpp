@@ -192,7 +192,6 @@ GMainWindow::GMainWindow()
     LOG_INFO(Frontend, "Version: {}", Version::citra_valentin.to_string());
     LOG_INFO(Frontend, "Network Version: {}", Version::network);
     LOG_INFO(Frontend, "Movie Version: {}", Version::movie);
-    LOG_INFO(Frontend, "Shader Cache Version: {}", Version::shader_cache);
 #ifdef ARCHITECTURE_x86_64
     LOG_INFO(Frontend, "Host CPU: {}", Common::GetCPUCaps().cpu_string);
 #endif
@@ -1151,9 +1150,6 @@ void GMainWindow::BootGame(const QString& filename) {
 
     connect(emu_thread.get(), &EmuThread::ErrorThrown, this, &GMainWindow::OnCoreError);
 
-    connect(emu_thread.get(), &EmuThread::DiskShaderCacheLoadingProgress, this,
-            &GMainWindow::OnDiskShaderCacheLoadingProgress);
-
     connect(emu_thread.get(), &EmuThread::CaptureScreenshotThenSendToDiscordServerRequested, this,
             &GMainWindow::CaptureScreenshotThenSendToDiscordServer);
 
@@ -2039,55 +2035,6 @@ void GMainWindow::OnCoreError(Core::System::ResultStatus result, std::string det
     }
 }
 
-void GMainWindow::OnDiskShaderCacheLoadingProgress(VideoCore::LoadCallbackStage stage,
-                                                   std::size_t value, std::size_t total) {
-    if (thread() != QThread::currentThread()) {
-        QMetaObject::invokeMethod(this, "OnDiskShaderCacheLoadingProgress",
-                                  Qt::BlockingQueuedConnection,
-                                  Q_ARG(VideoCore::LoadCallbackStage, stage),
-                                  Q_ARG(std::size_t, value), Q_ARG(std::size_t, total));
-        return;
-    }
-
-    switch (stage) {
-    case VideoCore::LoadCallbackStage::Decompile: {
-        if (progress_dialog == nullptr) {
-            progress_dialog = std::make_unique<QProgressDialog>(
-                QStringLiteral("Preparing"), QString(), 0, 0, this,
-                Qt::WindowTitleHint | Qt::WindowSystemMenuHint);
-            progress_dialog->setModal(false);
-            progress_dialog->setWindowTitle(QStringLiteral("Loading Disk Shader Cache"));
-            progress_dialog->show();
-        }
-        progress_dialog->setLabelText(QStringLiteral("Decompiling"));
-        progress_dialog->setMaximum(static_cast<int>(total));
-        progress_dialog->setValue(static_cast<int>(value));
-        break;
-    }
-    case VideoCore::LoadCallbackStage::Build: {
-        if (progress_dialog == nullptr) {
-            progress_dialog = std::make_unique<QProgressDialog>(
-                QStringLiteral("Preparing"), QString(), 0, 0, this,
-                Qt::WindowTitleHint | Qt::WindowSystemMenuHint);
-            progress_dialog->setModal(false);
-            progress_dialog->setWindowTitle(QStringLiteral("Loading Disk Shader Cache"));
-            progress_dialog->show();
-        }
-        progress_dialog->setLabelText(QStringLiteral("Building"));
-        progress_dialog->setMaximum(static_cast<int>(total));
-        progress_dialog->setValue(static_cast<int>(value));
-        break;
-    }
-    case VideoCore::LoadCallbackStage::Complete: {
-        if (progress_dialog != nullptr) {
-            progress_dialog.reset();
-        }
-        break;
-    }
-    default: { break; }
-    }
-}
-
 void GMainWindow::OnMenuAboutCitraValentin() {
     AboutDialog about{this};
     about.exec();
@@ -2325,11 +2272,9 @@ void GMainWindow::SendTelemetry() const {
         }
         if (UISettings::values.telemetry_send_version) {
             json["version"] =
-                QStringLiteral(
-                    "Citra Valentin %1 (Network v%2, Movie v%3, OpenGL shader cache v%4)")
+                QStringLiteral("Citra Valentin %1 (Network v%2, Movie v%3)")
                     .arg(QString::fromStdString(Version::citra_valentin.to_string()),
-                         QString::number(Version::network), QString::number(Version::movie),
-                         QString::number(Version::shader_cache))
+                         QString::number(Version::network), QString::number(Version::movie))
                     .toStdString();
         }
         if (UISettings::values.telemetry_send_citra_account_username &&

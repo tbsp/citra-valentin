@@ -10,8 +10,6 @@ void Config::ReadRendererValues() {
     Settings::values.use_hw_renderer =
         ReadSetting(QStringLiteral("use_hw_renderer"), true).toBool();
     Settings::values.use_hw_shader = ReadSetting(QStringLiteral("use_hw_shader"), true).toBool();
-    Settings::values.use_disk_shader_cache =
-        ReadSetting(QStringLiteral("use_disk_shader_cache"), true).toBool();
     Settings::values.shaders_accurate_mul =
         ReadSetting(QStringLiteral("shaders_accurate_mul"), false).toBool();
     Settings::values.use_shader_jit = ReadSetting(QStringLiteral("use_shader_jit"), true).toBool();
@@ -33,8 +31,6 @@ void Config::SaveRendererValues() {
     qt_config->beginGroup(QStringLiteral("Renderer"));
     WriteSetting(QStringLiteral("use_hw_renderer"), Settings::values.use_hw_renderer, true);
     WriteSetting(QStringLiteral("use_hw_shader"), Settings::values.use_hw_shader, true);
-    WriteSetting(QStringLiteral("use_disk_shader_cache"), Settings::values.use_disk_shader_cache,
-                 true);
     WriteSetting(QStringLiteral("shaders_accurate_mul"), Settings::values.shaders_accurate_mul,
                  false);
     WriteSetting(QStringLiteral("use_shader_jit"), Settings::values.use_shader_jit, true);

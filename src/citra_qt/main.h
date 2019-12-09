@@ -271,8 +271,6 @@ private slots:
     void OnStartVideoDumping();
     void OnStopVideoDumping();
     void OnCoreError(Core::System::ResultStatus, std::string);
-    void OnDiskShaderCacheLoadingProgress(VideoCore::LoadCallbackStage stage, std::size_t value,
-                                          std::size_t total);
 
     /// Called whenever a user selects Help->About Citra Valentin
     void OnMenuAboutCitraValentin();
