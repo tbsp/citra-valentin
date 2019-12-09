@@ -30,7 +30,10 @@
 
 # 7.0.0
 
-Disk shader cache was removed because it causes very high memory usage in LM2/LMDM.
+## Breaking Changes
+
+- Disk shader cache was removed because it causes very high memory usage in LM2/LMDM.
+- vvanelslande-shaders folder renamed to shaders
 
 # 6.0.0
 

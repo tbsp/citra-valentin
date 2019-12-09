@@ -41,7 +41,7 @@
 #define DLL_DIR "external_dlls"
 #define DUMP_DIR "dump"
 #define LOAD_DIR "load"
-#define SHADER_DIR "vvanelslande-shaders"
+#define SHADER_DIR "shaders"
 
 // Sys files
 #define SHARED_FONT "shared_font.bin"
