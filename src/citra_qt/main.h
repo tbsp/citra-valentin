@@ -36,7 +36,7 @@ class GraphicsVertexShaderWidget;
 class GRenderWindow;
 class IpcRecorderWidget;
 class LleServiceModulesWidget;
-class MicroprofileDialog;
+class QtProfiler;
 class MultiplayerState;
 template <typename>
 class QFutureWatcher;
@@ -208,7 +208,7 @@ private:
     bool game_shutdown_delayed = false;
 
     // Debugger panes
-    MicroprofileDialog* microprofile_dialog;
+    QAction* profiler_action;
     RegistersWidget* registers_widget;
     GpuCommandStreamWidget* gpu_command_stream_widget;
     GpuCommandListWidget* gpu_command_list_widget;

@@ -4,24 +4,51 @@
 
 #pragma once
 
-#include <QAbstractItemModel>
-#include <QDockWidget>
-#include <QTimer>
-#include "common/microprofile.h"
+#include <memory>
+#include <mutex>
+#include <string>
+#include <unordered_map>
+#include <QDialog>
+#include "common/profiler.h"
 
-class MicroprofileDialog : public QWidget {
+namespace Ui {
+class Profiler;
+} // namespace Ui
+
+class QtProfiler : public QDialog, public Common::Profiler {
     Q_OBJECT
 
 public:
-    explicit MicroprofileDialog(QWidget* parent = nullptr);
+    QtProfiler(QWidget* parent = nullptr);
+    ~QtProfiler();
 
-    /// Returns a QAction that can be used to toggle visibility of this dialog.
-    QAction* toggleViewAction();
+    void Stop();
 
-protected:
-    void showEvent(QShowEvent* ev) override;
-    void hideEvent(QHideEvent* ev) override;
+public slots:
+    void Update();
+
+private slots:
+    Q_INVOKABLE void Set(const std::string category, const std::string scope,
+                         const long long milliseconds) override;
+
+signals:
+    void Stopped();
 
 private:
-    QAction* toggle_view_action = nullptr;
+    struct ScopeData {
+        int row = -1;
+        const std::string category;
+        const std::string scope;
+        long long current;
+        long long minimum;
+        long long maximum;
+    };
+
+    std::unique_ptr<Ui::Profiler> ui;
+
+    std::mutex mutex;
+    std::unordered_map<std::string, ScopeData> current;
+
+    bool stop_requested = false;
+    bool stopping = false;
 };

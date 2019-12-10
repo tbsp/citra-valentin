@@ -6,7 +6,7 @@
 #include <dynarmic/A32/a32.h>
 #include <dynarmic/A32/context.h>
 #include "common/assert.h"
-#include "common/microprofile.h"
+#include "common/profiler.h"
 #include "core/arm/dynarmic/arm_dynarmic.h"
 #include "core/arm/dynarmic/arm_dynarmic_cp15.h"
 #include "core/arm/dyncom/arm_dyncom_interpreter.h"
@@ -199,12 +199,10 @@ ARM_Dynarmic::ARM_Dynarmic(Core::System* system, Memory::MemorySystem& memory,
 
 ARM_Dynarmic::~ARM_Dynarmic() = default;
 
-MICROPROFILE_DEFINE(ARM_Jit, "ARM JIT", "ARM JIT", MP_RGB(255, 64, 64));
-
 void ARM_Dynarmic::Run() {
     ASSERT(memory.GetCurrentPageTable() == current_page_table);
-    MICROPROFILE_SCOPE(ARM_Jit);
 
+    Common::Profiler::Scope scope(system.profiler, "ARM JIT", "Execute");
     jit->Run();
 }
 

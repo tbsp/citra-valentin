@@ -19,42 +19,46 @@ class ARM_Interface;
 
 namespace Frontend {
 class EmuWindow;
-}
+} // namespace Frontend
 
 namespace Memory {
 class MemorySystem;
-}
+} // namespace Memory
 
 namespace AudioCore {
 class DspInterface;
-}
+} // namespace AudioCore
 
 namespace RPC {
 class RPCServer;
-}
+} // namespace RPC
 
 namespace Service {
 namespace SM {
 class ServiceManager;
-}
+} // namespace SM
 namespace FS {
 class ArchiveManager;
-}
+} // namespace FS
 } // namespace Service
 
 namespace Kernel {
 class KernelSystem;
-}
+} // namespace Kernel
 
 namespace Cheats {
 class CheatEngine;
-}
+} // namespace Cheats
 
 namespace VideoDumper {
 class Backend;
-}
+} // namespace VideoDumper
 
 class RendererBase;
+
+namespace Common {
+class Profiler;
+} // namespace Common
 
 namespace Core {
 
@@ -219,6 +223,7 @@ public:
     /// Gets a const reference to the video dumper backend
     const VideoDumper::Backend& VideoDumper() const;
 
+    std::shared_ptr<Common::Profiler> profiler;
     std::unique_ptr<PerfStats> perf_stats;
     FrameLimiter frame_limiter;
 
@@ -307,12 +312,10 @@ private:
     std::unique_ptr<RPC::RPCServer> rpc_server;
 
     std::unique_ptr<Service::FS::ArchiveManager> archive_manager;
-
     std::unique_ptr<Memory::MemorySystem> memory;
     std::unique_ptr<Kernel::KernelSystem> kernel;
     std::unique_ptr<Timing> timing;
 
-private:
     static System s_instance;
 
     ResultStatus status = ResultStatus::Success;

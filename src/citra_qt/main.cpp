@@ -60,7 +60,6 @@
 #include "common/logging/filter.h"
 #include "common/logging/log.h"
 #include "common/logging/text_formatter.h"
-#include "common/microprofile.h"
 #include "common/scope_exit.h"
 #include "common/version.h"
 #ifdef ARCHITECTURE_x86_64
@@ -288,18 +287,40 @@ void GMainWindow::InitializeDebugWidgets() {
     connect(ui.action_Create_Pica_Surface_Viewer, &QAction::triggered, this,
             &GMainWindow::OnCreateGraphicsSurfaceViewer);
 
-    QMenu* debug_menu = ui.menu_View_Debugging;
+    profiler_action = ui.menu_View_Debugging->addAction(QStringLiteral("Profiler"), [this] {
+        if (Core::System::GetInstance().profiler == nullptr) {
+            std::shared_ptr<QtProfiler> profiler = std::make_shared<QtProfiler>();
+            profiler->show();
 
-#if MICROPROFILE_ENABLED
-    microprofile_dialog = new MicroprofileDialog(this);
-    microprofile_dialog->hide();
-    debug_menu->addAction(microprofile_dialog->toggleViewAction());
-#endif
+            connect(render_window->GetOpenGLWindow(), &OpenGLWindow::Presented, profiler.get(),
+                    &QtProfiler::Update);
+
+            Core::System::GetInstance().profiler = profiler;
+        } else {
+            std::shared_ptr<QtProfiler> profiler =
+                std::static_pointer_cast<QtProfiler>(Core::System::GetInstance().profiler);
+
+            connect(profiler.get(), &QtProfiler::Stopped, this, [this] {
+                disconnect(
+                    render_window->GetOpenGLWindow(), &OpenGLWindow::Presented,
+                    std::static_pointer_cast<QtProfiler>(Core::System::GetInstance().profiler)
+                        .get(),
+                    &QtProfiler::Update);
+
+                Core::System::GetInstance().profiler.reset();
+            });
+
+            profiler->close();
+            profiler->Stop();
+        }
+    });
+    profiler_action->setCheckable(true);
+    profiler_action->setEnabled(false);
 
     registers_widget = new RegistersWidget(this);
     addDockWidget(Qt::RightDockWidgetArea, registers_widget);
     registers_widget->hide();
-    debug_menu->addAction(registers_widget->toggleViewAction());
+    ui.menu_View_Debugging->addAction(registers_widget->toggleViewAction());
     connect(this, &GMainWindow::EmulationStarting, registers_widget,
             &RegistersWidget::OnEmulationStarting);
     connect(this, &GMainWindow::EmulationStopping, registers_widget,
@@ -308,27 +329,27 @@ void GMainWindow::InitializeDebugWidgets() {
     gpu_command_stream_widget = new GpuCommandStreamWidget(this);
     addDockWidget(Qt::RightDockWidgetArea, gpu_command_stream_widget);
     gpu_command_stream_widget->hide();
-    debug_menu->addAction(gpu_command_stream_widget->toggleViewAction());
+    ui.menu_View_Debugging->addAction(gpu_command_stream_widget->toggleViewAction());
 
     gpu_command_list_widget = new GpuCommandListWidget(this);
     addDockWidget(Qt::RightDockWidgetArea, gpu_command_list_widget);
     gpu_command_list_widget->hide();
-    debug_menu->addAction(gpu_command_list_widget->toggleViewAction());
+    ui.menu_View_Debugging->addAction(gpu_command_list_widget->toggleViewAction());
 
     graphics_breakpoints_widget = new GraphicsBreakpointsWidget(Pica::g_debug_context, this);
     addDockWidget(Qt::RightDockWidgetArea, graphics_breakpoints_widget);
     graphics_breakpoints_widget->hide();
-    debug_menu->addAction(graphics_breakpoints_widget->toggleViewAction());
+    ui.menu_View_Debugging->addAction(graphics_breakpoints_widget->toggleViewAction());
 
     graphics_vertex_shader_widget = new GraphicsVertexShaderWidget(Pica::g_debug_context, this);
     addDockWidget(Qt::RightDockWidgetArea, graphics_vertex_shader_widget);
     graphics_vertex_shader_widget->hide();
-    debug_menu->addAction(graphics_vertex_shader_widget->toggleViewAction());
+    ui.menu_View_Debugging->addAction(graphics_vertex_shader_widget->toggleViewAction());
 
     graphics_tracing_widget = new GraphicsTracingWidget(Pica::g_debug_context, this);
     addDockWidget(Qt::RightDockWidgetArea, graphics_tracing_widget);
     graphics_tracing_widget->hide();
-    debug_menu->addAction(graphics_tracing_widget->toggleViewAction());
+    ui.menu_View_Debugging->addAction(graphics_tracing_widget->toggleViewAction());
     connect(this, &GMainWindow::EmulationStarting, graphics_tracing_widget,
             &GraphicsTracingWidget::OnEmulationStarting);
     connect(this, &GMainWindow::EmulationStopping, graphics_tracing_widget,
@@ -337,7 +358,7 @@ void GMainWindow::InitializeDebugWidgets() {
     wait_tree_widget = new WaitTreeWidget(this);
     addDockWidget(Qt::LeftDockWidgetArea, wait_tree_widget);
     wait_tree_widget->hide();
-    debug_menu->addAction(wait_tree_widget->toggleViewAction());
+    ui.menu_View_Debugging->addAction(wait_tree_widget->toggleViewAction());
     connect(this, &GMainWindow::EmulationStarting, wait_tree_widget,
             &WaitTreeWidget::OnEmulationStarting);
     connect(this, &GMainWindow::EmulationStopping, wait_tree_widget,
@@ -346,7 +367,7 @@ void GMainWindow::InitializeDebugWidgets() {
     lle_service_modules_widget = new LleServiceModulesWidget(this);
     addDockWidget(Qt::RightDockWidgetArea, lle_service_modules_widget);
     lle_service_modules_widget->hide();
-    debug_menu->addAction(lle_service_modules_widget->toggleViewAction());
+    ui.menu_View_Debugging->addAction(lle_service_modules_widget->toggleViewAction());
     connect(this, &GMainWindow::EmulationStarting,
             [this] { lle_service_modules_widget->setDisabled(true); });
     connect(this, &GMainWindow::EmulationStopping, lle_service_modules_widget,
@@ -355,7 +376,7 @@ void GMainWindow::InitializeDebugWidgets() {
     ipc_recorder_widget = new IpcRecorderWidget(this);
     addDockWidget(Qt::RightDockWidgetArea, ipc_recorder_widget);
     ipc_recorder_widget->hide();
-    debug_menu->addAction(ipc_recorder_widget->toggleViewAction());
+    ui.menu_View_Debugging->addAction(ipc_recorder_widget->toggleViewAction());
     connect(this, &GMainWindow::EmulationStarting, ipc_recorder_widget,
             &IpcRecorderWidget::OnEmulationStarting);
 }
@@ -744,10 +765,6 @@ void GMainWindow::RestoreUIState() {
     restoreGeometry(UISettings::values.geometry);
     restoreState(UISettings::values.state);
     render_window->restoreGeometry(UISettings::values.renderwindow_geometry);
-#if MICROPROFILE_ENABLED
-    microprofile_dialog->restoreGeometry(UISettings::values.microprofile_geometry);
-    microprofile_dialog->setVisible(UISettings::values.microprofile_visible);
-#endif
     ui.action_Cheats->setEnabled(false);
 
     game_list->LoadInterfaceLayout();
@@ -1120,6 +1137,7 @@ void GMainWindow::BootGame(const QString& filename) {
             &WaitTreeWidget::OnDebugModeLeft, Qt::BlockingQueuedConnection);
 
     // Update the GUI
+    profiler_action->setEnabled(true);
     registers_widget->OnDebugModeEntered();
     if (ui.action_Single_Window_Mode->isChecked()) {
         game_list->hide();
@@ -1217,6 +1235,14 @@ void GMainWindow::ShutdownGame() {
     ui.action_Capture_Screenshot_Copy_To_Clipboard->setEnabled(false);
     ui.action_Capture_Screenshot_Send_To_Discord_Server->setEnabled(false);
     ui.menu_Capture_Screenshot->setEnabled(false);
+
+    if (Core::System::GetInstance().profiler != nullptr) {
+        std::static_pointer_cast<QtProfiler>(Core::System::GetInstance().profiler)->deleteLater();
+    }
+
+    profiler_action->setEnabled(false);
+    profiler_action->setChecked(false);
+
     render_window->hide();
     if (game_list->isEmpty()) {
         game_list_placeholder->show();
@@ -2062,10 +2088,6 @@ void GMainWindow::closeEvent(QCloseEvent* event) {
         UISettings::values.renderwindow_geometry = render_window->saveGeometry();
     }
     UISettings::values.state = saveState();
-#if MICROPROFILE_ENABLED
-    UISettings::values.microprofile_geometry = microprofile_dialog->saveGeometry();
-    UISettings::values.microprofile_visible = microprofile_dialog->isVisible();
-#endif
     UISettings::values.single_window_mode = ui.action_Single_Window_Mode->isChecked();
     UISettings::values.fullscreen = ui.action_Fullscreen->isChecked();
     UISettings::values.display_titlebar = ui.action_Display_Dock_Widget_Headers->isChecked();
@@ -2567,8 +2589,6 @@ void GMainWindow::CaptureScreenshotThenSendToDiscordServer() {
 
 int main(int argc, char* argv[]) {
     Common::DetachedTasks detached_tasks;
-    MicroProfileOnThreadCreate("Frontend");
-    SCOPE_EXIT({ MicroProfileShutdown(); });
 
     QSurfaceFormat format;
     format.setVersion(3, 3);

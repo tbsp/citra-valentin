@@ -15,7 +15,7 @@
 #include "common/assert.h"
 #include "common/bit_field.h"
 #include "common/logging/log.h"
-#include "common/microprofile.h"
+#include "common/profiler.h"
 #include "core/core.h"
 #include "core/core_timing.h"
 #include "core/dumping/backend.h"
@@ -283,9 +283,6 @@ RendererOpenGL::RendererOpenGL(Frontend::EmuWindow& window) : RendererBase{windo
 
 RendererOpenGL::~RendererOpenGL() = default;
 
-MICROPROFILE_DEFINE(OpenGL_RenderFrame, "OpenGL", "Render Frame", MP_RGB(128, 128, 64));
-MICROPROFILE_DEFINE(OpenGL_WaitPresent, "OpenGL", "Wait For Present", MP_RGB(128, 128, 128));
-
 /// Swap buffers (render frame)
 void RendererOpenGL::SwapBuffers() {
     // Maintain the rasterizer's state as a priority
@@ -302,7 +299,8 @@ void RendererOpenGL::SwapBuffers() {
 
     Frontend::Frame* frame;
     {
-        MICROPROFILE_SCOPE(OpenGL_WaitPresent);
+        Common::Profiler::Scope scope(Core::System::GetInstance().profiler, "OpenGL",
+                                      "Wait Present");
 
         frame = render_window.mailbox->GetRenderFrame();
 
@@ -329,7 +327,9 @@ void RendererOpenGL::SwapBuffers() {
     }
 
     {
-        MICROPROFILE_SCOPE(OpenGL_RenderFrame);
+        Common::Profiler::Scope scope(Core::System::GetInstance().profiler, "OpenGL",
+                                      "Render Frame");
+
         // Recreate the frame if the size of the window has changed
         if (layout.width != frame->width || layout.height != frame->height) {
             LOG_DEBUG(Render_OpenGL, "Reloading render frame");

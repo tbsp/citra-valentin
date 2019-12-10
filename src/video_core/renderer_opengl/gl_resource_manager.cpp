@@ -5,13 +5,11 @@
 #include <utility>
 #include <glad/glad.h>
 #include "common/common_types.h"
-#include "common/microprofile.h"
+#include "common/profiler.h"
+#include "core/core.h"
 #include "video_core/renderer_opengl/gl_resource_manager.h"
 #include "video_core/renderer_opengl/gl_shader_util.h"
 #include "video_core/renderer_opengl/gl_state.h"
-
-MICROPROFILE_DEFINE(OpenGL_ResourceCreation, "OpenGL", "Resource Creation", MP_RGB(128, 128, 192));
-MICROPROFILE_DEFINE(OpenGL_ResourceDeletion, "OpenGL", "Resource Deletion", MP_RGB(128, 128, 192));
 
 namespace OpenGL {
 
@@ -20,7 +18,8 @@ void OGLRenderbuffer::Create() {
         return;
     }
 
-    MICROPROFILE_SCOPE(OpenGL_ResourceCreation);
+    Common::Profiler::Scope scope(Core::System::GetInstance().profiler, "OpenGL",
+                                  "Resource Creation");
     glGenRenderbuffers(1, &handle);
 }
 
@@ -29,7 +28,8 @@ void OGLRenderbuffer::Release() {
         return;
     }
 
-    MICROPROFILE_SCOPE(OpenGL_ResourceDeletion);
+    Common::Profiler::Scope scope(Core::System::GetInstance().profiler, "OpenGL",
+                                  "Resource Deletion");
     glDeleteRenderbuffers(1, &handle);
     OpenGLState::GetCurState().ResetRenderbuffer(handle).Apply();
     handle = 0;
@@ -40,7 +40,8 @@ void OGLTexture::Create() {
         return;
     }
 
-    MICROPROFILE_SCOPE(OpenGL_ResourceCreation);
+    Common::Profiler::Scope scope(Core::System::GetInstance().profiler, "OpenGL",
+                                  "Resource Creation");
     glGenTextures(1, &handle);
 }
 
@@ -49,7 +50,8 @@ void OGLTexture::Release() {
         return;
     }
 
-    MICROPROFILE_SCOPE(OpenGL_ResourceDeletion);
+    Common::Profiler::Scope scope(Core::System::GetInstance().profiler, "OpenGL",
+                                  "Resource Deletion");
     glDeleteTextures(1, &handle);
     OpenGLState::GetCurState().ResetTexture(handle).Apply();
     handle = 0;
@@ -60,7 +62,8 @@ void OGLSampler::Create() {
         return;
     }
 
-    MICROPROFILE_SCOPE(OpenGL_ResourceCreation);
+    Common::Profiler::Scope scope(Core::System::GetInstance().profiler, "OpenGL",
+                                  "Resource Creation");
     glGenSamplers(1, &handle);
 }
 
@@ -69,7 +72,8 @@ void OGLSampler::Release() {
         return;
     }
 
-    MICROPROFILE_SCOPE(OpenGL_ResourceDeletion);
+    Common::Profiler::Scope scope(Core::System::GetInstance().profiler, "OpenGL",
+                                  "Resource Deletion");
     glDeleteSamplers(1, &handle);
     OpenGLState::GetCurState().ResetSampler(handle).Apply();
     handle = 0;
@@ -83,7 +87,8 @@ void OGLShader::Create(const char* source, GLenum type) {
         return;
     }
 
-    MICROPROFILE_SCOPE(OpenGL_ResourceCreation);
+    Common::Profiler::Scope scope(Core::System::GetInstance().profiler, "OpenGL",
+                                  "Resource Creation");
     handle = LoadShader(source, type);
 }
 
@@ -92,7 +97,8 @@ void OGLShader::Release() {
         return;
     }
 
-    MICROPROFILE_SCOPE(OpenGL_ResourceDeletion);
+    Common::Profiler::Scope scope(Core::System::GetInstance().profiler, "OpenGL",
+                                  "Resource Deletion");
     glDeleteShader(handle);
     handle = 0;
 }
@@ -102,7 +108,8 @@ void OGLProgram::Create(bool separable_program, const std::vector<GLuint>& shade
         return;
     }
 
-    MICROPROFILE_SCOPE(OpenGL_ResourceCreation);
+    Common::Profiler::Scope scope(Core::System::GetInstance().profiler, "OpenGL",
+                                  "Resource Creation");
     handle = LoadProgram(separable_program, shaders);
 }
 
@@ -111,7 +118,8 @@ void OGLProgram::Create(const char* vert_shader, const char* frag_shader) {
     vert.Create(vert_shader, GL_VERTEX_SHADER);
     frag.Create(frag_shader, GL_FRAGMENT_SHADER);
 
-    MICROPROFILE_SCOPE(OpenGL_ResourceCreation);
+    Common::Profiler::Scope scope(Core::System::GetInstance().profiler, "OpenGL",
+                                  "Resource Creation");
     Create(false, {vert.handle, frag.handle});
 }
 
@@ -120,7 +128,8 @@ void OGLProgram::Release() {
         return;
     }
 
-    MICROPROFILE_SCOPE(OpenGL_ResourceDeletion);
+    Common::Profiler::Scope scope(Core::System::GetInstance().profiler, "OpenGL",
+                                  "Resource Deletion");
     glDeleteProgram(handle);
     OpenGLState::GetCurState().ResetProgram(handle).Apply();
     handle = 0;
@@ -131,7 +140,8 @@ void OGLPipeline::Create() {
         return;
     }
 
-    MICROPROFILE_SCOPE(OpenGL_ResourceCreation);
+    Common::Profiler::Scope scope(Core::System::GetInstance().profiler, "OpenGL",
+                                  "Resource Creation");
     glGenProgramPipelines(1, &handle);
 }
 
@@ -140,7 +150,8 @@ void OGLPipeline::Release() {
         return;
     }
 
-    MICROPROFILE_SCOPE(OpenGL_ResourceDeletion);
+    Common::Profiler::Scope scope(Core::System::GetInstance().profiler, "OpenGL",
+                                  "Resource Deletion");
     glDeleteProgramPipelines(1, &handle);
     OpenGLState::GetCurState().ResetPipeline(handle).Apply();
     handle = 0;
@@ -151,7 +162,8 @@ void OGLBuffer::Create() {
         return;
     }
 
-    MICROPROFILE_SCOPE(OpenGL_ResourceCreation);
+    Common::Profiler::Scope scope(Core::System::GetInstance().profiler, "OpenGL",
+                                  "Resource Creation");
     glGenBuffers(1, &handle);
 }
 
@@ -160,7 +172,8 @@ void OGLBuffer::Release() {
         return;
     }
 
-    MICROPROFILE_SCOPE(OpenGL_ResourceDeletion);
+    Common::Profiler::Scope scope(Core::System::GetInstance().profiler, "OpenGL",
+                                  "Resource Deletion");
     glDeleteBuffers(1, &handle);
     OpenGLState::GetCurState().ResetBuffer(handle).Apply();
     handle = 0;
@@ -171,7 +184,8 @@ void OGLVertexArray::Create() {
         return;
     }
 
-    MICROPROFILE_SCOPE(OpenGL_ResourceCreation);
+    Common::Profiler::Scope scope(Core::System::GetInstance().profiler, "OpenGL",
+                                  "Resource Creation");
     glGenVertexArrays(1, &handle);
 }
 
@@ -180,7 +194,8 @@ void OGLVertexArray::Release() {
         return;
     }
 
-    MICROPROFILE_SCOPE(OpenGL_ResourceDeletion);
+    Common::Profiler::Scope scope(Core::System::GetInstance().profiler, "OpenGL",
+                                  "Resource Deletion");
     glDeleteVertexArrays(1, &handle);
     OpenGLState::GetCurState().ResetVertexArray(handle).Apply();
     handle = 0;
@@ -191,7 +206,8 @@ void OGLFramebuffer::Create() {
         return;
     }
 
-    MICROPROFILE_SCOPE(OpenGL_ResourceCreation);
+    Common::Profiler::Scope scope(Core::System::GetInstance().profiler, "OpenGL",
+                                  "Resource Creation");
     glGenFramebuffers(1, &handle);
 }
 
@@ -200,7 +216,8 @@ void OGLFramebuffer::Release() {
         return;
     }
 
-    MICROPROFILE_SCOPE(OpenGL_ResourceDeletion);
+    Common::Profiler::Scope scope(Core::System::GetInstance().profiler, "OpenGL",
+                                  "Resource Deletion");
     glDeleteFramebuffers(1, &handle);
     OpenGLState::GetCurState().ResetFramebuffer(handle).Apply();
     handle = 0;

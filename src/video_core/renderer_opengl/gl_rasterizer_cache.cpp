@@ -19,7 +19,7 @@
 #include "common/color.h"
 #include "common/logging/log.h"
 #include "common/math_util.h"
-#include "common/microprofile.h"
+#include "common/profiler.h"
 #include "common/scope_exit.h"
 #include "common/texture.h"
 #include "common/vector_math.h"
@@ -660,10 +660,9 @@ SurfaceInterval SurfaceParams::GetCopyableInterval(const Surface& src_surface) c
     return result;
 }
 
-MICROPROFILE_DEFINE(OpenGL_CopySurface, "OpenGL", "CopySurface", MP_RGB(128, 192, 64));
 void RasterizerCacheOpenGL::CopySurface(const Surface& src_surface, const Surface& dst_surface,
                                         SurfaceInterval copy_interval) {
-    MICROPROFILE_SCOPE(OpenGL_CopySurface);
+    Common::Profiler::Scope scope(Core::System::GetInstance().profiler, "OpenGL", "Surface Copy");
 
     SurfaceParams subrect_params = dst_surface->FromInterval(copy_interval);
     ASSERT(subrect_params.GetInterval() == copy_interval);
@@ -694,7 +693,6 @@ void RasterizerCacheOpenGL::CopySurface(const Surface& src_surface, const Surfac
     UNREACHABLE();
 }
 
-MICROPROFILE_DEFINE(OpenGL_SurfaceLoad, "OpenGL", "Surface Load", MP_RGB(128, 192, 64));
 void CachedSurface::LoadGLBuffer(PAddr load_start, PAddr load_end) {
     ASSERT(type != SurfaceType::Fill);
 
@@ -717,7 +715,7 @@ void CachedSurface::LoadGLBuffer(PAddr load_start, PAddr load_end) {
         load_start = Memory::VRAM_VADDR;
     }
 
-    MICROPROFILE_SCOPE(OpenGL_SurfaceLoad);
+    Common::Profiler::Scope scope(Core::System::GetInstance().profiler, "OpenGL", "Surface Load");
 
     ASSERT(load_start >= addr && load_end <= end);
     const u32 start_offset = load_start - addr;
@@ -754,7 +752,6 @@ void CachedSurface::LoadGLBuffer(PAddr load_start, PAddr load_end) {
     }
 }
 
-MICROPROFILE_DEFINE(OpenGL_SurfaceFlush, "OpenGL", "Surface Flush", MP_RGB(128, 192, 64));
 void CachedSurface::FlushGLBuffer(PAddr flush_start, PAddr flush_end) {
     u8* const dst_buffer = VideoCore::g_memory->GetPhysicalPointer(addr);
     if (dst_buffer == nullptr)
@@ -770,7 +767,8 @@ void CachedSurface::FlushGLBuffer(PAddr flush_start, PAddr flush_end) {
     if (flush_start < Memory::VRAM_VADDR && flush_end > Memory::VRAM_VADDR)
         flush_start = Memory::VRAM_VADDR;
 
-    MICROPROFILE_SCOPE(OpenGL_SurfaceFlush);
+    Common::Profiler::Scope scope(Core::System::GetInstance().profiler, "OpenGL",
+                                  "Surface Flush");
 
     ASSERT(flush_start >= addr && flush_end <= end);
     const u32 start_offset = flush_start - addr;
@@ -885,14 +883,14 @@ void CachedSurface::DumpTexture(GLuint target_tex, u64 tex_hash) {
     }
 }
 
-MICROPROFILE_DEFINE(OpenGL_TextureUL, "OpenGL", "Texture Upload", MP_RGB(128, 192, 64));
 void CachedSurface::UploadGLTexture(const Common::Rectangle<u32>& rect, GLuint read_fb_handle,
                                     GLuint draw_fb_handle) {
     if (type == SurfaceType::Fill) {
         return;
     }
 
-    MICROPROFILE_SCOPE(OpenGL_TextureUL);
+    Common::Profiler::Scope scope(Core::System::GetInstance().profiler, "OpenGL",
+                                  "Texture Upload");
 
     ASSERT(gl_buffer_size == width * height * GetGLBytesPerPixel(pixel_format));
 
@@ -989,14 +987,14 @@ void CachedSurface::UploadGLTexture(const Common::Rectangle<u32>& rect, GLuint r
     InvalidateAllWatcher();
 }
 
-MICROPROFILE_DEFINE(OpenGL_TextureDL, "OpenGL", "Texture Download", MP_RGB(128, 192, 64));
 void CachedSurface::DownloadGLTexture(const Common::Rectangle<u32>& rect, GLuint read_fb_handle,
                                       GLuint draw_fb_handle) {
     if (type == SurfaceType::Fill) {
         return;
     }
 
-    MICROPROFILE_SCOPE(OpenGL_TextureDL);
+    Common::Profiler::Scope scope(Core::System::GetInstance().profiler, "OpenGL",
+                                  "Texture Download");
 
     if (gl_buffer == nullptr) {
         gl_buffer_size = width * height * GetGLBytesPerPixel(pixel_format);
@@ -1229,12 +1227,12 @@ RasterizerCacheOpenGL::~RasterizerCacheOpenGL() {
     }
 }
 
-MICROPROFILE_DEFINE(OpenGL_BlitSurface, "OpenGL", "BlitSurface", MP_RGB(128, 192, 64));
 bool RasterizerCacheOpenGL::BlitSurfaces(const Surface& src_surface,
                                          const Common::Rectangle<u32>& src_rect,
                                          const Surface& dst_surface,
                                          const Common::Rectangle<u32>& dst_rect) {
-    MICROPROFILE_SCOPE(OpenGL_BlitSurface);
+    Common::Profiler::Scope scope(Core::System::GetInstance().profiler, "OpenGL",
+                                  "Blit Surfaces");
 
     if (!SurfaceParams::CheckFormatsBlittable(src_surface->pixel_format, dst_surface->pixel_format))
         return false;

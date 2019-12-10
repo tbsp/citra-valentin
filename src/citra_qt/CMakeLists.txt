@@ -121,6 +121,7 @@ add_executable(citra-qt
     debugger/lle_service_modules.h
     debugger/profiler.cpp
     debugger/profiler.h
+    debugger/profiler.ui
     debugger/registers.cpp
     debugger/registers.h
     debugger/registers.ui

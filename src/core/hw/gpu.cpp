@@ -9,7 +9,7 @@
 #include "common/color.h"
 #include "common/common_types.h"
 #include "common/logging/log.h"
-#include "common/microprofile.h"
+#include "common/profiler.h"
 #include "common/vector_math.h"
 #include "core/core.h"
 #include "core/core_timing.h"
@@ -70,9 +70,6 @@ static Common::Vec4<u8> DecodePixel(Regs::PixelFormat input_format, const u8* sr
         return {0, 0, 0, 0};
     }
 }
-
-MICROPROFILE_DEFINE(GPU_DisplayTransfer, "GPU", "DisplayTransfer", MP_RGB(100, 100, 255));
-MICROPROFILE_DEFINE(GPU_CmdlistProcessing, "GPU", "Cmdlist Processing", MP_RGB(100, 255, 100));
 
 static void MemoryFill(const Regs::MemoryFillConfig& config) {
     const PAddr start_addr = config.GetStartAddress();
@@ -430,7 +427,8 @@ inline void Write(u32 addr, const T data) {
     }
 
     case GPU_REG_INDEX(display_transfer_config.trigger): {
-        MICROPROFILE_SCOPE(GPU_DisplayTransfer);
+        Common::Profiler::Scope scope(Core::System::GetInstance().profiler, "GPU",
+                                      "Display Transfer");
 
         const auto& config = g_regs.display_transfer_config;
         if (config.trigger & 1) {
@@ -469,7 +467,8 @@ inline void Write(u32 addr, const T data) {
     case GPU_REG_INDEX(command_processor_config.trigger): {
         const auto& config = g_regs.command_processor_config;
         if (config.trigger & 1) {
-            MICROPROFILE_SCOPE(GPU_CmdlistProcessing);
+            Common::Profiler::Scope scope(Core::System::GetInstance().profiler, "GPU",
+                                          "Command Processor");
 
             u32* buffer = (u32*)g_memory->GetPhysicalPointer(config.GetPhysicalAddress());
 

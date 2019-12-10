@@ -8,6 +8,7 @@
 #include "audio_core/hle/hle.h"
 #include "audio_core/lle/lle.h"
 #include "common/logging/log.h"
+#include "common/profiler.h"
 #include "common/texture.h"
 #include "core/arm/arm_interface.h"
 #ifdef ARCHITECTURE_x86_64

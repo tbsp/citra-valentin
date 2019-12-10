@@ -24,9 +24,7 @@ add_library(common STATIC
     logging/text_formatter.cpp
     logging/text_formatter.h
     math_util.h
-    microprofile.cpp
-    microprofile.h
-    microprofileui.h
+    profiler.h
     misc.cpp
     param_package.cpp
     param_package.h
@@ -63,7 +61,7 @@ endif()
 
 create_target_directory_groups(common)
 
-target_link_libraries(common PUBLIC fmt microprofile semver)
+target_link_libraries(common PUBLIC fmt semver)
 if (ARCHITECTURE_x86_64)
     target_link_libraries(common PRIVATE xbyak)
 endif()

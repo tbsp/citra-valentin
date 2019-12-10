@@ -136,6 +136,9 @@ public:
 
     void Present();
 
+signals:
+    void Presented();
+
 protected:
     bool event(QEvent* event) override;
     void exposeEvent(QExposeEvent* event) override;
@@ -181,6 +184,7 @@ public:
     void focusOutEvent(QFocusEvent* event) override;
 
     void InitRenderTarget();
+    OpenGLWindow* GetOpenGLWindow();
 
 public slots:
     void OnEmulationStarting(EmuThread* emu_thread);
@@ -207,7 +211,7 @@ private:
     QByteArray geometry;
 
     /// Native window handle that backs this presentation widget
-    QWindow* child_window = nullptr;
+    OpenGLWindow* child_window = nullptr;
 
     /// In order to embed the window into GRenderWindow, you need to use createWindowContainer to
     /// put the child_window into a widget then add it to the layout. This child_widget can be

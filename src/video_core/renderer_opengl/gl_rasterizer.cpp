@@ -12,7 +12,7 @@
 #include "common/assert.h"
 #include "common/logging/log.h"
 #include "common/math_util.h"
-#include "common/microprofile.h"
+#include "common/profiler.h"
 #include "common/scope_exit.h"
 #include "common/vector_math.h"
 #include "core/core.h"
@@ -31,13 +31,6 @@ namespace OpenGL {
 
 using PixelFormat = SurfaceParams::PixelFormat;
 using SurfaceType = SurfaceParams::SurfaceType;
-
-MICROPROFILE_DEFINE(OpenGL_VAO, "OpenGL", "Vertex Array Setup", MP_RGB(255, 128, 0));
-MICROPROFILE_DEFINE(OpenGL_VS, "OpenGL", "Vertex Shader Setup", MP_RGB(192, 128, 128));
-MICROPROFILE_DEFINE(OpenGL_GS, "OpenGL", "Geometry Shader Setup", MP_RGB(128, 192, 128));
-MICROPROFILE_DEFINE(OpenGL_Drawing, "OpenGL", "Drawing", MP_RGB(128, 128, 192));
-MICROPROFILE_DEFINE(OpenGL_Blits, "OpenGL", "Blits", MP_RGB(100, 100, 255));
-MICROPROFILE_DEFINE(OpenGL_CacheManagement, "OpenGL", "Cache Mgmt", MP_RGB(100, 255, 100));
 
 static bool IsVendorAmd() {
     std::string gpu_vendor{reinterpret_cast<char const*>(glGetString(GL_VENDOR))};
@@ -302,7 +295,8 @@ RasterizerOpenGL::VertexArrayInfo RasterizerOpenGL::AnalyzeVertexArray(bool is_i
 
 void RasterizerOpenGL::SetupVertexArray(u8* array_ptr, GLintptr buffer_offset,
                                         GLuint vs_input_index_min, GLuint vs_input_index_max) {
-    MICROPROFILE_SCOPE(OpenGL_VAO);
+    Common::Profiler::Scope scope(Core::System::GetInstance().profiler, "OpenGL",
+                                  "Setup Vertex Array");
     const auto& regs = Pica::g_state.regs;
     const auto& vertex_attributes = regs.pipeline.vertex_attributes;
     PAddr base_address = vertex_attributes.GetPhysicalBaseAddress();
@@ -380,13 +374,17 @@ void RasterizerOpenGL::SetupVertexArray(u8* array_ptr, GLintptr buffer_offset,
 }
 
 bool RasterizerOpenGL::SetupVertexShader() {
-    MICROPROFILE_SCOPE(OpenGL_VS);
+    Common::Profiler::Scope scope(Core::System::GetInstance().profiler, "OpenGL",
+                                  "Setup Vertex Shader");
+
     const PicaVSConfig vs_config(Pica::g_state.regs.vs, Pica::g_state.vs);
     return shader_program_manager->UseProgrammableVertexShader(vs_config, Pica::g_state.vs);
 }
 
 bool RasterizerOpenGL::SetupGeometryShader() {
-    MICROPROFILE_SCOPE(OpenGL_GS);
+    Common::Profiler::Scope scope(Core::System::GetInstance().profiler, "OpenGL",
+                                  "Setup Geometry Shader");
+
     const Pica::Regs& regs = Pica::g_state.regs;
     if (regs.pipeline.use_gs == Pica::PipelineRegs::UseGS::No) {
         const PicaFixedGSConfig gs_config(regs);
@@ -489,7 +487,7 @@ void RasterizerOpenGL::DrawTriangles() {
 }
 
 bool RasterizerOpenGL::Draw(bool accelerate, bool is_indexed) {
-    MICROPROFILE_SCOPE(OpenGL_Drawing);
+    Common::Profiler::Scope scope(Core::System::GetInstance().profiler, "OpenGL", "Drawing");
     const auto& regs = Pica::g_state.regs;
 
     bool shadow_rendering = regs.framebuffer.output_merger.fragment_operation_mode ==
@@ -1347,28 +1345,33 @@ void RasterizerOpenGL::NotifyPicaRegisterChanged(u32 id) {
 }
 
 void RasterizerOpenGL::FlushAll() {
-    MICROPROFILE_SCOPE(OpenGL_CacheManagement);
+    Common::Profiler::Scope scope(Core::System::GetInstance().profiler, "OpenGL",
+                                  "Cache Management");
     res_cache.FlushAll();
 }
 
 void RasterizerOpenGL::FlushRegion(PAddr addr, u32 size) {
-    MICROPROFILE_SCOPE(OpenGL_CacheManagement);
+    Common::Profiler::Scope scope(Core::System::GetInstance().profiler, "OpenGL",
+                                  "Cache Management");
     res_cache.FlushRegion(addr, size);
 }
 
 void RasterizerOpenGL::InvalidateRegion(PAddr addr, u32 size) {
-    MICROPROFILE_SCOPE(OpenGL_CacheManagement);
+    Common::Profiler::Scope scope(Core::System::GetInstance().profiler, "OpenGL",
+                                  "Cache Management");
     res_cache.InvalidateRegion(addr, size, nullptr);
 }
 
 void RasterizerOpenGL::FlushAndInvalidateRegion(PAddr addr, u32 size) {
-    MICROPROFILE_SCOPE(OpenGL_CacheManagement);
+    Common::Profiler::Scope scope(Core::System::GetInstance().profiler, "OpenGL",
+                                  "Cache Management");
     res_cache.FlushRegion(addr, size);
     res_cache.InvalidateRegion(addr, size, nullptr);
 }
 
 bool RasterizerOpenGL::AccelerateDisplayTransfer(const GPU::Regs::DisplayTransferConfig& config) {
-    MICROPROFILE_SCOPE(OpenGL_Blits);
+    Common::Profiler::Scope scope(Core::System::GetInstance().profiler, "OpenGL",
+                                  "Display Transfer");
 
     SurfaceParams src_params;
     src_params.addr = config.GetPhysicalInputAddress();
@@ -1518,7 +1521,8 @@ bool RasterizerOpenGL::AccelerateDisplay(const GPU::Regs::FramebufferConfig& con
     if (framebuffer_addr == 0) {
         return false;
     }
-    MICROPROFILE_SCOPE(OpenGL_CacheManagement);
+    Common::Profiler::Scope scope(Core::System::GetInstance().profiler, "OpenGL",
+                                  "Cache Management");
 
     SurfaceParams src_params;
     src_params.addr = framebuffer_addr;

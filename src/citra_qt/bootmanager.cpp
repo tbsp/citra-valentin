@@ -17,7 +17,6 @@
 #include "citra_qt/bootmanager.h"
 #include "citra_qt/main.h"
 #include "citra_qt/uisettings.h"
-#include "common/microprofile.h"
 #include "core/3ds.h"
 #include "core/core.h"
 #include "core/frontend/scope_acquire_context.h"
@@ -45,7 +44,6 @@ static GMainWindow* GetMainWindow() {
 }
 
 void EmuThread::run() {
-    MicroProfileOnThreadCreate("EmuThread");
     Frontend::ScopeAcquireContext scope(core_context);
 
     // Holds whether the cpu was running during the last iteration,
@@ -94,10 +92,6 @@ void EmuThread::run() {
 
     // Shutdown the core emulation
     Core::System::GetInstance().Shutdown();
-
-#if MICROPROFILE_ENABLED
-    MicroProfileOnThreadExit();
-#endif
 }
 
 void EmuThread::UpdateQtButtons() {
@@ -133,6 +127,7 @@ void OpenGLWindow::Present() {
     auto f = context->versionFunctions<QOpenGLFunctions_3_3_Core>();
     f->glFinish();
     QWindow::requestUpdate();
+    emit Presented();
 }
 
 bool OpenGLWindow::event(QEvent* event) {
@@ -403,6 +398,10 @@ void GRenderWindow::showEvent(QShowEvent* event) {
 
 std::unique_ptr<Frontend::GraphicsContext> GRenderWindow::CreateSharedContext() const {
     return std::make_unique<GLContext>(QOpenGLContext::globalShareContext());
+}
+
+OpenGLWindow* GRenderWindow::GetOpenGLWindow() {
+    return child_window;
 }
 
 GLContext::GLContext(QOpenGLContext* shared_context)

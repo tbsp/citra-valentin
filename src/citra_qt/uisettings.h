@@ -64,9 +64,6 @@ struct Values {
 
     QByteArray gamelist_header_state;
 
-    QByteArray microprofile_geometry;
-    bool microprofile_visible;
-
     bool single_window_mode;
     bool fullscreen;
     bool display_titlebar;

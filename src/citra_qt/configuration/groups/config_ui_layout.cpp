@@ -14,10 +14,6 @@ void Config::ReadUiLayoutValues() {
         ReadSetting(QStringLiteral("geometryRenderWindow")).toByteArray();
     UISettings::values.gamelist_header_state =
         ReadSetting(QStringLiteral("gameListHeaderState")).toByteArray();
-    UISettings::values.microprofile_geometry =
-        ReadSetting(QStringLiteral("microProfileDialogGeometry")).toByteArray();
-    UISettings::values.microprofile_visible =
-        ReadSetting(QStringLiteral("microProfileDialogVisible"), false).toBool();
     qt_config->endGroup();
 }
 
@@ -27,9 +23,5 @@ void Config::SaveUiLayoutValues() {
     WriteSetting(QStringLiteral("state"), UISettings::values.state);
     WriteSetting(QStringLiteral("geometryRenderWindow"), UISettings::values.renderwindow_geometry);
     WriteSetting(QStringLiteral("gameListHeaderState"), UISettings::values.gamelist_header_state);
-    WriteSetting(QStringLiteral("microProfileDialogGeometry"),
-                 UISettings::values.microprofile_geometry);
-    WriteSetting(QStringLiteral("microProfileDialogVisible"),
-                 UISettings::values.microprofile_visible, false);
     qt_config->endGroup();
 }

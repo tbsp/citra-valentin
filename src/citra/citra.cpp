@@ -9,9 +9,6 @@
 #include <string>
 #include <thread>
 
-// This needs to be included before getopt.h because the latter #defines symbols used by it
-#include "common/microprofile.h"
-
 #ifdef _WIN32
 // windows.h needs to be included before shellapi.h
 #include <windows.h>
@@ -28,6 +25,7 @@
 #include "common/logging/backend.h"
 #include "common/logging/filter.h"
 #include "common/logging/log.h"
+#include "common/profiler.h"
 #include "common/scope_exit.h"
 #include "common/string_util.h"
 #include "common/version.h"
@@ -326,9 +324,6 @@ int main(int argc, char** argv) {
 #ifdef _WIN32
     LocalFree(argv_w);
 #endif
-
-    MicroProfileOnThreadCreate("EmuThread");
-    SCOPE_EXIT({ MicroProfileShutdown(); });
 
     if (filepath.empty()) {
         LOG_CRITICAL(Frontend, "Failed to load ROM: No ROM specified");
