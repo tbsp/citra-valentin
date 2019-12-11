@@ -46,15 +46,19 @@ void DiscordBackend::Send() {
         }
 
         const nlohmann::json forum_summary = nlohmann::json::parse(forum_summary_response->body);
-        const nlohmann::json user = forum_summary["users"][0];
-        const std::string avatar_template = user["avatar_template"].get<std::string>();
 
-        json["username"] = user["username"].get<std::string>();
+        if (forum_summary.count("users")) {
+            const nlohmann::json user = forum_summary["users"][0];
+            const std::string avatar_template = user["avatar_template"].get<std::string>();
 
-        json["avatar_url"] =
-            QString::fromStdString(std::string("https://community.citra-emu.org") + avatar_template)
-                .replace(QStringLiteral("{size}"), QStringLiteral("128"))
-                .toStdString();
+            json["username"] = user["username"].get<std::string>();
+
+            json["avatar_url"] =
+                QString::fromStdString(std::string("https://community.citra-emu.org") +
+                                       avatar_template)
+                    .replace(QStringLiteral("{size}"), QStringLiteral("128"))
+                    .toStdString();
+        }
     }
 
     json["file"] = "citra-valentin-qt.log";

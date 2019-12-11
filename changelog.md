@@ -34,6 +34,7 @@
 
 ## Fixes
 
+- Qt: Crashes in Discord Logger and after pressing the `Capture Screenshot Then Send To Discord Server` key/button when using a Citra account created very recently.
 - Qt/GameList: Configuration not saved if CV crashes
 
 # 8.0.0
