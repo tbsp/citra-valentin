@@ -321,16 +321,16 @@ void GMainWindow::InitializeDebugWidgets() {
                 std::static_pointer_cast<QtProfiler>(Core::System::GetInstance().profiler);
 
             connect(profiler.get(), &QtProfiler::Stopped, this, [this] {
-                disconnect(
-                    render_window->GetOpenGLWindow(), &OpenGLWindow::Presented,
-                    std::static_pointer_cast<QtProfiler>(Core::System::GetInstance().profiler)
-                        .get(),
-                    &QtProfiler::Update);
+                std::shared_ptr<QtProfiler> profiler =
+                    std::static_pointer_cast<QtProfiler>(Core::System::GetInstance().profiler);
 
+                disconnect(render_window->GetOpenGLWindow(), &OpenGLWindow::Presented,
+                           profiler.get(), &QtProfiler::Update);
+
+                profiler->close();
                 Core::System::GetInstance().profiler.reset();
             });
 
-            profiler->close();
             profiler->Stop();
         }
     });
@@ -1260,7 +1260,21 @@ void GMainWindow::ShutdownGame() {
     ui.menu_Capture_Screenshot->setEnabled(false);
 
     if (Core::System::GetInstance().profiler != nullptr) {
-        std::static_pointer_cast<QtProfiler>(Core::System::GetInstance().profiler)->deleteLater();
+        std::shared_ptr<QtProfiler> profiler =
+            std::static_pointer_cast<QtProfiler>(Core::System::GetInstance().profiler);
+
+        connect(profiler.get(), &QtProfiler::Stopped, this, [this] {
+            std::shared_ptr<QtProfiler> profiler =
+                std::static_pointer_cast<QtProfiler>(Core::System::GetInstance().profiler);
+
+            disconnect(render_window->GetOpenGLWindow(), &OpenGLWindow::Presented, profiler.get(),
+                       &QtProfiler::Update);
+
+            profiler->close();
+            Core::System::GetInstance().profiler.reset();
+        });
+
+        profiler->Stop();
     }
 
     profiler_action->setEnabled(false);
