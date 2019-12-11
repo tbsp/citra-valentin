@@ -167,6 +167,11 @@ RasterizerOpenGL::RasterizerOpenGL(Frontend::EmuWindow& window)
 
 RasterizerOpenGL::~RasterizerOpenGL() {}
 
+void RasterizerOpenGL::LoadDiskResources(const std::atomic_bool& stop_loading,
+                                         const VideoCore::DiskResourceLoadCallback& callback) {
+    shader_program_manager->LoadDiskCache(stop_loading, callback);
+}
+
 void RasterizerOpenGL::SyncEntireState() {
     // Sync fixed function OpenGL state
     SyncClipEnabled();
@@ -376,19 +381,16 @@ void RasterizerOpenGL::SetupVertexArray(u8* array_ptr, GLintptr buffer_offset,
 bool RasterizerOpenGL::SetupVertexShader() {
     Common::Profiler::Scope scope(Core::System::GetInstance().profiler, "OpenGL",
                                   "Setup Vertex Shader");
-
-    const PicaVSConfig vs_config(Pica::g_state.regs.vs, Pica::g_state.vs);
-    return shader_program_manager->UseProgrammableVertexShader(vs_config, Pica::g_state.vs);
+    return shader_program_manager->UseProgrammableVertexShader(Pica::g_state.regs,
+                                                               Pica::g_state.vs);
 }
 
 bool RasterizerOpenGL::SetupGeometryShader() {
     Common::Profiler::Scope scope(Core::System::GetInstance().profiler, "OpenGL",
                                   "Setup Geometry Shader");
-
-    const Pica::Regs& regs = Pica::g_state.regs;
+    const auto& regs = Pica::g_state.regs;
     if (regs.pipeline.use_gs == Pica::PipelineRegs::UseGS::No) {
-        const PicaFixedGSConfig gs_config(regs);
-        shader_program_manager->UseFixedGeometryShader(gs_config);
+        shader_program_manager->UseFixedGeometryShader(regs);
         return true;
     } else {
         LOG_ERROR(Render_OpenGL, "Accelerate draw doesn't support geometry shader");
@@ -1630,8 +1632,7 @@ void RasterizerOpenGL::SamplerInfo::SyncWithConfig(
 }
 
 void RasterizerOpenGL::SetShader() {
-    const OpenGL::PicaFSConfig config = PicaFSConfig::BuildFromRegs(Pica::g_state.regs);
-    shader_program_manager->UseFragmentShader(config);
+    shader_program_manager->UseFragmentShader(Pica::g_state.regs);
 }
 
 void RasterizerOpenGL::SyncClipEnabled() {

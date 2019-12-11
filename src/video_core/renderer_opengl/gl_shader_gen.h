@@ -16,6 +16,8 @@
 
 namespace OpenGL {
 
+enum class ProgramType : u32 { VS, GS, FS };
+
 enum Attributes {
     ATTRIBUTE_POSITION,
     ATTRIBUTE_COLOR,
@@ -33,7 +35,6 @@ struct TevStageConfigRaw {
     u32 modifiers_raw;
     u32 ops_raw;
     u32 scales_raw;
-
     explicit operator Pica::TexturingRegs::TevStageConfig() const noexcept {
         Pica::TexturingRegs::TevStageConfig stage;
         stage.sources_raw = sources_raw;
@@ -126,6 +127,7 @@ struct PicaFSConfigState {
  * two separate shaders sharing the same key.
  */
 struct PicaFSConfig : Common::HashableStruct<PicaFSConfigState> {
+
     /// Construct a PicaFSConfig with the given Pica register configuration.
     static PicaFSConfig BuildFromRegs(const Pica::Regs& regs);
 

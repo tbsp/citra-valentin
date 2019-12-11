@@ -15,9 +15,11 @@
 
 namespace Core {
 class System;
-} // namespace Core
+}
 
 namespace OpenGL {
+
+class ShaderDiskCacheOpenGL;
 
 enum class UniformBindings : GLuint { Common, VS, GS };
 
@@ -102,16 +104,18 @@ public:
     ShaderProgramManager(bool separable, bool is_amd);
     ~ShaderProgramManager();
 
-    bool UseProgrammableVertexShader(const PicaVSConfig& config,
-                                     const Pica::Shader::ShaderSetup& setup);
+    void LoadDiskCache(const std::atomic_bool& stop_loading,
+                       const VideoCore::DiskResourceLoadCallback& callback);
+
+    bool UseProgrammableVertexShader(const Pica::Regs& config, Pica::Shader::ShaderSetup& setup);
 
     void UseTrivialVertexShader();
 
-    void UseFixedGeometryShader(const PicaFixedGSConfig& config);
+    void UseFixedGeometryShader(const Pica::Regs& regs);
 
     void UseTrivialGeometryShader();
 
-    void UseFragmentShader(const PicaFSConfig& config);
+    void UseFragmentShader(const Pica::Regs& config);
 
     void ApplyTo(OpenGLState& state);
 

@@ -81,5 +81,8 @@ public:
     virtual bool AccelerateDrawBatch(bool is_indexed) {
         return false;
     }
+
+    virtual void LoadDiskResources(const std::atomic_bool& stop_loading,
+                                   const DiskResourceLoadCallback& callback) {}
 };
 } // namespace VideoCore

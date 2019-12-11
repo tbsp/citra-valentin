@@ -47,6 +47,8 @@ add_library(common STATIC
     web_result.h
     version.cpp
     version.h
+    zstd_compression.cpp
+    zstd_compression.h
 )
 
 if(ARCHITECTURE_x86_64)
@@ -61,7 +63,7 @@ endif()
 
 create_target_directory_groups(common)
 
-target_link_libraries(common PUBLIC fmt semver)
+target_link_libraries(common PUBLIC fmt semver PRIVATE libzstd_static)
 if (ARCHITECTURE_x86_64)
     target_link_libraries(common PRIVATE xbyak)
 endif()
