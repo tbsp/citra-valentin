@@ -2,6 +2,7 @@
 
 ## Minor Changes
 
+- Settings: Add Valentin to Citra Configuration log
 - Qt: Add tooltip to Discord Logger and Capture Screenshot Then Send To Discord Server
 - Qt/ConfigureWeb: Add more usages of the Citra account
 - Externals: Update [fmt](https://github.com/fmtlib/fmt) and [zstd](https://github.com/facebook/zstd)
