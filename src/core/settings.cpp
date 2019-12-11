@@ -77,7 +77,7 @@ void LogSetting(const std::string& name, const T& value) {
 void LogSettings() {
     using namespace Service::CAM;
 
-    LOG_INFO(Config, "Citra Configuration:");
+    LOG_INFO(Config, "Citra Valentin Configuration:");
     LogSetting("use_cpu_jit", Settings::values.use_cpu_jit);
     LogSetting("use_hw_renderer", Settings::values.use_hw_renderer);
     LogSetting("use_hw_shader", Settings::values.use_hw_shader);

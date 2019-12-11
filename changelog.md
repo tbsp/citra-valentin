@@ -1,8 +1,16 @@
+# Unreleased
+
+## Minor Changes
+
+- Qt: Add tooltip to Discord Logger and Capture Screenshot Then Send To Discord Server
+- Qt/ConfigureWeb: Add more usages of the Citra account
+- Externals: Update [fmt](https://github.com/fmtlib/fmt) and [zstd](https://github.com/facebook/zstd)
+
 # 8.0.1
 
 ## Fixes
 
-- Qt: Crashes in Discord Logger and after pressing the `Capture Screenshot Then Send To Discord Server` key/button when using a Citra account created very recently.
+- Qt: Crashes in Discord Logger and after pressing the Capture Screenshot Then Send To Discord Server key/button when using a Citra account created very recently.
 - Qt/GameList: Configuration not saved if CV crashes
 
 # 8.0.0

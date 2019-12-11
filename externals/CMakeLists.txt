@@ -60,7 +60,6 @@ endif()
 
 # Zstandard
 add_subdirectory(zstd/build/cmake EXCLUDE_FROM_ALL)
-target_include_directories(libzstd_static INTERFACE ./zstd/lib)
 
 # ENet
 add_subdirectory(enet)
