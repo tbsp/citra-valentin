@@ -2602,10 +2602,10 @@ void GMainWindow::CaptureScreenshotThenSendToDiscordServer() {
                     nlohmann::json::parse(forum_summary_response->body);
 
                 if (game_title.isEmpty()) {
+                    json["username"] = Settings::values.citra_username;
+                } else {
                     json["username"] = fmt::format("{} playing {}", Settings::values.citra_username,
                                                    game_title.toStdString());
-                } else {
-                    json["username"] = Settings::values.citra_username;
                 }
 
                 if (forum_summary.count("users")) {
