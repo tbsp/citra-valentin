@@ -767,8 +767,7 @@ void CachedSurface::FlushGLBuffer(PAddr flush_start, PAddr flush_end) {
     if (flush_start < Memory::VRAM_VADDR && flush_end > Memory::VRAM_VADDR)
         flush_start = Memory::VRAM_VADDR;
 
-    Common::Profiler::Scope scope(Core::System::GetInstance().profiler, "OpenGL",
-                                  "Surface Flush");
+    Common::Profiler::Scope scope(Core::System::GetInstance().profiler, "OpenGL", "Surface Flush");
 
     ASSERT(flush_start >= addr && flush_end <= end);
     const u32 start_offset = flush_start - addr;
@@ -889,8 +888,7 @@ void CachedSurface::UploadGLTexture(const Common::Rectangle<u32>& rect, GLuint r
         return;
     }
 
-    Common::Profiler::Scope scope(Core::System::GetInstance().profiler, "OpenGL",
-                                  "Texture Upload");
+    Common::Profiler::Scope scope(Core::System::GetInstance().profiler, "OpenGL", "Texture Upload");
 
     ASSERT(gl_buffer_size == width * height * GetGLBytesPerPixel(pixel_format));
 
@@ -1231,8 +1229,7 @@ bool RasterizerCacheOpenGL::BlitSurfaces(const Surface& src_surface,
                                          const Common::Rectangle<u32>& src_rect,
                                          const Surface& dst_surface,
                                          const Common::Rectangle<u32>& dst_rect) {
-    Common::Profiler::Scope scope(Core::System::GetInstance().profiler, "OpenGL",
-                                  "Blit Surfaces");
+    Common::Profiler::Scope scope(Core::System::GetInstance().profiler, "OpenGL", "Blit Surfaces");
 
     if (!SurfaceParams::CheckFormatsBlittable(src_surface->pixel_format, dst_surface->pixel_format))
         return false;
