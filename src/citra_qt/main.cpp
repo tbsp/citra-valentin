@@ -35,6 +35,7 @@
 #include "citra_qt/configuration/config.h"
 #include "citra_qt/configuration/configure_dialog.h"
 #include "citra_qt/debugger/console.h"
+#include "citra_qt/debugger/discord_logger.h"
 #include "citra_qt/debugger/graphics/graphics.h"
 #include "citra_qt/debugger/graphics/graphics_breakpoints.h"
 #include "citra_qt/debugger/graphics/graphics_cmdlists.h"
@@ -287,7 +288,15 @@ void GMainWindow::InitializeDebugWidgets() {
     connect(ui.action_Create_Pica_Surface_Viewer, &QAction::triggered, this,
             &GMainWindow::OnCreateGraphicsSurfaceViewer);
 
-    profiler_action = ui.menu_View_Debugging->addAction(QStringLiteral("Profiler"), [this] {
+    connect(ui.action_Enable_Discord_Logger, &QAction::toggled, this, [this](bool checked) {
+        if (checked) {
+            Log::AddBackend(std::make_unique<Log::DiscordBackend>());
+        } else {
+            Log::RemoveBackend("discord");
+        }
+    });
+
+    profiler_action = ui.menu_Debugging->addAction(QStringLiteral("Profiler"), [this] {
         if (Core::System::GetInstance().profiler == nullptr) {
             std::shared_ptr<QtProfiler> profiler = std::make_shared<QtProfiler>();
             profiler->show();
@@ -320,7 +329,7 @@ void GMainWindow::InitializeDebugWidgets() {
     registers_widget = new RegistersWidget(this);
     addDockWidget(Qt::RightDockWidgetArea, registers_widget);
     registers_widget->hide();
-    ui.menu_View_Debugging->addAction(registers_widget->toggleViewAction());
+    ui.menu_Debugging->addAction(registers_widget->toggleViewAction());
     connect(this, &GMainWindow::EmulationStarting, registers_widget,
             &RegistersWidget::OnEmulationStarting);
     connect(this, &GMainWindow::EmulationStopping, registers_widget,
@@ -329,27 +338,27 @@ void GMainWindow::InitializeDebugWidgets() {
     gpu_command_stream_widget = new GpuCommandStreamWidget(this);
     addDockWidget(Qt::RightDockWidgetArea, gpu_command_stream_widget);
     gpu_command_stream_widget->hide();
-    ui.menu_View_Debugging->addAction(gpu_command_stream_widget->toggleViewAction());
+    ui.menu_Debugging->addAction(gpu_command_stream_widget->toggleViewAction());
 
     gpu_command_list_widget = new GpuCommandListWidget(this);
     addDockWidget(Qt::RightDockWidgetArea, gpu_command_list_widget);
     gpu_command_list_widget->hide();
-    ui.menu_View_Debugging->addAction(gpu_command_list_widget->toggleViewAction());
+    ui.menu_Debugging->addAction(gpu_command_list_widget->toggleViewAction());
 
     graphics_breakpoints_widget = new GraphicsBreakpointsWidget(Pica::g_debug_context, this);
     addDockWidget(Qt::RightDockWidgetArea, graphics_breakpoints_widget);
     graphics_breakpoints_widget->hide();
-    ui.menu_View_Debugging->addAction(graphics_breakpoints_widget->toggleViewAction());
+    ui.menu_Debugging->addAction(graphics_breakpoints_widget->toggleViewAction());
 
     graphics_vertex_shader_widget = new GraphicsVertexShaderWidget(Pica::g_debug_context, this);
     addDockWidget(Qt::RightDockWidgetArea, graphics_vertex_shader_widget);
     graphics_vertex_shader_widget->hide();
-    ui.menu_View_Debugging->addAction(graphics_vertex_shader_widget->toggleViewAction());
+    ui.menu_Debugging->addAction(graphics_vertex_shader_widget->toggleViewAction());
 
     graphics_tracing_widget = new GraphicsTracingWidget(Pica::g_debug_context, this);
     addDockWidget(Qt::RightDockWidgetArea, graphics_tracing_widget);
     graphics_tracing_widget->hide();
-    ui.menu_View_Debugging->addAction(graphics_tracing_widget->toggleViewAction());
+    ui.menu_Debugging->addAction(graphics_tracing_widget->toggleViewAction());
     connect(this, &GMainWindow::EmulationStarting, graphics_tracing_widget,
             &GraphicsTracingWidget::OnEmulationStarting);
     connect(this, &GMainWindow::EmulationStopping, graphics_tracing_widget,
@@ -358,7 +367,7 @@ void GMainWindow::InitializeDebugWidgets() {
     wait_tree_widget = new WaitTreeWidget(this);
     addDockWidget(Qt::LeftDockWidgetArea, wait_tree_widget);
     wait_tree_widget->hide();
-    ui.menu_View_Debugging->addAction(wait_tree_widget->toggleViewAction());
+    ui.menu_Debugging->addAction(wait_tree_widget->toggleViewAction());
     connect(this, &GMainWindow::EmulationStarting, wait_tree_widget,
             &WaitTreeWidget::OnEmulationStarting);
     connect(this, &GMainWindow::EmulationStopping, wait_tree_widget,
@@ -367,7 +376,7 @@ void GMainWindow::InitializeDebugWidgets() {
     lle_service_modules_widget = new LleServiceModulesWidget(this);
     addDockWidget(Qt::RightDockWidgetArea, lle_service_modules_widget);
     lle_service_modules_widget->hide();
-    ui.menu_View_Debugging->addAction(lle_service_modules_widget->toggleViewAction());
+    ui.menu_Debugging->addAction(lle_service_modules_widget->toggleViewAction());
     connect(this, &GMainWindow::EmulationStarting,
             [this] { lle_service_modules_widget->setDisabled(true); });
     connect(this, &GMainWindow::EmulationStopping, lle_service_modules_widget,
@@ -376,7 +385,7 @@ void GMainWindow::InitializeDebugWidgets() {
     ipc_recorder_widget = new IpcRecorderWidget(this);
     addDockWidget(Qt::RightDockWidgetArea, ipc_recorder_widget);
     ipc_recorder_widget->hide();
-    ui.menu_View_Debugging->addAction(ipc_recorder_widget->toggleViewAction());
+    ui.menu_Debugging->addAction(ipc_recorder_widget->toggleViewAction());
     connect(this, &GMainWindow::EmulationStarting, ipc_recorder_widget,
             &IpcRecorderWidget::OnEmulationStarting);
 }
@@ -1269,6 +1278,11 @@ void GMainWindow::ShutdownGame() {
     UpdateWindowTitle();
 
     game_path.clear();
+
+    if (ui.action_Enable_Discord_Logger->isChecked()) {
+        Log::DiscordBackend* logger = static_cast<Log::DiscordBackend*>(Log::GetBackend("discord"));
+        logger->Send();
+    }
 
 #ifdef CITRA_ENABLE_DISCORD_RP
     discord_rp.Update();

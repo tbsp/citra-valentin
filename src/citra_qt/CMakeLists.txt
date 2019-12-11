@@ -96,6 +96,8 @@ add_executable(citra-qt
     configuration/configure_web.ui
     debugger/console.h
     debugger/console.cpp
+    debugger/discord_logger.cpp
+    debugger/discord_logger.h
     debugger/graphics/graphics.cpp
     debugger/graphics/graphics.h
     debugger/graphics/graphics_breakpoint_observer.cpp

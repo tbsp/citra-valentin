@@ -92,13 +92,6 @@
     <property name="title">
      <string>View</string>
     </property>
-    <widget class="QMenu" name="menu_View_Debugging">
-     <property name="title">
-      <string>Debugging</string>
-     </property>
-     <addaction name="action_Create_Pica_Surface_Viewer"/>
-     <addaction name="separator"/>
-    </widget>
     <widget class="QMenu" name="menu_Screen_Layout">
      <property name="title">
       <string>Screen Layout</string>
@@ -118,8 +111,6 @@
     <addaction name="action_Display_Dock_Widget_Headers"/>
     <addaction name="action_Show_Filter_Bar"/>
     <addaction name="action_Show_Status_Bar"/>
-    <addaction name="separator"/>
-    <addaction name="menu_View_Debugging"/>
    </widget>
    <widget class="QMenu" name="menu_Multiplayer">
     <property name="enabled">
@@ -178,11 +169,20 @@
     <addaction name="action_About"/>
     <addaction name="action_Changelog"/>
    </widget>
+   <widget class="QMenu" name="menu_Debugging">
+    <property name="title">
+     <string>Debugging</string>
+    </property>
+    <addaction name="action_Enable_Discord_Logger"/>
+    <addaction name="separator"/>
+    <addaction name="action_Create_Pica_Surface_Viewer"/>
+   </widget>
    <addaction name="menu_File"/>
    <addaction name="menu_Emulation"/>
    <addaction name="menu_View"/>
    <addaction name="menu_Multiplayer"/>
    <addaction name="menu_Tools"/>
+   <addaction name="menu_Debugging"/>
    <addaction name="menu_Help"/>
   </widget>
   <action name="action_Load_File">
@@ -264,11 +264,6 @@
    </property>
    <property name="text">
     <string>Show Status Bar</string>
-   </property>
-  </action>
-  <action name="action_Create_Pica_Surface_Viewer">
-   <property name="text">
-    <string>Create Pica Surface Viewer</string>
    </property>
   </action>
   <action name="action_Record_Movie">
@@ -484,6 +479,19 @@
    </property>
    <property name="text">
     <string>Send To Discord Server</string>
+   </property>
+  </action>
+  <action name="action_Create_Pica_Surface_Viewer">
+   <property name="text">
+    <string>Create Pica Surface Viewer</string>
+   </property>
+  </action>
+  <action name="action_Enable_Discord_Logger">
+   <property name="checkable">
+    <bool>true</bool>
+   </property>
+   <property name="text">
+    <string>Enable Discord Logger</string>
    </property>
   </action>
  </widget>
