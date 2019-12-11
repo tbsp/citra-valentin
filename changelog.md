@@ -34,6 +34,7 @@
 ## Features
 
 - Disk shader cache re-added
+- Qt: Custom profiler. MicroProfile was removed.
 - Qt: Discord logger
 
 # 7.0.0
