@@ -833,6 +833,7 @@ void GMainWindow::ConnectWidgetEvents() {
     connect(game_list, &GameList::ShowList, this, &GMainWindow::OnGameListShowList);
     connect(game_list, &GameList::PopulatingCompleted,
             [this] { multiplayer_state->UpdateGameList(game_list->GetModel()); });
+    connect(game_list, &GameList::SettingsChanged, [this] { config->Save(); });
 
     connect(this, &GMainWindow::EmulationStarting, render_window,
             &GRenderWindow::OnEmulationStarting);
@@ -1441,6 +1442,7 @@ void GMainWindow::OnGameListAddDirectory() {
     UISettings::GameDir game_dir{dir_path, false, true};
     if (!UISettings::values.game_dirs.contains(game_dir)) {
         UISettings::values.game_dirs.append(game_dir);
+        config->Save();
         game_list->PopulateAsync(UISettings::values.game_dirs);
     } else {
         LOG_WARNING(Frontend, "Selected directory is already in the game list");

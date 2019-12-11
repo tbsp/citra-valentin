@@ -534,10 +534,12 @@ void GameList::AddCustomDirPopup(QMenu& context_menu, QModelIndex selected) {
 
     connect(deep_scan, &QAction::triggered, [this, &game_dir] {
         game_dir.deep_scan = !game_dir.deep_scan;
+        emit SettingsChanged();
         PopulateAsync(UISettings::values.game_dirs);
     });
     connect(delete_dir, &QAction::triggered, [this, &game_dir, selected] {
         UISettings::values.game_dirs.removeOne(game_dir);
+        emit SettingsChanged();
         item_model->invisibleRootItem()->removeRow(selected.row());
     });
 }

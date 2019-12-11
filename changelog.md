@@ -30,6 +30,12 @@
 [2.10.2](#2102)  
 [2.10.1](#2101)
 
+# 8.0.1
+
+## Fixes
+
+- Qt/GameList: Configuration not saved if CV crashes
+
 # 8.0.0
 
 ## Breaking Changes
