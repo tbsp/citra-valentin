@@ -439,11 +439,11 @@ std::string ShaderDiskCache::GetPrecompiledPath() {
 }
 
 std::string ShaderDiskCache::GetTransferableDir() const {
-    return GetBaseDir() + DIR_SEP "transferable";
+    return GetBaseDir() + DIR_SEP "transferable-cv";
 }
 
 std::string ShaderDiskCache::GetPrecompiledDir() const {
-    return GetBaseDir() + DIR_SEP "precompiled";
+    return GetBaseDir() + DIR_SEP "precompiled-cv";
 }
 
 std::string ShaderDiskCache::GetBaseDir() const {

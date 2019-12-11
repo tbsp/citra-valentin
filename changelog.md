@@ -1,5 +1,6 @@
 # Versions
 
+[8.0.0](#800)  
 [7.1.0](#710)  
 [7.0.0](#700)  
 [6.0.0](#600)  
@@ -28,6 +29,12 @@
 [2.10.3](#2103)  
 [2.10.2](#2102)  
 [2.10.1](#2101)
+
+# 8.0.0
+
+## Breaking Changes
+
+- OpenGL disk shader cache: Add -cv suffix to transferable and precompiled folders.
 
 # 7.1.0
 

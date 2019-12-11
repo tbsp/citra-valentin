@@ -15,11 +15,9 @@
 
 namespace Core {
 class System;
-}
+} // namespace Core
 
 namespace OpenGL {
-
-class ShaderDiskCacheOpenGL;
 
 enum class UniformBindings : GLuint { Common, VS, GS };
 
