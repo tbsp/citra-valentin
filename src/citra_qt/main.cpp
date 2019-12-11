@@ -2557,7 +2557,9 @@ void GMainWindow::CaptureScreenshotThenSendToDiscordServer() {
             nlohmann::json json;
 
             if (Settings::values.citra_username.empty()) {
-                json["username"] = fmt::format("Someone playing {}", game_title.toStdString());
+                if (!game_title.isEmpty()) {
+                    json["username"] = fmt::format("Someone playing {}", game_title.toStdString());
+                }
             } else {
                 httplib::SSLClient forum_client("community.citra-emu.org");
                 std::shared_ptr<httplib::Response> forum_summary_response = forum_client.Get(
@@ -2599,22 +2601,22 @@ void GMainWindow::CaptureScreenshotThenSendToDiscordServer() {
                 const nlohmann::json forum_summary =
                     nlohmann::json::parse(forum_summary_response->body);
 
+                if (game_title.isEmpty()) {
+                    json["username"] = fmt::format("{} playing {}", Settings::values.citra_username,
+                                                   game_title.toStdString());
+                } else {
+                    json["username"] = Settings::values.citra_username;
+                }
+
                 if (forum_summary.count("users")) {
                     const nlohmann::json user = forum_summary["users"][0];
-
                     const std::string avatar_template = user["avatar_template"].get<std::string>();
-
-                    json["username"] =
-                        fmt::format("{} playing {}", user["username"].get<std::string>(),
-                                    game_title.toStdString());
 
                     json["avatar_url"] =
                         QString::fromStdString(std::string("https://community.citra-emu.org") +
                                                avatar_template)
                             .replace(QStringLiteral("{size}"), QStringLiteral("128"))
                             .toStdString();
-                } else {
-                    json["username"] = fmt::format("Someone playing {}", game_title.toStdString());
                 }
             }
 
