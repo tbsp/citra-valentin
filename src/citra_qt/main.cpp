@@ -292,6 +292,16 @@ void GMainWindow::InitializeDebugWidgets() {
     connect(ui.action_Enable_Discord_Logger, &QAction::toggled, this, [this](bool checked) {
         if (checked) {
             Log::AddBackend(std::make_unique<Log::DiscordBackend>());
+
+            Settings::LogSettings();
+            LOG_INFO(Frontend, "Version: {}", Version::citra_valentin.to_string());
+            LOG_INFO(Frontend, "Network Version: {}", Version::network);
+            LOG_INFO(Frontend, "Movie Version: {}", Version::movie);
+            LOG_INFO(Frontend, "Shader Cache Version: {}", Version::shader_cache);
+#ifdef ARCHITECTURE_x86_64
+            LOG_INFO(Frontend, "Host CPU: {}", Common::GetCPUCaps().cpu_string);
+#endif
+            LOG_INFO(Frontend, "Host OS: {}", QSysInfo::prettyProductName().toStdString());
         } else {
             Log::RemoveBackend("discord");
         }
