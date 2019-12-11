@@ -2,14 +2,6 @@
 <ui version="4.0">
  <class>ConfigureInput</class>
  <widget class="QWidget" name="ConfigureInput">
-  <property name="geometry">
-   <rect>
-    <x>0</x>
-    <y>0</y>
-    <width>374</width>
-    <height>620</height>
-   </rect>
-  </property>
   <property name="windowTitle">
    <string>ConfigureInput</string>
   </property>
@@ -639,7 +631,7 @@
      <item row="4" column="0" colspan="2">
       <widget class="QGroupBox" name="groupBox">
        <property name="title">
-        <string>Without Profile Support</string>
+        <string>Without Input Profile Support</string>
        </property>
        <layout class="QVBoxLayout" name="verticalLayout_8">
         <item>
@@ -653,6 +645,31 @@
           </item>
           <item>
            <widget class="QPushButton" name="button_capture_screenshot_then_send_to_discord_server">
+            <property name="text">
+             <string/>
+            </property>
+           </widget>
+          </item>
+         </layout>
+        </item>
+        <item>
+         <layout class="QHBoxLayout" name="horizontalLayout_4">
+          <item>
+           <widget class="QLabel" name="label_7">
+            <property name="text">
+             <string>Volume:</string>
+            </property>
+           </widget>
+          </item>
+          <item>
+           <widget class="QPushButton" name="button_increase_volume">
+            <property name="text">
+             <string/>
+            </property>
+           </widget>
+          </item>
+          <item>
+           <widget class="QPushButton" name="button_decrease_volume">
             <property name="text">
              <string/>
             </property>

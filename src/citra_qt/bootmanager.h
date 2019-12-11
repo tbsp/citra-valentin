@@ -102,6 +102,8 @@ private:
 
     // Qt frontend only buttons
     std::unique_ptr<Input::ButtonDevice> capture_screenshot_then_send_to_discord_server_button;
+    std::unique_ptr<Input::ButtonDevice> increase_volume_button;
+    std::unique_ptr<Input::ButtonDevice> decrease_volume_button;
 
 signals:
     /**

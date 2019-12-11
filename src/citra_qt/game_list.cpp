@@ -15,17 +15,20 @@
 #include <QLineEdit>
 #include <QMenu>
 #include <QModelIndex>
+#include <QProcess>
 #include <QStandardItem>
 #include <QStandardItemModel>
 #include <QThreadPool>
 #include <QToolButton>
 #include <QTreeView>
+#include <QtConcurrent/QtConcurrent>
 #include <fmt/format.h>
 #include "citra_qt/game_list.h"
 #include "citra_qt/game_list_p.h"
 #include "citra_qt/game_list_worker.h"
 #include "citra_qt/main.h"
 #include "citra_qt/uisettings.h"
+#include "common/common_paths.h"
 #include "common/logging/log.h"
 #include "core/file_sys/archive_extsavedata.h"
 #include "core/file_sys/archive_source_sd_savedata.h"
@@ -455,6 +458,40 @@ void GameList::PopupContextMenu(const QPoint& menu_location) {
 
 void GameList::AddGamePopup(QMenu& context_menu, const QString& path, u64 program_id,
                             u64 extdata_id) {
+    const bool is_application =
+        0x0004000000000000 <= program_id && program_id <= 0x00040000FFFFFFFF;
+
+    if (is_application) {
+        context_menu.addAction(QStringLiteral("Start Using Game Settings"), [this, path] {
+            emit Hide();
+
+            QtConcurrent::run([path] {
+                const std::string& config_dir =
+                    FileUtil::GetUserPath(FileUtil::UserPath::ConfigDir);
+                const std::string general_config_path = config_dir + DIR_SEP + "qt-config.ini";
+                const std::string game_config_path = path.toStdString() + ".cv-ini";
+
+                std::string general_config;
+                FileUtil::ReadFileToString(true, general_config_path, general_config);
+
+                if (FileUtil::Exists(game_config_path)) {
+                    FileUtil::Copy(game_config_path, general_config_path);
+                } else {
+                    FileUtil::WriteStringToFile(true, general_config_path, "");
+                }
+
+                QProcess::execute(QCoreApplication::applicationFilePath(), QStringList() << path);
+
+                std::string game_config;
+                FileUtil::ReadFileToString(true, general_config_path, game_config);
+                FileUtil::WriteStringToFile(true, game_config_path, game_config);
+
+                FileUtil::WriteStringToFile(true, general_config_path, general_config);
+                QCoreApplication::quit();
+            });
+        });
+    }
+
     QAction* open_save_location = context_menu.addAction(QStringLiteral("Open Save Data Location"));
     QAction* open_extdata_location =
         context_menu.addAction(QStringLiteral("Open Extra Data Location"));
@@ -466,9 +503,6 @@ void GameList::AddGamePopup(QMenu& context_menu, const QString& path, u64 progra
         context_menu.addAction(QStringLiteral("Open Texture Dump Location"));
     QAction* open_texture_load_location =
         context_menu.addAction(QStringLiteral("Open Custom Texture Location"));
-
-    const bool is_application =
-        0x0004000000000000 <= program_id && program_id <= 0x00040000FFFFFFFF;
 
     const std::string sdmc_dir = FileUtil::GetUserPath(FileUtil::UserPath::SDMCDir);
     open_save_location->setVisible(

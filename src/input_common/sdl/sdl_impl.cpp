@@ -332,11 +332,15 @@ private:
 
 class SDLAnalog final : public Input::AnalogDevice {
 public:
-    SDLAnalog(std::shared_ptr<SDLJoystick> joystick_, int axis_x_, int axis_y_, float deadzone_)
-        : joystick(std::move(joystick_)), axis_x(axis_x_), axis_y(axis_y_), deadzone(deadzone_) {}
+    SDLAnalog(std::shared_ptr<SDLJoystick> joystick_, int axis_x_, int axis_y_, float deadzone_,
+              float multiply_input_)
+        : joystick(std::move(joystick_)), axis_x(axis_x_), axis_y(axis_y_), deadzone(deadzone_),
+          multiply_input(multiply_input_) {}
 
     std::tuple<float, float> GetStatus() const override {
-        const auto [x, y] = joystick->GetAnalog(axis_x, axis_y);
+        auto [x, y] = joystick->GetAnalog(axis_x, axis_y);
+        x *= multiply_input;
+        y *= multiply_input;
         const float r = std::sqrt((x * x) + (y * y));
         if (r > deadzone) {
             return std::make_tuple(x / r * (r - deadzone) / (1 - deadzone),
@@ -350,6 +354,7 @@ private:
     const int axis_x;
     const int axis_y;
     const float deadzone;
+    const float multiply_input;
 };
 
 /// A button device factory that creates button devices from SDL joystick
@@ -445,13 +450,14 @@ public:
         const int axis_x = params.Get("axis_x", 0);
         const int axis_y = params.Get("axis_y", 1);
         float deadzone = std::clamp(params.Get("deadzone", 0.0f), 0.0f, .99f);
+        float multiply_input = std::clamp(params.Get("multiply_input", 1.0f), 1.0f, 2.0f);
 
         auto joystick = state.GetSDLJoystickByGUID(guid, port);
 
         // This is necessary so accessing GetAxis with axis_x and axis_y won't crash
         joystick->SetAxis(axis_x, 0);
         joystick->SetAxis(axis_y, 0);
-        return std::make_unique<SDLAnalog>(joystick, axis_x, axis_y, deadzone);
+        return std::make_unique<SDLAnalog>(joystick, axis_x, axis_y, deadzone, multiply_input);
     }
 
 private:

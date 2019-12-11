@@ -109,6 +109,12 @@ void Config::ReadControlsValues() {
                     QStringLiteral("[empty]"))
             .toString();
 
+    UISettings::values.increase_volume_button =
+        ReadSetting(QStringLiteral("increase_volume_button"), QStringLiteral("[empty]")).toString();
+
+    UISettings::values.decrease_volume_button =
+        ReadSetting(QStringLiteral("decrease_volume_button"), QStringLiteral("[empty]")).toString();
+
     qt_config->endGroup();
 }
 
@@ -152,5 +158,9 @@ void Config::SaveControlsValues() {
     WriteSetting(QStringLiteral("capture_screenshot_then_send_to_discord_server_button"),
                  UISettings::values.capture_screenshot_then_send_to_discord_server_button,
                  QStringLiteral("[empty]"));
+    WriteSetting(QStringLiteral("increase_volume_button"),
+                 UISettings::values.increase_volume_button, QStringLiteral("[empty]"));
+    WriteSetting(QStringLiteral("decrease_volume_button"),
+                 UISettings::values.decrease_volume_button, QStringLiteral("[empty]"));
     qt_config->endGroup();
 }

@@ -80,6 +80,7 @@ signals:
     void ShowList(bool show);
     void PopulatingCompleted();
     void SettingsChanged();
+    void Hide();
 
 private slots:
     void onItemExpanded(const QModelIndex& item);

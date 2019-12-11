@@ -98,6 +98,8 @@ struct Values {
 
     // Qt frontend only buttons
     QString capture_screenshot_then_send_to_discord_server_button;
+    QString increase_volume_button;
+    QString decrease_volume_button;
 
     // Shortcut name <Shortcut, context>
     std::vector<Shortcut> shortcuts;

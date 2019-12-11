@@ -196,6 +196,12 @@ ConfigureInput::ConfigureInput(QWidget* parent)
         "params", UISettings::values.capture_screenshot_then_send_to_discord_server_button);
     SetupMenuForButton(ui->button_capture_screenshot_then_send_to_discord_server, true, 0);
 
+    ui->button_increase_volume->setProperty("params", UISettings::values.increase_volume_button);
+    SetupMenuForButton(ui->button_increase_volume, true, 1);
+
+    ui->button_decrease_volume->setProperty("params", UISettings::values.decrease_volume_button);
+    SetupMenuForButton(ui->button_decrease_volume, true, 2);
+
     for (int button_id = 0; button_id < Settings::NativeButton::NumButtons; button_id++) {
         if (!button_map[button_id])
             continue;
@@ -315,6 +321,10 @@ void ConfigureInput::ApplyConfiguration() {
 void ConfigureInput::ApplyQtButtonsConfiguration() {
     UISettings::values.capture_screenshot_then_send_to_discord_server_button =
         ui->button_capture_screenshot_then_send_to_discord_server->property("params").toString();
+    UISettings::values.increase_volume_button =
+        ui->button_increase_volume->property("params").toString();
+    UISettings::values.decrease_volume_button =
+        ui->button_decrease_volume->property("params").toString();
 }
 
 void ConfigureInput::ApplyProfile() {
@@ -343,12 +353,30 @@ QList<QKeySequence> ConfigureInput::GetUsedKeyboardKeys() {
         }
     }
 
-    const Common::ParamPackage params(
-        ui->button_capture_screenshot_then_send_to_discord_server->property("params")
-            .toString()
-            .toStdString());
-    if (params.Get("engine", "") == "keyboard") {
-        list << QKeySequence(params.Get("code", 0));
+    {
+        const Common::ParamPackage params(
+            ui->button_capture_screenshot_then_send_to_discord_server->property("params")
+                .toString()
+                .toStdString());
+        if (params.Get("engine", "") == "keyboard") {
+            list << QKeySequence(params.Get("code", 0));
+        }
+    }
+
+    {
+        const Common::ParamPackage params(
+            ui->button_increase_volume->property("params").toString().toStdString());
+        if (params.Get("engine", "") == "keyboard") {
+            list << QKeySequence(params.Get("code", 0));
+        }
+    }
+
+    {
+        const Common::ParamPackage params(
+            ui->button_decrease_volume->property("params").toString().toStdString());
+        if (params.Get("engine", "") == "keyboard") {
+            list << QKeySequence(params.Get("code", 0));
+        }
     }
 
     return list;
@@ -406,6 +434,12 @@ void ConfigureInput::UpdateButtonLabels() {
             ui->button_capture_screenshot_then_send_to_discord_server->property("params")
                 .toString()
                 .toStdString())));
+
+    ui->button_increase_volume->setText(ButtonToText(Common::ParamPackage(
+        ui->button_increase_volume->property("params").toString().toStdString())));
+
+    ui->button_decrease_volume->setText(ButtonToText(Common::ParamPackage(
+        ui->button_decrease_volume->property("params").toString().toStdString())));
 
     for (int analog_id = 0; analog_id < Settings::NativeAnalog::NumAnalogs; analog_id++) {
         for (int sub_button_id = 0; sub_button_id < ANALOG_SUB_BUTTONS_NUM; sub_button_id++) {

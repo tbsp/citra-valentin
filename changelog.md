@@ -1,3 +1,17 @@
+# (Unreleased) 8.2.0
+
+## Features
+
+- Qt: Realtime new release messages
+
+# 8.1.0
+
+## Features
+
+- SDL Analogs: `multiply_input` parameter in the ini file. Range: 1.0-2.0.
+- Qt: Key/controller buttons for changing the volume
+- Qt/GameList: Configuration file for each game (Start Using Game Settings right click context menu option)
+
 # 8.0.2
 
 ## Fixes
