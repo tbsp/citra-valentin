@@ -4,7 +4,8 @@
 
 - Qt: CaptureScreenshotThenSendToDiscordServer: Send Citra account username if the account was created very recently
 - Qt: CaptureScreenshotThenSendToDiscordServer: Handle empty game name
-- Qt: DiscordLogger: Send Citra account username if the account was created very recently
+- Qt/ConfigureWeb: Fix missing 'n' in Hardware Shader - Accurate Multiplication
+- Qt/DiscordLogger: Send Citra account username if the account was created very recently
 
 ## Minor Changes
 

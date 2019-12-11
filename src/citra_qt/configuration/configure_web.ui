@@ -221,10 +221,28 @@ Your username and profile picture will be used by Capture Screenshot Then Send T
                   </widget>
                  </item>
                  <item>
-                  <widget class="QCheckBox" name="telemetry_gdb_stub_port">
-                   <property name="text">
-                    <string>GDB Stub Port</string>
-                   </property>
+                  <widget class="QWidget" name="widget_3" native="true">
+                   <layout class="QVBoxLayout" name="verticalLayout_5">
+                    <property name="leftMargin">
+                     <number>16</number>
+                    </property>
+                    <property name="topMargin">
+                     <number>0</number>
+                    </property>
+                    <property name="rightMargin">
+                     <number>0</number>
+                    </property>
+                    <property name="bottomMargin">
+                     <number>0</number>
+                    </property>
+                    <item>
+                     <widget class="QCheckBox" name="telemetry_gdb_stub_port">
+                      <property name="text">
+                       <string>Port</string>
+                      </property>
+                     </widget>
+                    </item>
+                   </layout>
                   </widget>
                  </item>
                  <item>
@@ -235,10 +253,28 @@ Your username and profile picture will be used by Capture Screenshot Then Send T
                   </widget>
                  </item>
                  <item>
-                  <widget class="QCheckBox" name="telemetry_use_hardware_shader_accurate_multiplication">
-                   <property name="text">
-                    <string>Enable Hardware Shader - Accurate Multiplication</string>
-                   </property>
+                  <widget class="QWidget" name="widget_2" native="true">
+                   <layout class="QVBoxLayout" name="verticalLayout_11">
+                    <property name="leftMargin">
+                     <number>16</number>
+                    </property>
+                    <property name="topMargin">
+                     <number>0</number>
+                    </property>
+                    <property name="rightMargin">
+                     <number>0</number>
+                    </property>
+                    <property name="bottomMargin">
+                     <number>0</number>
+                    </property>
+                    <item>
+                     <widget class="QCheckBox" name="telemetry_use_hardware_shader_accurate_multiplication">
+                      <property name="text">
+                       <string>Accurate Multiplication</string>
+                      </property>
+                     </widget>
+                    </item>
+                   </layout>
                   </widget>
                  </item>
                 </layout>
@@ -260,10 +296,28 @@ Your username and profile picture will be used by Capture Screenshot Then Send T
                   </widget>
                  </item>
                  <item>
-                  <widget class="QCheckBox" name="telemetry_use_dsp_lle_multi_core">
-                   <property name="text">
-                    <string>Enable DSP LLE - Multi-Core</string>
-                   </property>
+                  <widget class="QWidget" name="widget_2" native="true">
+                   <layout class="QVBoxLayout" name="verticalLayout_4">
+                    <property name="leftMargin">
+                     <number>16</number>
+                    </property>
+                    <property name="topMargin">
+                     <number>0</number>
+                    </property>
+                    <property name="rightMargin">
+                     <number>0</number>
+                    </property>
+                    <property name="bottomMargin">
+                     <number>0</number>
+                    </property>
+                    <item>
+                     <widget class="QCheckBox" name="telemetry_use_dsp_lle_multi_core">
+                      <property name="text">
+                       <string>Multi-Core</string>
+                      </property>
+                     </widget>
+                    </item>
+                   </layout>
                   </widget>
                  </item>
                  <item>
