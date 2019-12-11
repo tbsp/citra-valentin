@@ -37,7 +37,7 @@ void Apply() {
     VideoCore::g_renderer_sampler_update_requested = true;
     VideoCore::g_renderer_shader_update_requested = true;
 
-    auto& system = Core::System::GetInstance();
+    Core::System& system = Core::System::GetInstance();
     if (system.IsPoweredOn()) {
         Core::DSP().SetSink(values.sink_id, values.audio_device_id);
         Core::DSP().EnableStretching(values.enable_audio_stretching);
@@ -121,7 +121,7 @@ void LogSettings() {
     LogSetting("sharper_distant_objects", Settings::values.sharper_distant_objects);
     LogSetting("ignore_format_reinterpretation", Settings::values.ignore_format_reinterpretation);
     LogSetting("custom_screen_refresh_rate", Settings::values.custom_screen_refresh_rate);
-    LogSetting("screen_refresh_rate", Settings::values.screen_refresh_rate);
+    LogSetting("screen_refresh_rate", static_cast<int>(Settings::values.screen_refresh_rate));
 }
 
 void LoadProfile(int index) {
