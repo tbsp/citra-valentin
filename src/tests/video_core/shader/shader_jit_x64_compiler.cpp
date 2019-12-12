@@ -25,7 +25,7 @@ static std::unique_ptr<JitShader> CompileShader(std::initializer_list<nihstro::I
     std::transform(shbin.program.begin(), shbin.program.end(), program_code.begin(),
                    [](const nihstro::Instruction& x) { return x.hex; });
     std::transform(shbin.swizzle_table.begin(), shbin.swizzle_table.end(), swizzle_data.begin(),
-                   [](const nihstro::Instruction& x) { return x.hex; });
+                   [](const nihstro::SwizzlePattern& x) { return x.hex; });
 
     std::unique_ptr<JitShader> shader = std::make_unique<JitShader>();
     shader->Compile(&program_code, &swizzle_data);

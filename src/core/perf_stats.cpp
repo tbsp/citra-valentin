@@ -56,7 +56,7 @@ void PerfStats::BeginSystemFrame() {
 void PerfStats::EndSystemFrame() {
     std::lock_guard lock{object_mutex};
 
-    std::chrono::time_point<std::chrono::steady_clock> frame_end = Clock::now();
+    const std::chrono::time_point<std::chrono::steady_clock> frame_end = Clock::now();
     const std::chrono::nanoseconds frame_time = frame_end - frame_begin;
     if (current_index < perf_history.size()) {
         perf_history[current_index++] =
@@ -133,7 +133,7 @@ void FrameLimiter::DoFrameLimiting(microseconds current_system_time_us) {
         return;
     }
 
-    std::chrono::time_point<std::chrono::steady_clock> now = Clock::now();
+    const std::chrono::time_point<std::chrono::steady_clock> now = Clock::now();
     const double sleep_scale = Settings::values.frame_limit / 100.0;
 
     // Max lag caused by slow frames. Shouldn't be more than the length of a frame at the current
