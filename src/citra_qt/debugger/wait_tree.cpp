@@ -292,8 +292,7 @@ WaitTreeSemaphore::WaitTreeSemaphore(const Kernel::Semaphore& object)
 std::vector<std::unique_ptr<WaitTreeItem>> WaitTreeSemaphore::GetChildren() const {
     std::vector<std::unique_ptr<WaitTreeItem>> list(WaitTreeWaitObject::GetChildren());
 
-const Kernel::Semaphore &semaphore
-= static_cast<const Kernel::Semaphore&>(object);
+    const Kernel::Semaphore& semaphore = static_cast<const Kernel::Semaphore&>(object);
     list.push_back(std::make_unique<WaitTreeText>(
         QStringLiteral("available count = %1").arg(semaphore.available_count)));
     list.push_back(
@@ -328,7 +327,9 @@ QString WaitTreeMutexList::GetText() const {
 std::vector<std::unique_ptr<WaitTreeItem>> WaitTreeMutexList::GetChildren() const {
     std::vector<std::unique_ptr<WaitTreeItem>> list(mutex_list.size());
     std::transform(mutex_list.begin(), mutex_list.end(), list.begin(),
-                   [](const std::shared_ptr<Kernel::Mutex>& t) { return std::make_unique<WaitTreeMutex>(*t); });
+                   [](const std::shared_ptr<Kernel::Mutex>& t) {
+                       return std::make_unique<WaitTreeMutex>(*t);
+                   });
     return list;
 }
 
@@ -342,7 +343,9 @@ QString WaitTreeThreadList::GetText() const {
 std::vector<std::unique_ptr<WaitTreeItem>> WaitTreeThreadList::GetChildren() const {
     std::vector<std::unique_ptr<WaitTreeItem>> list(thread_list.size());
     std::transform(thread_list.begin(), thread_list.end(), list.begin(),
-                   [](const std::shared_ptr<Kernel::Thread>& t) { return std::make_unique<WaitTreeThread>(*t); });
+                   [](const std::shared_ptr<Kernel::Thread>& t) {
+                       return std::make_unique<WaitTreeThread>(*t);
+                   });
     return list;
 }
 

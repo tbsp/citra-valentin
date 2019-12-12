@@ -14,8 +14,7 @@ LleServiceModulesWidget::LleServiceModulesWidget(QWidget* parent)
     setObjectName(QStringLiteral("LleServiceModulesWidget"));
     QScrollArea* scroll_area = new QScrollArea;
     QLayout* scroll_layout = new QVBoxLayout;
-    for (const std::pair<const std::string, bool> &service_module
- : Settings::values.lle_modules) {
+    for (const std::pair<const std::string, bool>& service_module : Settings::values.lle_modules) {
         QCheckBox* check_box =
             new QCheckBox(QString::fromStdString(service_module.first), scroll_area);
         check_box->setChecked(service_module.second);
