@@ -133,7 +133,7 @@ void FrameLimiter::DoFrameLimiting(microseconds current_system_time_us) {
         return;
     }
 
-    const std::chrono::time_point<std::chrono::steady_clock> now = Clock::now();
+    std::chrono::time_point<std::chrono::steady_clock> now = Clock::now();
     const double sleep_scale = Settings::values.frame_limit / 100.0;
 
     // Max lag caused by slow frames. Shouldn't be more than the length of a frame at the current
