@@ -137,7 +137,7 @@ public:
 
     template <typename Arg>
     void Push(Arg&& t) {
-        std::lock_guard lock{write_lock};
+        std::lock_guard<std::mutex> lock(write_lock);
         spsc_queue.Push(t);
     }
 

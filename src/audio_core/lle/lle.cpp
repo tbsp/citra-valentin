@@ -417,7 +417,7 @@ void DspLle::SetServiceToInterrupt(std::weak_ptr<Service::DSP::DSP_DSP> dsp) {
             return;
         }
 
-        std::lock_guard lock(HLE::g_hle_lock);
+        std::lock_guard<std::recursive_mutex> lock(HLE::g_hle_lock);
         if (std::shared_ptr<Service::DSP::DSP_DSP> service = dsp.lock()) {
             service->SignalInterrupt(Service::DSP::DSP_DSP::InterruptType::Zero,
                                      static_cast<DspPipe>(0));
@@ -428,7 +428,7 @@ void DspLle::SetServiceToInterrupt(std::weak_ptr<Service::DSP::DSP_DSP> dsp) {
             return;
         }
 
-        std::lock_guard lock(HLE::g_hle_lock);
+        std::lock_guard<std::recursive_mutex> lock(HLE::g_hle_lock);
         if (std::shared_ptr<Service::DSP::DSP_DSP> service = dsp.lock()) {
             service->SignalInterrupt(Service::DSP::DSP_DSP::InterruptType::One,
                                      static_cast<DspPipe>(0));
@@ -444,8 +444,9 @@ void DspLle::SetServiceToInterrupt(std::weak_ptr<Service::DSP::DSP_DSP> dsp) {
         if (event_from_data) {
             impl->data_signaled = true;
         } else {
-            if ((teakra.GetSemaphore() & 0x8000) == 0)
+            if ((teakra.GetSemaphore() & 0x8000) == 0) {
                 return;
+            }
             impl->semaphore_signaled = true;
         }
         if (impl->semaphore_signaled && impl->data_signaled) {
@@ -454,13 +455,14 @@ void DspLle::SetServiceToInterrupt(std::weak_ptr<Service::DSP::DSP_DSP> dsp) {
             u16 side = slot % 2;
             u16 pipe = slot / 2;
             ASSERT(pipe < 16);
-            if (side != static_cast<u16>(PipeDirection::DSPtoCPU))
+            if (side != static_cast<u16>(PipeDirection::DSPtoCPU)) {
                 return;
+            }
             if (pipe == 0) {
-                // pipe 0 is for debug. 3DS automatically drains this pipe and discards the data
+                // Pipe 0 is for debug. 3DS automatically drains this pipe and discards the data
                 impl->ReadPipe(pipe, impl->GetPipeReadableSize(pipe));
             } else {
-                std::lock_guard lock(HLE::g_hle_lock);
+                std::lock_guard<std::recursive_mutex> lock(HLE::g_hle_lock);
                 if (std::shared_ptr<Service::DSP::DSP_DSP> service = dsp.lock()) {
                     service->SignalInterrupt(Service::DSP::DSP_DSP::InterruptType::Pipe,
                                              static_cast<DspPipe>(pipe));

@@ -63,7 +63,7 @@ void AnnounceMultiplayerSession::Stop() {
 
 AnnounceMultiplayerSession::CallbackHandle AnnounceMultiplayerSession::BindErrorCallback(
     std::function<void(const Common::WebResult&)> function) {
-    std::lock_guard lock(callback_mutex);
+    std::lock_guard<std::mutex> lock(callback_mutex);
     std::shared_ptr<std::function<void(const Common::WebResult&)>> handle =
         std::make_shared<std::function<void(const Common::WebResult&)>>(function);
     error_callbacks.insert(handle);
@@ -71,7 +71,7 @@ AnnounceMultiplayerSession::CallbackHandle AnnounceMultiplayerSession::BindError
 }
 
 void AnnounceMultiplayerSession::UnbindErrorCallback(CallbackHandle handle) {
-    std::lock_guard lock(callback_mutex);
+    std::lock_guard<std::mutex> lock(callback_mutex);
     error_callbacks.erase(handle);
 }
 

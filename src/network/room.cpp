@@ -303,7 +303,7 @@ void Room::RoomImpl::StartLoop() {
 
 void Room::RoomImpl::HandleJoinRequest(const ENetEvent* event) {
     {
-        std::lock_guard lock(member_mutex);
+        std::lock_guard<std::mutex> lock(member_mutex);
         if (members.size() >= room_information.member_slots) {
             SendRoomIsFull(event->peer);
             return;
@@ -370,13 +370,13 @@ void Room::RoomImpl::HandleJoinRequest(const ENetEvent* event) {
 
     std::string uid;
     {
-        std::lock_guard lock(verify_UID_mutex);
+        std::lock_guard<std::mutex> lock(verify_UID_mutex);
         uid = verify_UID;
     }
     member.user_data = verify_backend->LoadUserData(uid, token);
 
     {
-        std::lock_guard lock(ban_list_mutex);
+        std::lock_guard<std::mutex> lock(ban_list_mutex);
 
         // Check username ban
         if (!member.user_data.username.empty() &&
@@ -402,7 +402,7 @@ void Room::RoomImpl::HandleJoinRequest(const ENetEvent* event) {
     SendStatusMessage(IdMemberJoin, member.nickname, member.user_data.username);
 
     {
-        std::lock_guard lock(member_mutex);
+        std::lock_guard<std::mutex> lock(member_mutex);
         members.push_back(std::move(member));
     }
 
@@ -430,7 +430,7 @@ void Room::RoomImpl::HandleModKickPacket(const ENetEvent* event) {
 
     std::string username;
     {
-        std::lock_guard lock(member_mutex);
+        std::lock_guard<std::mutex> lock(member_mutex);
         const std::vector<Network::Room::RoomImpl::Member>::iterator target_member =
             std::find_if(members.begin(), members.end(),
                          [&nickname](const Member& member) { return member.nickname == nickname; });
@@ -470,7 +470,7 @@ void Room::RoomImpl::HandleModBanPacket(const ENetEvent* event) {
     std::string ip;
 
     {
-        std::lock_guard lock(member_mutex);
+        std::lock_guard<std::mutex> lock(member_mutex);
         const std::vector<Network::Room::RoomImpl::Member>::iterator target_member =
             std::find_if(members.begin(), members.end(),
                          [&nickname](const Member& member) { return member.nickname == nickname; });
@@ -494,7 +494,7 @@ void Room::RoomImpl::HandleModBanPacket(const ENetEvent* event) {
     }
 
     {
-        std::lock_guard lock(ban_list_mutex);
+        std::lock_guard<std::mutex> lock(ban_list_mutex);
 
         if (!username.empty()) {
             // Ban the forum username
@@ -531,7 +531,7 @@ void Room::RoomImpl::HandleModUnbanPacket(const ENetEvent* event) {
 
     bool unbanned = false;
     {
-        std::lock_guard lock(ban_list_mutex);
+        std::lock_guard<std::mutex> lock(ban_list_mutex);
 
         std::vector<std::string>::iterator it =
             std::find(username_ban_list.begin(), username_ban_list.end(), address);
@@ -567,31 +567,32 @@ bool Room::RoomImpl::IsValidNickname(const std::string& nickname) const {
     // A nickname is valid if it matches the regex and is not already taken by anybody else in the
     // room.
     const std::regex nickname_regex("^[ a-zA-Z0-9._-]{4,20}$");
-    if (!std::regex_match(nickname, nickname_regex))
+    if (!std::regex_match(nickname, nickname_regex)) {
         return false;
+    }
 
-    std::lock_guard lock(member_mutex);
+    std::lock_guard<std::mutex> lock(member_mutex);
     return std::all_of(members.begin(), members.end(),
                        [&nickname](const Member& member) { return member.nickname != nickname; });
 }
 
 bool Room::RoomImpl::IsValidMacAddress(const MacAddress& address) const {
     // A MAC address is valid if it is not already taken by anybody else in the room.
-    std::lock_guard lock(member_mutex);
+    std::lock_guard<std::mutex> lock(member_mutex);
     return std::all_of(members.begin(), members.end(),
                        [&address](const Member& member) { return member.mac_address != address; });
 }
 
 bool Room::RoomImpl::IsValidConsoleId(const std::string& console_id_hash) const {
     // A Console ID is valid if it is not already taken by anybody else in the room.
-    std::lock_guard lock(member_mutex);
+    std::lock_guard<std::mutex> lock(member_mutex);
     return std::all_of(members.begin(), members.end(), [&console_id_hash](const Member& member) {
         return member.console_id_hash != console_id_hash;
     });
 }
 
 bool Room::RoomImpl::HasModPermission(const ENetPeer* client) const {
-    std::lock_guard lock(member_mutex);
+    std::lock_guard<std::mutex> lock(member_mutex);
     const std::vector<Network::Room::RoomImpl::Member>::const_iterator sending_member =
         std::find_if(members.begin(), members.end(),
                      [client](const Member& member) { return member.peer == client; });
@@ -734,7 +735,7 @@ void Room::RoomImpl::SendModBanListResponse(ENetPeer* client) {
     Packet packet;
     packet << static_cast<u8>(IdModBanListResponse);
     {
-        std::lock_guard lock(ban_list_mutex);
+        std::lock_guard<std::mutex> lock(ban_list_mutex);
         packet << username_ban_list;
         packet << ip_ban_list;
     }
@@ -748,7 +749,7 @@ void Room::RoomImpl::SendModBanListResponse(ENetPeer* client) {
 void Room::RoomImpl::SendCloseMessage() {
     Packet packet;
     packet << static_cast<u8>(IdCloseRoom);
-    std::lock_guard lock(member_mutex);
+    std::lock_guard<std::mutex> lock(member_mutex);
     if (!members.empty()) {
         ENetPacket* enet_packet =
             enet_packet_create(packet.GetData(), packet.GetDataSize(), ENET_PACKET_FLAG_RELIABLE);
@@ -769,7 +770,7 @@ void Room::RoomImpl::SendStatusMessage(StatusMessageTypes type, const std::strin
     packet << static_cast<u8>(type);
     packet << nickname;
     packet << username;
-    std::lock_guard lock(member_mutex);
+    std::lock_guard<std::mutex> lock(member_mutex);
     if (!members.empty()) {
         ENetPacket* enet_packet =
             enet_packet_create(packet.GetData(), packet.GetDataSize(), ENET_PACKET_FLAG_RELIABLE);
@@ -815,7 +816,7 @@ void Room::RoomImpl::BroadcastRoomInformation() {
 
     packet << static_cast<u32>(members.size());
     {
-        std::lock_guard lock(member_mutex);
+        std::lock_guard<std::mutex> lock(member_mutex);
         for (const Member& member : members) {
             packet << member.nickname;
             packet << member.mac_address;
@@ -861,7 +862,7 @@ void Room::RoomImpl::HandleWifiPacket(const ENetEvent* event) {
                                                  ENET_PACKET_FLAG_RELIABLE);
 
     if (destination_address == BroadcastMac) { // Send the data to everyone except the sender
-        std::lock_guard lock(member_mutex);
+        std::lock_guard<std::mutex> lock(member_mutex);
         bool sent_packet = false;
         for (const Member& member : members) {
             if (member.peer != event->peer) {
@@ -874,7 +875,7 @@ void Room::RoomImpl::HandleWifiPacket(const ENetEvent* event) {
             enet_packet_destroy(enet_packet);
         }
     } else { // Send the data only to the destination client
-        std::lock_guard lock(member_mutex);
+        std::lock_guard<std::mutex> lock(member_mutex);
         const std::vector<Network::Room::RoomImpl::Member>::iterator member = std::find_if(
             members.begin(), members.end(), [destination_address](const Member& member) -> bool {
                 return member.mac_address == destination_address;
@@ -894,7 +895,7 @@ void Room::RoomImpl::HandleWifiPacket(const ENetEvent* event) {
 }
 
 void Room::RoomImpl::HandleChatPacket(const ENetEvent* event) {
-    std::lock_guard lock(member_mutex);
+    std::lock_guard<std::mutex> lock(member_mutex);
     const std::vector<Network::Room::RoomImpl::Member>::iterator sending_member =
         std::find_if(members.begin(), members.end(),
                      [event](const Member& member) -> bool { return member.peer == event->peer; });
@@ -951,7 +952,7 @@ void Room::RoomImpl::HandleGameNamePacket(const ENetEvent* event) {
     in_packet >> game_info.id;
 
     {
-        std::lock_guard lock(member_mutex);
+        std::lock_guard<std::mutex> lock(member_mutex);
         const std::vector<Network::Room::RoomImpl::Member>::iterator member =
             std::find_if(members.begin(), members.end(), [event](const Member& member) -> bool {
                 return member.peer == event->peer;
@@ -980,7 +981,7 @@ void Room::RoomImpl::HandleClientDisconnection(ENetPeer* client) {
     // Remove the client from the members list.
     std::string nickname, username;
     {
-        std::lock_guard lock(member_mutex);
+        std::lock_guard<std::mutex> lock(member_mutex);
         std::vector<Network::Room::RoomImpl::Member>::iterator member =
             std::find_if(members.begin(), members.end(),
                          [client](const Member& member) { return member.peer == client; });
@@ -1050,18 +1051,18 @@ const RoomInformation& Room::GetRoomInformation() const {
 }
 
 std::string Room::GetVerifyUID() const {
-    std::lock_guard lock(room_impl->verify_UID_mutex);
+    std::lock_guard<std::mutex> lock(room_impl->verify_UID_mutex);
     return room_impl->verify_UID;
 }
 
 Room::BanList Room::GetBanList() const {
-    std::lock_guard lock(room_impl->ban_list_mutex);
+    std::lock_guard<std::mutex> lock(room_impl->ban_list_mutex);
     return {room_impl->username_ban_list, room_impl->ip_ban_list};
 }
 
 std::vector<Room::Member> Room::GetRoomMemberList() const {
     std::vector<Room::Member> member_list;
-    std::lock_guard lock(room_impl->member_mutex);
+    std::lock_guard<std::mutex> lock(room_impl->member_mutex);
     for (const RoomImpl::Member& member_impl : room_impl->members) {
         Member member;
         member.nickname = member_impl.nickname;
@@ -1080,7 +1081,7 @@ bool Room::HasPassword() const {
 }
 
 void Room::SetVerifyUID(const std::string& uid) {
-    std::lock_guard lock(room_impl->verify_UID_mutex);
+    std::lock_guard<std::mutex> lock(room_impl->verify_UID_mutex);
     room_impl->verify_UID = uid;
 }
 
@@ -1095,7 +1096,7 @@ void Room::Destroy() {
     room_impl->room_information = {};
     room_impl->server = nullptr;
     {
-        std::lock_guard lock(room_impl->member_mutex);
+        std::lock_guard<std::mutex> lock(room_impl->member_mutex);
         room_impl->members.clear();
     }
     room_impl->room_information.member_slots = 0;

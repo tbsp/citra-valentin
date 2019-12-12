@@ -304,14 +304,14 @@ std::shared_ptr<Module> Module::Interface::GetModule() const {
 }
 
 void Module::Interface::LoadAmiibo(const AmiiboData& amiibo_data) {
-    std::lock_guard lock(HLE::g_hle_lock);
+    std::lock_guard<std::recursive_mutex> lock(HLE::g_hle_lock);
     nfc->amiibo_data = amiibo_data;
     nfc->amiibo_in_range = true;
     nfc->SyncTagState();
 }
 
 void Module::Interface::RemoveAmiibo() {
-    std::lock_guard lock(HLE::g_hle_lock);
+    std::lock_guard<std::recursive_mutex> lock(HLE::g_hle_lock);
     nfc->amiibo_in_range = false;
     nfc->SyncTagState();
 }
