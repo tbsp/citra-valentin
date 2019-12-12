@@ -4,6 +4,15 @@
 
 - Qt: Realtime new release messages
 
+## Fixes
+
+- Qt: Don't send game name if it's empty
+
+## Minor Changes
+
+- Remove `multiply_input` because it didn't work
+- Lots of code style changes
+
 # 8.1.0
 
 ## Features

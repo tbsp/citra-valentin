@@ -2399,7 +2399,7 @@ void GMainWindow::SendTelemetry() const {
             !Settings::values.citra_username.empty()) {
             json["citra_account_username"] = Settings::values.citra_username;
         }
-        if (UISettings::values.telemetry_send_game_name) {
+        if (UISettings::values.telemetry_send_game_name && !game_title.isEmpty()) {
             json["game_name"] = game_title.toStdString();
         }
         if (WillOneOrMoreSettingsBeSent()) {
