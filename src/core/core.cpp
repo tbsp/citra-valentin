@@ -362,7 +362,7 @@ void System::Shutdown() {
         video_dumper->StopDumping();
     }
 
-    if (auto room_member = Network::GetRoomMember().lock()) {
+    if (std::shared_ptr<Network::RoomMember> room_member = Network::GetRoomMember().lock()) {
         Network::GameInfo game_info{};
         room_member->SendGameInfo(game_info);
     }

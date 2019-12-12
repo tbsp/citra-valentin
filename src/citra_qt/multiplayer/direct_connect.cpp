@@ -55,15 +55,13 @@ void DirectConnectWindow::Connect() {
         NetworkMessage::ShowError(NetworkMessage::NICKNAME_NOT_VALID);
         return;
     }
-    if (const auto member = Network::GetRoomMember().lock()) {
+    if (const std::shared_ptr<Network::RoomMember> room_member = Network::GetRoomMember().lock()) {
         // Prevent the user from trying to join a room while they are already joining.
-        if (member->GetState() == Network::RoomMember::State::Joining) {
+        if (room_member->GetState() == Network::RoomMember::State::Joining) {
             return;
-        } else if (member->IsConnected()) {
+        } else if (room_member->IsConnected() && !NetworkMessage::WarnDisconnect()) {
             // And ask if they want to leave the room if they are already in one.
-            if (!NetworkMessage::WarnDisconnect()) {
-                return;
-            }
+            return;
         }
     }
     switch (static_cast<ConnectionType>(ui->connection_type->currentIndex())) {
@@ -89,10 +87,10 @@ void DirectConnectWindow::Connect() {
                                   : UISettings::values.port;
     Settings::Apply();
 
-    // attempt to connect in a different thread
+    // Attempt to connect in a different thread
     QFuture<void> f = QtConcurrent::run([&] {
-        if (auto room_member = Network::GetRoomMember().lock()) {
-            auto port = UISettings::values.port.toUInt();
+        if (std::shared_ptr<Network::RoomMember> room_member = Network::GetRoomMember().lock()) {
+            const uint port = UISettings::values.port.toUInt();
             room_member->Join(ui->nickname->text().toStdString(),
                               Service::CFG::GetConsoleIdHash(Core::System::GetInstance()),
                               ui->ip->text().toStdString().c_str(), port, 0,
@@ -100,7 +98,7 @@ void DirectConnectWindow::Connect() {
         }
     });
     watcher->setFuture(f);
-    // and disable widgets and display a connecting while we wait
+    // Disable widgets and display a connecting while we wait
     BeginConnecting();
 }
 
@@ -117,7 +115,7 @@ void DirectConnectWindow::EndConnecting() {
 void DirectConnectWindow::OnConnection() {
     EndConnecting();
 
-    if (auto room_member = Network::GetRoomMember().lock()) {
+    if (std::shared_ptr<Network::RoomMember> room_member = Network::GetRoomMember().lock()) {
         if (room_member->GetState() == Network::RoomMember::State::Joined ||
             room_member->GetState() == Network::RoomMember::State::Moderator) {
 

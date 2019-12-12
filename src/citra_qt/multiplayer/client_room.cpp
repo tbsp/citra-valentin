@@ -24,20 +24,20 @@ ClientRoomWindow::ClientRoomWindow(QWidget* parent)
       ui(std::make_unique<Ui::ClientRoom>()) {
     ui->setupUi(this);
 
-    // setup the callbacks for network updates
-    if (auto member = Network::GetRoomMember().lock()) {
-        member->BindOnRoomInformationChanged(
+    // Setup the callbacks for network updates
+    if (std::shared_ptr<Network::RoomMember> room_member = Network::GetRoomMember().lock()) {
+        room_member->BindOnRoomInformationChanged(
             [this](const Network::RoomInformation& /*info*/) { emit RoomInformationChanged(); });
-        member->BindOnStateChanged(
+        room_member->BindOnStateChanged(
             [this](const Network::RoomMember::State& state) { emit StateChanged(state); });
 
         connect(this, &ClientRoomWindow::RoomInformationChanged, this,
                 &ClientRoomWindow::OnRoomUpdate);
         connect(this, &ClientRoomWindow::StateChanged, this, &::ClientRoomWindow::OnStateChange);
         // Update the state
-        OnStateChange(member->GetState());
+        OnStateChange(room_member->GetState());
     } else {
-        // TODO (jroweboy) network was not initialized?
+        // TODO: do something if network was not initialized
     }
 
     connect(ui->disconnect, &QPushButton::clicked, this, &ClientRoomWindow::Disconnect);
@@ -86,22 +86,23 @@ void ClientRoomWindow::Disconnect() {
 }
 
 void ClientRoomWindow::UpdateView() {
-    if (auto member = Network::GetRoomMember().lock()) {
-        if (member->IsConnected()) {
+    if (std::shared_ptr<Network::RoomMember> room_member = Network::GetRoomMember().lock()) {
+        if (room_member->IsConnected()) {
             ui->chat->Enable();
             ui->disconnect->setEnabled(true);
-            auto memberlist = member->GetMemberInformation();
-            ui->chat->SetPlayerList(memberlist);
-            const auto information = member->GetRoomInformation();
+            const std::vector<Network::RoomMember::MemberInformation> members =
+                room_member->GetMemberInformation();
+            ui->chat->SetPlayerList(members);
+            const Network::RoomInformation information = room_member->GetRoomInformation();
             setWindowTitle(QString(QStringLiteral("%1 (%2/%3 members) - connected"))
                                .arg(QString::fromStdString(information.name))
-                               .arg(memberlist.size())
+                               .arg(members.size())
                                .arg(information.member_slots));
             ui->description->setText(QString::fromStdString(information.description));
             return;
         }
     }
-    // TODO(B3N30): can't get RoomMember*, show error and close window
+    // TODO: can't get RoomMember, show error and close window
     close();
 }
 

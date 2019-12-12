@@ -23,14 +23,14 @@ ModerationDialog::ModerationDialog(QWidget* parent)
 
     qRegisterMetaType<Network::Room::BanList>();
 
-    if (auto member = Network::GetRoomMember().lock()) {
-        callback_handle_status_message = member->BindOnStatusMessageReceived(
+    if (std::shared_ptr<Network::RoomMember> room_member = Network::GetRoomMember().lock()) {
+        callback_handle_status_message = room_member->BindOnStatusMessageReceived(
             [this](const Network::StatusMessageEntry& status_message) {
                 emit StatusMessageReceived(status_message);
             });
         connect(this, &ModerationDialog::StatusMessageReceived, this,
                 &ModerationDialog::OnStatusMessageReceived);
-        callback_handle_ban_list = member->BindOnBanListReceived(
+        callback_handle_ban_list = room_member->BindOnBanListReceived(
             [this](const Network::Room::BanList& ban_list) { emit BanListReceived(ban_list); });
         connect(this, &ModerationDialog::BanListReceived, this, &ModerationDialog::PopulateBanList);
     }

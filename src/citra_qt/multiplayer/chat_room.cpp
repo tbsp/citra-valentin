@@ -173,10 +173,10 @@ ChatRoom::ChatRoom(QWidget* parent) : QWidget(parent), ui(std::make_unique<Ui::C
     qRegisterMetaType<Network::RoomMember::State>();
 
     // Setup the callbacks for network updates
-    if (auto member = Network::GetRoomMember().lock()) {
-        member->BindOnChatMessageRecieved(
+    if (std::shared_ptr<Network::RoomMember> room_member = Network::GetRoomMember().lock()) {
+        room_member->BindOnChatMessageRecieved(
             [this](const Network::ChatEntry& chat) { emit ChatReceived(chat); });
-        member->BindOnStatusMessageReceived(
+        room_member->BindOnStatusMessageReceived(
             [this](const Network::StatusMessageEntry& status_message) {
                 emit StatusMessageReceived(status_message);
             });
@@ -234,7 +234,7 @@ bool ChatRoom::ValidateMessage(const std::string& msg) {
 
 void ChatRoom::OnRoomUpdate(const Network::RoomInformation& info) {
     // TODO(B3N30): change title
-    if (auto room_member = Network::GetRoomMember().lock()) {
+    if (std::shared_ptr<Network::RoomMember> room_member = Network::GetRoomMember().lock()) {
         SetPlayerList(room_member->GetMemberInformation());
     }
 }

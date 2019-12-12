@@ -779,7 +779,9 @@ void Room::RoomImpl::SendStatusMessage(StatusMessageTypes type, const std::strin
     enet_host_flush(server);
 
     const std::string display_name =
-        username.empty() ? nickname : fmt::format("{} ({})", nickname, username);
+        username.empty()
+            ? nickname
+            : (username == nickname ? nickname : fmt::format("{} ({})", nickname, username));
 
     switch (type) {
     case IdMemberJoin:
@@ -872,10 +874,10 @@ void Room::RoomImpl::HandleWifiPacket(const ENetEvent* event) {
         }
     } else { // Send the data only to the destination client
         std::lock_guard lock(member_mutex);
-        const auto member = std::find_if(members.begin(), members.end(),
-                                         [destination_address](const Member& member) -> bool {
-                                             return member.mac_address == destination_address;
-                                         });
+        const std::vector<Network::Room::RoomImpl::Member>::iterator member = std::find_if(
+            members.begin(), members.end(), [destination_address](const Member& member) -> bool {
+                return member.mac_address == destination_address;
+            });
         if (member != members.end()) {
             enet_peer_send(member->peer, 0, enet_packet);
         } else {
@@ -949,7 +951,7 @@ void Room::RoomImpl::HandleGameNamePacket(const ENetEvent* event) {
 
     {
         std::lock_guard lock(member_mutex);
-        auto member =
+        const std::vector<Network::Room::RoomImpl::Member>::iterator member =
             std::find_if(members.begin(), members.end(), [event](const Member& member) -> bool {
                 return member.peer == event->peer;
             });
@@ -959,7 +961,9 @@ void Room::RoomImpl::HandleGameNamePacket(const ENetEvent* event) {
             const std::string display_name =
                 member->user_data.username.empty()
                     ? member->nickname
-                    : fmt::format("{} ({})", member->nickname, member->user_data.username);
+                    : (member->user_data.username == member->nickname
+                           ? member->nickname
+                           : fmt::format("{} ({})", member->nickname, member->user_data.username));
 
             if (game_info.name.empty()) {
                 LOG_INFO(Network, "{} is not playing", display_name);
@@ -976,9 +980,9 @@ void Room::RoomImpl::HandleClientDisconnection(ENetPeer* client) {
     std::string nickname, username;
     {
         std::lock_guard lock(member_mutex);
-        auto member = std::find_if(members.begin(), members.end(), [client](const Member& member) {
-            return member.peer == client;
-        });
+        std::vector<Network::Room::RoomImpl::Member>::iterator member =
+            std::find_if(members.begin(), members.end(),
+                         [client](const Member& member) { return member.peer == client; });
         if (member != members.end()) {
             nickname = member->nickname;
             username = member->user_data.username;

@@ -175,7 +175,7 @@ ResultStatus AppLoader_NCCH::Load(std::shared_ptr<Kernel::Process>& process) {
         overlay_ncch = &update_ncch;
     }
 
-    if (auto room_member = Network::GetRoomMember().lock()) {
+    if (std::shared_ptr<Network::RoomMember> room_member = Network::GetRoomMember().lock()) {
         Network::GameInfo game_info;
         ReadTitle(game_info.name);
         game_info.id = ncch_program_id;

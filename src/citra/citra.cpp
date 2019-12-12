@@ -392,15 +392,15 @@ int main(int argc, char** argv) {
     emu_window->UpdateGame(system);
 
     if (use_multiplayer) {
-        if (auto member = Network::GetRoomMember().lock()) {
-            member->BindOnChatMessageRecieved(OnMessageReceived);
-            member->BindOnStatusMessageReceived(OnStatusMessageReceived);
-            member->BindOnStateChanged(OnStateChanged);
-            member->BindOnError(OnNetworkError);
+        if (std::shared_ptr<Network::RoomMember> room_member = Network::GetRoomMember().lock()) {
+            room_member->BindOnChatMessageRecieved(OnMessageReceived);
+            room_member->BindOnStatusMessageReceived(OnStatusMessageReceived);
+            room_member->BindOnStateChanged(OnStateChanged);
+            room_member->BindOnError(OnNetworkError);
             LOG_DEBUG(Network, "Start connection to {}:{} with nickname {}", address, port,
                       nickname);
-            member->Join(nickname, Service::CFG::GetConsoleIdHash(system), address.c_str(), port, 0,
-                         Network::NoPreferredMac, password);
+            room_member->Join(nickname, Service::CFG::GetConsoleIdHash(system), address.c_str(),
+                              port, 0, Network::NoPreferredMac, password);
         } else {
             LOG_ERROR(Network, "Could not access RoomMember");
             return 0;

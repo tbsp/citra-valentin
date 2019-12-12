@@ -23,13 +23,13 @@ MultiplayerState::MultiplayerState(QWidget* parent, QStandardItemModel* game_lis
                                    QAction* leave_room, QAction* show_room)
     : QWidget(parent), game_list_model(game_list_model), leave_room(leave_room),
       show_room(show_room) {
-    if (auto member = Network::GetRoomMember().lock()) {
+    if (std::shared_ptr<Network::RoomMember> room_member = Network::GetRoomMember().lock()) {
         // register the network structs to use in slots and signals
-        state_callback_handle = member->BindOnStateChanged(
+        state_callback_handle = room_member->BindOnStateChanged(
             [this](const Network::RoomMember::State& state) { emit NetworkStateChanged(state); });
         connect(this, &MultiplayerState::NetworkStateChanged, this,
                 &MultiplayerState::OnNetworkStateChanged);
-        error_callback_handle = member->BindOnError(
+        error_callback_handle = room_member->BindOnError(
             [this](const Network::RoomMember::Error& error) { emit NetworkError(error); });
         connect(this, &MultiplayerState::NetworkError, this, &MultiplayerState::OnNetworkError);
     }
@@ -60,13 +60,13 @@ MultiplayerState::MultiplayerState(QWidget* parent, QStandardItemModel* game_lis
 }
 
 MultiplayerState::~MultiplayerState() {
-    if (auto member = Network::GetRoomMember().lock()) {
+    if (std::shared_ptr<Network::RoomMember> room_member = Network::GetRoomMember().lock()) {
         if (state_callback_handle) {
-            member->Unbind(state_callback_handle);
+            room_member->Unbind(state_callback_handle);
         }
 
         if (error_callback_handle) {
-            member->Unbind(error_callback_handle);
+            room_member->Unbind(error_callback_handle);
         }
     }
 }
@@ -203,8 +203,8 @@ bool MultiplayerState::OnCloseRoom() {
     }
     if (auto room = Network::GetRoom().lock()) {
         // if you are in a room, leave it
-        if (auto member = Network::GetRoomMember().lock()) {
-            member->Leave();
+        if (std::shared_ptr<Network::RoomMember> room_member = Network::GetRoomMember().lock()) {
+            room_member->Leave();
             LOG_DEBUG(Frontend, "Left the room (as a client)");
 #ifdef CITRA_ENABLE_DISCORD_RP
             emit RoomInformationChanged();
@@ -243,8 +243,8 @@ void MultiplayerState::HideNotification() {
 }
 
 void MultiplayerState::OnOpenNetworkRoom() {
-    if (auto member = Network::GetRoomMember().lock()) {
-        if (member->IsConnected()) {
+    if (const std::shared_ptr<Network::RoomMember> room_member = Network::GetRoomMember().lock()) {
+        if (room_member->IsConnected()) {
             if (client_room == nullptr) {
                 client_room = new ClientRoomWindow(this);
                 connect(client_room, &ClientRoomWindow::ShowNotification, this,

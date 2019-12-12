@@ -106,15 +106,13 @@ void Lobby::OnExpandRoom(const QModelIndex& index) {
 }
 
 void Lobby::OnJoinRoom(const QModelIndex& source) {
-    if (const auto member = Network::GetRoomMember().lock()) {
+    if (const std::shared_ptr<Network::RoomMember> room_member = Network::GetRoomMember().lock()) {
         // Prevent the user from trying to join a room while they are already joining.
-        if (member->GetState() == Network::RoomMember::State::Joining) {
+        if (room_member->GetState() == Network::RoomMember::State::Joining) {
             return;
-        } else if (member->IsConnected()) {
+        } else if (room_member->IsConnected() && !NetworkMessage::WarnDisconnect()) {
             // And ask if they want to leave the room if they are already in one.
-            if (!NetworkMessage::WarnDisconnect()) {
-                return;
-            }
+            return;
         }
     }
     QModelIndex index = source;
@@ -156,7 +154,7 @@ void Lobby::OnJoinRoom(const QModelIndex& source) {
                 LOG_INFO(WebService, "Successfully requested external JWT: size={}", token.size());
             }
         }
-        if (auto room_member = Network::GetRoomMember().lock()) {
+        if (std::shared_ptr<Network::RoomMember> room_member = Network::GetRoomMember().lock()) {
             room_member->Join(nickname, Service::CFG::GetConsoleIdHash(Core::System::GetInstance()),
                               ip.c_str(), port, 0, Network::NoPreferredMac, password, token);
         }
@@ -186,41 +184,41 @@ void Lobby::ResetModel() {
 }
 
 void Lobby::RefreshLobby() {
-    if (auto session = announce_multiplayer_session.lock()) {
+    if (const std::shared_ptr<Core::AnnounceMultiplayerSession> session =
+            announce_multiplayer_session.lock()) {
         ResetModel();
         ui->refresh_list->setEnabled(false);
         ui->refresh_list->setText(QStringLiteral("Refreshing"));
         room_list_watcher.setFuture(
-            QtConcurrent::run([session]() { return session->GetRoomList(); }));
+            QtConcurrent::run([session] { return session->GetRoomList(); }));
     } else {
         // TODO(jroweboy): Display an error box about announce couldn't be started
     }
 }
 
 void Lobby::OnRefreshLobby() {
-    AnnounceMultiplayerRoom::RoomList new_room_list = room_list_watcher.result();
-    for (auto room : new_room_list) {
-        // find the icon for the game if this person owns that game.
+    const AnnounceMultiplayerRoom::RoomList new_room_list = room_list_watcher.result();
+    for (const AnnounceMultiplayerRoom::Room& room : new_room_list) {
+        // Find the icon for the game if this person owns that game.
         QPixmap smdh_icon;
         for (int r = 0; r < game_list->rowCount(); ++r) {
-            auto index = game_list->index(r, 0);
-            auto game_id = game_list->data(index, GameListItemPath::ProgramIdRole).toULongLong();
+            const QModelIndex index = game_list->index(r, 0);
+            const u64 game_id =
+                game_list->data(index, GameListItemPath::ProgramIdRole).toULongLong();
             if (game_id != 0 && room.preferred_game_id == game_id) {
                 smdh_icon = game_list->data(index, Qt::DecorationRole).value<QPixmap>();
             }
         }
 
         QList<QVariant> members;
-        for (auto member : room.members) {
-            QVariant var;
-            var.setValue(LobbyMember{QString::fromStdString(member.username),
-                                     QString::fromStdString(member.nickname), member.game_id,
-                                     QString::fromStdString(member.game_name)});
-            members.append(var);
+        for (const AnnounceMultiplayerRoom::Room::Member& member : room.members) {
+            members.append(QVariant::fromValue<LobbyMember>(LobbyMember{
+                QString::fromStdString(member.username), QString::fromStdString(member.nickname),
+                member.game_id, QString::fromStdString(member.game_name)}));
         }
 
-        auto first_item = new LobbyItem();
-        auto row = QList<QStandardItem*>({
+        LobbyItem* first_item = new LobbyItem();
+        QList<QStandardItem*> row({
             first_item,
             new LobbyItemName(room.has_password, QString::fromStdString(room.name)),
             new LobbyItemGame(room.preferred_game_id, QString::fromStdString(room.preferred_game),
@@ -242,7 +240,7 @@ void Lobby::OnRefreshLobby() {
         }
     }
 
-    // Reenable the refresh button and resize the columns
+    // Re-enable the refresh button and resize the columns
     ui->refresh_list->setEnabled(true);
     ui->refresh_list->setText(QStringLiteral("Refresh List"));
     ui->room_list->header()->stretchLastSection();
@@ -252,7 +250,7 @@ void Lobby::OnRefreshLobby() {
 
     // Set the member list child items to span all columns
     for (int i = 0; i < proxy->rowCount(); i++) {
-        auto parent = model->item(i, 0);
+        QStandardItem* parent = model->item(i, 0);
         for (int j = 0; j < parent->rowCount(); j++) {
             ui->room_list->setFirstColumnSpanned(j, proxy->index(i, 0), true);
         }
@@ -269,60 +267,64 @@ void LobbyFilterProxyModel::UpdateGameList(QStandardItemModel* list) {
 bool LobbyFilterProxyModel::filterAcceptsRow(int sourceRow, const QModelIndex& sourceParent) const {
     // Prioritize filters by fastest to compute
 
-    // pass over any child rows (aka row that shows the players in the room)
+    // Pass over any child rows (aka row that shows the players in the room)
     if (sourceParent != QModelIndex()) {
         return true;
     }
 
-    // filter by filled rooms
+    // Filter by filled rooms
     if (filter_full) {
-        QModelIndex member_list = sourceModel()->index(sourceRow, Column::MEMBER, sourceParent);
-        int player_count =
-            sourceModel()->data(member_list, LobbyItemMemberList::MemberListRole).toList().size();
-        int max_players =
-            sourceModel()->data(member_list, LobbyItemMemberList::MaxPlayerRole).toInt();
+        const QModelIndex members = sourceModel()->index(sourceRow, Column::MEMBER, sourceParent);
+        const int player_count =
+            sourceModel()->data(members, LobbyItemMemberList::MemberListRole).toList().size();
+        const int max_players =
+            sourceModel()->data(members, LobbyItemMemberList::MaxPlayerRole).toInt();
         if (player_count >= max_players) {
             return false;
         }
     }
 
-    // filter by search parameters
+    // Filter by search parameters
     if (!filter_search.isEmpty()) {
-        QModelIndex game_name = sourceModel()->index(sourceRow, Column::GAME_NAME, sourceParent);
-        QModelIndex room_name = sourceModel()->index(sourceRow, Column::ROOM_NAME, sourceParent);
-        QModelIndex host_name = sourceModel()->index(sourceRow, Column::HOST, sourceParent);
-        bool preferred_game_match = sourceModel()
-                                        ->data(game_name, LobbyItemGame::GameNameRole)
+        const QModelIndex game_name =
+            sourceModel()->index(sourceRow, Column::GAME_NAME, sourceParent);
+        const QModelIndex room_name =
+            sourceModel()->index(sourceRow, Column::ROOM_NAME, sourceParent);
+        const QModelIndex host_name = sourceModel()->index(sourceRow, Column::HOST, sourceParent);
+        const bool preferred_game_match = sourceModel()
+                                              ->data(game_name, LobbyItemGame::GameNameRole)
+                                              .toString()
+                                              .contains(filter_search, filterCaseSensitivity());
+        const bool room_name_match = sourceModel()
+                                         ->data(room_name, LobbyItemName::NameRole)
+                                         .toString()
+                                         .contains(filter_search, filterCaseSensitivity());
+        const bool username_match = sourceModel()
+                                        ->data(host_name, LobbyItemHost::HostUsernameRole)
                                         .toString()
                                         .contains(filter_search, filterCaseSensitivity());
-        bool room_name_match = sourceModel()
-                                   ->data(room_name, LobbyItemName::NameRole)
-                                   .toString()
-                                   .contains(filter_search, filterCaseSensitivity());
-        bool username_match = sourceModel()
-                                  ->data(host_name, LobbyItemHost::HostUsernameRole)
-                                  .toString()
-                                  .contains(filter_search, filterCaseSensitivity());
         if (!preferred_game_match && !room_name_match && !username_match) {
             return false;
         }
     }
 
-    // filter by game owned
+    // Filter by game owned
     if (filter_owned) {
-        QModelIndex game_name = sourceModel()->index(sourceRow, Column::GAME_NAME, sourceParent);
+        const QModelIndex game_name =
+            sourceModel()->index(sourceRow, Column::GAME_NAME, sourceParent);
         QList<QModelIndex> owned_games;
         for (int r = 0; r < game_list->rowCount(); ++r) {
             owned_games.append(QModelIndex(game_list->index(r, 0)));
         }
-        auto current_id = sourceModel()->data(game_name, LobbyItemGame::TitleIDRole).toLongLong();
+        const u64 current_id =
+            sourceModel()->data(game_name, LobbyItemGame::TitleIDRole).toLongLong();
         if (current_id == 0) {
-            // TODO(jroweboy): homebrew often doesn't have a game id and this hides them
+            // TODO: homebrew often doesn't have a title ID and this hides them
             return false;
         }
         bool owned = false;
-        for (const auto& game : owned_games) {
-            auto game_id = game_list->data(game, GameListItemPath::ProgramIdRole).toLongLong();
+        for (const QModelIndex& game : owned_games) {
+            const u64 game_id = game_list->data(game, GameListItemPath::ProgramIdRole).toLongLong();
             if (current_id == game_id) {
                 owned = true;
             }

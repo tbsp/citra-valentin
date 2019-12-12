@@ -109,11 +109,11 @@ void HostRoomWindow::Host() {
         NetworkMessage::ShowError(NetworkMessage::GAME_NOT_SELECTED);
         return;
     }
-    if (auto member = Network::GetRoomMember().lock()) {
-        if (member->GetState() == Network::RoomMember::State::Joining) {
+    if (std::shared_ptr<Network::RoomMember> room_member = Network::GetRoomMember().lock()) {
+        if (room_member->GetState() == Network::RoomMember::State::Joining) {
             return;
-        } else if (member->IsConnected()) {
-            auto parent = static_cast<MultiplayerState*>(parentWidget());
+        } else if (room_member->IsConnected()) {
+            MultiplayerState* parent = static_cast<MultiplayerState*>(parentWidget());
             if (!parent->OnCloseRoom()) {
                 close();
                 return;
@@ -121,21 +121,23 @@ void HostRoomWindow::Host() {
         }
         ui->host->setDisabled(true);
 
-        auto game_name = ui->game_list->currentData(Qt::DisplayRole).toString();
-        auto game_id = ui->game_list->currentData(GameListItemPath::ProgramIdRole).toLongLong();
-        auto port = ui->port->isModified() ? ui->port->text().toInt() : Network::DefaultRoomPort;
-        auto password = ui->password->text().toStdString();
+        const QString game_name = ui->game_list->currentData(Qt::DisplayRole).toString();
+        const u64 game_id =
+            ui->game_list->currentData(GameListItemPath::ProgramIdRole).toLongLong();
+        const u16 port =
+            ui->port->isModified() ? ui->port->text().toInt() : Network::DefaultRoomPort;
+        const std::string password = ui->password->text().toStdString();
         const bool is_public = ui->host_type->currentIndex() == 0;
         Network::Room::BanList ban_list{};
         if (ui->load_ban_list->isChecked()) {
             ban_list = UISettings::values.ban_list;
         }
         if (auto room = Network::GetRoom().lock()) {
-            bool created = room->Create(ui->room_name->text().toStdString(),
-                                        ui->room_description->toPlainText().toStdString(), "", port,
-                                        password, ui->max_player->value(),
-                                        Settings::values.citra_username, game_name.toStdString(),
-                                        game_id, CreateVerifyBackend(is_public), ban_list);
+            const bool created = room->Create(
+                ui->room_name->text().toStdString(),
+                ui->room_description->toPlainText().toStdString(), "", port, password,
+                ui->max_player->value(), Settings::values.citra_username, game_name.toStdString(),
+                game_id, CreateVerifyBackend(is_public), ban_list);
             if (!created) {
                 NetworkMessage::ShowError(NetworkMessage::COULD_NOT_CREATE_ROOM);
                 LOG_ERROR(Network, "Could not create room!");
@@ -147,7 +149,7 @@ void HostRoomWindow::Host() {
         if (is_public) {
             if (auto session = announce_multiplayer_session.lock()) {
                 // Register the room first to ensure verify_UID is present when we connect
-                Common::WebResult result = session->Register();
+                const Common::WebResult result = session->Register();
                 if (result.result_code != Common::WebResult::Code::Success) {
                     QMessageBox::warning(
                         this, QStringLiteral("Error"),
@@ -183,9 +185,9 @@ void HostRoomWindow::Host() {
                 LOG_INFO(WebService, "Successfully requested external JWT: size={}", token.size());
             }
         }
-        member->Join(ui->nickname->text().toStdString(),
-                     Service::CFG::GetConsoleIdHash(Core::System::GetInstance()), "127.0.0.1", port,
-                     0, Network::NoPreferredMac, password, token);
+        room_member->Join(ui->nickname->text().toStdString(),
+                          Service::CFG::GetConsoleIdHash(Core::System::GetInstance()), "127.0.0.1",
+                          port, 0, Network::NoPreferredMac, password, token);
 
         // Store settings
         UISettings::values.room_nickname = ui->nickname->text();
