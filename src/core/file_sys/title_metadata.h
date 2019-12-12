@@ -12,7 +12,7 @@
 
 namespace Loader {
 enum class ResultStatus;
-}
+} // namespace Loader
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 // FileSys namespace
@@ -99,7 +99,9 @@ public:
     u32 GetContentIDByIndex(u16 index) const;
     u16 GetContentTypeByIndex(u16 index) const;
     u64 GetContentSizeByIndex(u16 index) const;
-    std::array<u8, 16> GetContentCTRByIndex(u16 index) const;
+
+    using CTR = std::array<u8, 16>;
+    CTR GetContentCTRByIndex(u16 index) const;
 
     void SetTitleID(u64 title_id);
     void SetTitleType(u32 type);

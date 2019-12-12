@@ -135,7 +135,7 @@ ResultCode CIAFile::WriteTitleMetadata() {
     if (auto title_key = container.GetTicket().GetTitleKey()) {
         decryption_state->content.resize(content_count);
         for (std::size_t i = 0; i < content_count; ++i) {
-            const std::array<u8, 16Ui64> ctr = tmd.GetContentCTRByIndex(i);
+            const FileSys::TitleMetadata::CTR ctr = tmd.GetContentCTRByIndex(i);
             decryption_state->content[i].SetKeyWithIV(title_key->data(), title_key->size(),
                                                       ctr.data());
         }
