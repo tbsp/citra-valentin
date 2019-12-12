@@ -48,15 +48,14 @@ PerfStats::~PerfStats() {
 }
 
 void PerfStats::BeginSystemFrame() {
-    std::lock_guard lock{object_mutex};
-
+    std::lock_guard lock(object_mutex);
     frame_begin = Clock::now();
 }
 
 void PerfStats::EndSystemFrame() {
-    std::lock_guard lock{object_mutex};
+    std::lock_guard lock(object_mutex);
 
-    const std::chrono::time_point<std::chrono::steady_clock> frame_end = Clock::now();
+    auto frame_end = Clock::now();
     const std::chrono::nanoseconds frame_time = frame_end - frame_begin;
     if (current_index < perf_history.size()) {
         perf_history[current_index++] =
@@ -70,13 +69,13 @@ void PerfStats::EndSystemFrame() {
 }
 
 void PerfStats::EndGameFrame() {
-    std::lock_guard lock{object_mutex};
+    std::lock_guard lock(object_mutex);
 
     game_frames += 1;
 }
 
 double PerfStats::GetMeanFrametime() {
-    std::lock_guard lock{object_mutex};
+    std::lock_guard lock(object_mutex);
 
     if (current_index <= IgnoreFrames) {
         return 0;
@@ -91,7 +90,7 @@ double PerfStats::GetMeanFrametime() {
 PerfStats::Results PerfStats::GetAndResetStats(microseconds current_system_time_us) {
     std::lock_guard lock(object_mutex);
 
-    const std::chrono::time_point<std::chrono::steady_clock> now = Clock::now();
+    const auto now = Clock::now();
 
     // Walltime elapsed since stats were reset
     const double interval = duration_cast<DoubleSecs>(now - reset_point).count();
@@ -117,7 +116,7 @@ PerfStats::Results PerfStats::GetAndResetStats(microseconds current_system_time_
 }
 
 double PerfStats::GetLastFrameTimeScale() {
-    std::lock_guard lock{object_mutex};
+    std::lock_guard lock(object_mutex);
     return duration_cast<DoubleSecs>(previous_frame_length).count() / FRAME_LENGTH;
 }
 
@@ -133,7 +132,7 @@ void FrameLimiter::DoFrameLimiting(microseconds current_system_time_us) {
         return;
     }
 
-    std::chrono::time_point<std::chrono::steady_clock> now = Clock::now();
+    auto now = Clock::now();
     const double sleep_scale = Settings::values.frame_limit / 100.0;
 
     // Max lag caused by slow frames. Shouldn't be more than the length of a frame at the current
@@ -150,7 +149,7 @@ void FrameLimiter::DoFrameLimiting(microseconds current_system_time_us) {
 
     if (frame_limiting_delta_err > microseconds::zero()) {
         std::this_thread::sleep_for(frame_limiting_delta_err);
-        const std::chrono::time_point<std::chrono::steady_clock> now_after_sleep = Clock::now();
+        auto now_after_sleep = Clock::now();
         frame_limiting_delta_err -= duration_cast<microseconds>(now_after_sleep - now);
         now = now_after_sleep;
     }
