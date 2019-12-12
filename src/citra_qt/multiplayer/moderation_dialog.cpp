@@ -48,43 +48,41 @@ ModerationDialog::ModerationDialog(QWidget* parent)
 
     connect(ui->refresh, &QPushButton::clicked, this, [this] { LoadBanList(); });
     connect(ui->unban, &QPushButton::clicked, this, [this] {
-        auto index = ui->ban_list_view->currentIndex();
+        const QModelIndex index = ui->ban_list_view->currentIndex();
         SendUnbanRequest(model->item(index.row(), 0)->text());
     });
     connect(ui->ban_list_view, &QTreeView::clicked, [this] { ui->unban->setEnabled(true); });
 }
 
 ModerationDialog::~ModerationDialog() {
-    if (callback_handle_status_message) {
-        if (auto room = Network::GetRoomMember().lock()) {
-            room->Unbind(callback_handle_status_message);
+    if (std::shared_ptr<Network::RoomMember> room_member = Network::GetRoomMember().lock()) {
+        if (callback_handle_status_message) {
+            room_member->Unbind(callback_handle_status_message);
         }
-    }
 
-    if (callback_handle_ban_list) {
-        if (auto room = Network::GetRoomMember().lock()) {
-            room->Unbind(callback_handle_ban_list);
+        if (callback_handle_ban_list) {
+            room_member->Unbind(callback_handle_ban_list);
         }
     }
 }
 
 void ModerationDialog::LoadBanList() {
-    if (auto room = Network::GetRoomMember().lock()) {
+    if (std::shared_ptr<Network::RoomMember> room_member = Network::GetRoomMember().lock()) {
         ui->refresh->setEnabled(false);
         ui->refresh->setText(QStringLiteral("Refreshing"));
         ui->unban->setEnabled(false);
-        room->RequestBanList();
+        room_member->RequestBanList();
     }
 }
 
 void ModerationDialog::PopulateBanList(const Network::Room::BanList& ban_list) {
     model->removeRows(0, model->rowCount());
-    for (const auto& username : ban_list.first) {
+    for (const std::string& username : ban_list.first) {
         QStandardItem* subject_item = new QStandardItem(QString::fromStdString(username));
         QStandardItem* type_item = new QStandardItem(QStringLiteral("Forum Username"));
         model->invisibleRootItem()->appendRow({subject_item, type_item});
     }
-    for (const auto& ip : ban_list.second) {
+    for (const std::string& ip : ban_list.second) {
         QStandardItem* subject_item = new QStandardItem(QString::fromStdString(ip));
         QStandardItem* type_item = new QStandardItem(QStringLiteral("IP Address"));
         model->invisibleRootItem()->appendRow({subject_item, type_item});
@@ -98,8 +96,8 @@ void ModerationDialog::PopulateBanList(const Network::Room::BanList& ban_list) {
 }
 
 void ModerationDialog::SendUnbanRequest(const QString& subject) {
-    if (auto room = Network::GetRoomMember().lock()) {
-        room->SendModerationRequest(Network::IdModUnban, subject.toStdString());
+    if (std::shared_ptr<Network::RoomMember> room_member = Network::GetRoomMember().lock()) {
+        room_member->SendModerationRequest(Network::IdModUnban, subject.toStdString());
     }
 }
 

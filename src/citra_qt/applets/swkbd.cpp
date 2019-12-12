@@ -25,7 +25,7 @@ QtKeyboardValidator::State QtKeyboardValidator::validate(QString& input, int& po
 QtKeyboardDialog::QtKeyboardDialog(QWidget* parent, QtKeyboard* keyboard_)
     : QDialog(parent), keyboard(keyboard_) {
     using namespace Frontend;
-    const auto config = keyboard->config;
+    const Frontend::KeyboardConfig config = keyboard->config;
     layout = new QVBoxLayout;
     label = new QLabel(QString::fromStdString(config.hint_text));
     line_edit = new QLineEdit;
@@ -82,7 +82,8 @@ QtKeyboardDialog::QtKeyboardDialog(QWidget* parent, QtKeyboard* keyboard_)
 }
 
 void QtKeyboardDialog::Submit() {
-    auto error = keyboard->ValidateInput(line_edit->text().toStdString());
+    const Frontend::ValidationError error =
+        keyboard->ValidateInput(line_edit->text().toStdString());
     if (error != Frontend::ValidationError::None) {
         HandleValidationError(error);
     } else {

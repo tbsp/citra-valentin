@@ -67,8 +67,8 @@ private:
  */
 static int SignedArea(const Common::Vec2<Fix12P4>& vtx1, const Common::Vec2<Fix12P4>& vtx2,
                       const Common::Vec2<Fix12P4>& vtx3) {
-    const auto vec1 = Common::MakeVec(vtx2 - vtx1, 0);
-    const auto vec2 = Common::MakeVec(vtx3 - vtx1, 0);
+    const Common::Vec3<int> vec1 = Common::MakeVec(vtx2 - vtx1, 0);
+    const Common::Vec3<int> vec2 = Common::MakeVec(vtx3 - vtx1, 0);
     // TODO: There is a very small chance this will overflow for sizeof(int) == 4
     return Common::Cross(vec1, vec2).z;
 };
@@ -124,11 +124,11 @@ static std::tuple<float24, float24, float24, PAddr> ConvertCubeCoord(float24 u, 
  */
 static void ProcessTriangleInternal(const Vertex& v0, const Vertex& v1, const Vertex& v2,
                                     bool reversed = false) {
-    const auto& regs = g_state.regs;
+    const Pica::Regs& regs = g_state.regs;
     Common::Profiler::Scope scope(Core::System::GetInstance().profiler, "Software Rasterizer",
                                   "Triangle Processing");
 
-    // vertex positions in rasterizer coordinates
+    // Vertex positions in rasterizer coordinates
     static auto FloatToFix = [](float24 flt) {
         // TODO: Rounding here is necessary to prevent garbage pixels at
         //       triangle borders. Is it that the correct solution, though?
@@ -210,10 +210,10 @@ static void ProcessTriangleInternal(const Vertex& v0, const Vertex& v1, const Ve
     int bias2 =
         IsRightSideOrFlatBottomEdge(vtxpos[2].xy(), vtxpos[0].xy(), vtxpos[1].xy()) ? -1 : 0;
 
-    auto w_inverse = Common::MakeVec(v0.pos.w, v1.pos.w, v2.pos.w);
+    Common::Vec3<Pica::float24> w_inverse = Common::MakeVec(v0.pos.w, v1.pos.w, v2.pos.w);
 
-    auto textures = regs.texturing.GetTextures();
-    auto tev_stages = regs.texturing.GetTevStages();
+    const Pica::TexturingRegs::Textures& textures = regs.texturing.GetTextures();
+    const Pica::TexturingRegs::TevStages& tev_stages = regs.texturing.GetTevStages();
 
     bool stencil_action_enable =
         g_state.regs.framebuffer.output_merger.stencil_test.enable &&
@@ -224,12 +224,12 @@ static void ProcessTriangleInternal(const Vertex& v0, const Vertex& v1, const Ve
     // TODO: Not sure if looping through x first might be faster
     for (u16 y = min_y + 8; y < max_y; y += 0x10) {
         for (u16 x = min_x + 8; x < max_x; x += 0x10) {
-
             // Do not process the pixel if it's inside the scissor box and the scissor mode is set
             // to Exclude
             if (regs.rasterizer.scissor_test.mode == RasterizerRegs::ScissorMode::Exclude) {
-                if (x >= scissor_x1 && x < scissor_x2 && y >= scissor_y1 && y < scissor_y2)
+                if (x >= scissor_x1 && x < scissor_x2 && y >= scissor_y1 && y < scissor_y2) {
                     continue;
+                }
             }
 
             // Calculate the barycentric coordinates w0, w1 and w2
@@ -239,10 +239,11 @@ static void ProcessTriangleInternal(const Vertex& v0, const Vertex& v1, const Ve
             int wsum = w0 + w1 + w2;
 
             // If current pixel is not covered by the current primitive
-            if (w0 < 0 || w1 < 0 || w2 < 0)
+            if (w0 < 0 || w1 < 0 || w2 < 0) {
                 continue;
+            }
 
-            auto baricentric_coordinates =
+            Common::Vec3<Pica::float24> baricentric_coordinates =
                 Common::MakeVec(float24::FromFloat32(static_cast<float>(w0)),
                                 float24::FromFloat32(static_cast<float>(w1)),
                                 float24::FromFloat32(static_cast<float>(w2)));
@@ -288,7 +289,7 @@ static void ProcessTriangleInternal(const Vertex& v0, const Vertex& v1, const Ve
             //
             // The generalization to three vertices is straightforward in baricentric coordinates.
             auto GetInterpolatedAttribute = [&](float24 attr0, float24 attr1, float24 attr2) {
-                auto attr_over_w = Common::MakeVec(attr0, attr1, attr2);
+                Common::Vec3<Pica::float24> attr_over_w = Common::MakeVec(attr0, attr1, attr2);
                 float24 interpolated_attr_over_w =
                     Common::Dot(attr_over_w, baricentric_coordinates);
                 return interpolated_attr_over_w * interpolated_w_inverse;
@@ -319,9 +320,10 @@ static void ProcessTriangleInternal(const Vertex& v0, const Vertex& v1, const Ve
 
             Common::Vec4<u8> texture_color[4]{};
             for (int i = 0; i < 3; ++i) {
-                const auto& texture = textures[i];
-                if (!texture.enabled)
+                const Pica::TexturingRegs::FullTextureConfig& texture = textures[i];
+                if (!texture.enabled) {
                     continue;
+                }
 
                 DEBUG_ASSERT(0 != texture.config.address);
 
@@ -340,19 +342,21 @@ static void ProcessTriangleInternal(const Vertex& v0, const Vertex& v1, const Ve
                         break;
                     case TexturingRegs::TextureConfig::ShadowCube:
                     case TexturingRegs::TextureConfig::TextureCube: {
-                        auto w = GetInterpolatedAttribute(v0.tc0_w, v1.tc0_w, v2.tc0_w);
+                        Pica::float24 w = GetInterpolatedAttribute(v0.tc0_w, v1.tc0_w, v2.tc0_w);
                         std::tie(u, v, shadow_z, texture_address) =
                             ConvertCubeCoord(u, v, w, regs.texturing);
                         break;
                     }
                     case TexturingRegs::TextureConfig::Projection2D: {
-                        auto tc0_w = GetInterpolatedAttribute(v0.tc0_w, v1.tc0_w, v2.tc0_w);
+                        Pica::float24 tc0_w =
+                            GetInterpolatedAttribute(v0.tc0_w, v1.tc0_w, v2.tc0_w);
                         u /= tc0_w;
                         v /= tc0_w;
                         break;
                     }
                     case TexturingRegs::TextureConfig::Shadow2D: {
-                        auto tc0_w = GetInterpolatedAttribute(v0.tc0_w, v1.tc0_w, v2.tc0_w);
+                        Pica::float24 tc0_w =
+                            GetInterpolatedAttribute(v0.tc0_w, v1.tc0_w, v2.tc0_w);
                         if (!regs.texturing.shadow.orthographic) {
                             u /= tc0_w;
                             v /= tc0_w;
@@ -391,7 +395,8 @@ static void ProcessTriangleInternal(const Vertex& v0, const Vertex& v1, const Ve
                 }
 
                 if (use_border_s || use_border_t) {
-                    auto border_color = texture.config.border_color;
+                    const Pica::TexturingRegs::TextureConfig::BorderColor& border_color =
+                        texture.config.border_color;
                     texture_color[i] =
                         Common::MakeVec(border_color.r.Value(), border_color.g.Value(),
                                         border_color.b.Value(), border_color.a.Value())
@@ -406,7 +411,7 @@ static void ProcessTriangleInternal(const Vertex& v0, const Vertex& v1, const Ve
 
                     const u8* texture_data =
                         VideoCore::g_memory->GetPhysicalPointer(texture_address);
-                    auto info =
+                    Pica::Texture::TextureInfo info =
                         Texture::TextureInfo::FromPicaRegister(texture.config, texture.format);
 
                     // TODO: Apply the min and mag filters to the texture
@@ -418,7 +423,7 @@ static void ProcessTriangleInternal(const Vertex& v0, const Vertex& v1, const Ve
 
                     s32 z_int = static_cast<s32>(std::min(shadow_z.ToFloat32(), 1.0f) * 0xFFFFFF);
                     z_int -= regs.texturing.shadow.bias << 1;
-                    auto& color = texture_color[i];
+                    Common::Vec4<u8>& color = texture_color[i];
                     s32 z_ref = (color.w << 16) | (color.z << 8) | color.y;
                     u8 density;
                     if (z_ref >= z_int) {
@@ -430,9 +435,10 @@ static void ProcessTriangleInternal(const Vertex& v0, const Vertex& v1, const Ve
                 }
             }
 
-            // sample procedural texture
+            // Sample procedural texture
             if (regs.texturing.main_config.texture3_enable) {
-                const auto& proctex_uv = uv[regs.texturing.main_config.texture3_coordinates];
+                const Common::Vec2<Pica::float24>& proctex_uv =
+                    uv[regs.texturing.main_config.texture3_coordinates];
                 texture_color[3] = ProcTex(proctex_uv.u().ToFloat32(), proctex_uv.v().ToFloat32(),
                                            g_state.regs.texturing, g_state.proctex);
             }
@@ -477,7 +483,7 @@ static void ProcessTriangleInternal(const Vertex& v0, const Vertex& v1, const Ve
 
             for (unsigned tev_stage_index = 0; tev_stage_index < tev_stages.size();
                  ++tev_stage_index) {
-                const auto& tev_stage = tev_stages[tev_stage_index];
+                const Pica::TexturingRegs::TevStageConfig& tev_stage = tev_stages[tev_stage_index];
                 using Source = TexturingRegs::TevStageConfig::Source;
 
                 auto GetSource = [&](Source source) -> Common::Vec4<u8> {
@@ -521,7 +527,7 @@ static void ProcessTriangleInternal(const Vertex& v0, const Vertex& v1, const Ve
                     }
                 };
 
-                // color combiner
+                // Color combiner
                 // NOTE: Not sure if the alpha combiner might use the color output of the previous
                 //       stage as input. Hence, we currently don't directly write the result to
                 //       combiner_output.rgb(), but instead store it in a temporary variable until
@@ -531,7 +537,7 @@ static void ProcessTriangleInternal(const Vertex& v0, const Vertex& v1, const Ve
                     GetColorModifier(tev_stage.color_modifier2, GetSource(tev_stage.color_source2)),
                     GetColorModifier(tev_stage.color_modifier3, GetSource(tev_stage.color_source3)),
                 };
-                auto color_output = ColorCombine(tev_stage.color_op, color_result);
+                Common::Vec3<u8> color_output = ColorCombine(tev_stage.color_op, color_result);
 
                 u8 alpha_output;
                 if (tev_stage.color_op == TexturingRegs::TevStageConfig::Operation::Dot3_RGBA) {
@@ -574,7 +580,8 @@ static void ProcessTriangleInternal(const Vertex& v0, const Vertex& v1, const Ve
                 }
             }
 
-            const auto& output_merger = regs.framebuffer.output_merger;
+            const Pica::FramebufferRegs::OutputMerger& output_merger =
+                regs.framebuffer.output_merger;
 
             if (output_merger.fragment_operation_mode ==
                 FramebufferRegs::FragmentOperationMode::Shadow) {
@@ -650,7 +657,8 @@ static void ProcessTriangleInternal(const Vertex& v0, const Vertex& v1, const Ve
                 // Generate clamped fog factor from LUT for given fog index
                 float fog_i = std::clamp(floorf(fog_index), 0.0f, 127.0f);
                 float fog_f = fog_index - fog_i;
-                const auto& fog_lut_entry = g_state.fog.lut[static_cast<unsigned int>(fog_i)];
+                const Pica::State::Fog::LutEntry& fog_lut_entry =
+                    g_state.fog.lut[static_cast<unsigned int>(fog_i)];
                 float fog_factor = fog_lut_entry.ToFloat() + fog_lut_entry.DiffToFloat() * fog_f;
                 fog_factor = std::clamp(fog_factor, 0.0f, 1.0f);
 
@@ -665,12 +673,13 @@ static void ProcessTriangleInternal(const Vertex& v0, const Vertex& v1, const Ve
 
             auto UpdateStencil = [stencil_test, x, y,
                                   &old_stencil](Pica::FramebufferRegs::StencilAction action) {
-                u8 new_stencil =
+                const u8 new_stencil =
                     PerformStencilAction(action, old_stencil, stencil_test.reference_value);
-                if (g_state.regs.framebuffer.framebuffer.allow_depth_stencil_write != 0)
+                if (g_state.regs.framebuffer.framebuffer.allow_depth_stencil_write != 0) {
                     SetStencil(x >> 4, y >> 4,
                                (new_stencil & stencil_test.write_mask) |
                                    (old_stencil & ~stencil_test.write_mask));
+                }
             };
 
             if (stencil_action_enable) {
@@ -772,20 +781,18 @@ static void ProcessTriangleInternal(const Vertex& v0, const Vertex& v1, const Ve
 
             if (regs.framebuffer.framebuffer.allow_depth_stencil_write != 0 &&
                 output_merger.depth_write_enable) {
-
                 SetDepth(x >> 4, y >> 4, z);
             }
 
             // The stencil depth_pass action is executed even if depth testing is disabled
-            if (stencil_action_enable)
+            if (stencil_action_enable) {
                 UpdateStencil(stencil_test.action_depth_pass);
+            }
 
-            auto dest = GetPixel(x >> 4, y >> 4);
+            Common::Vec4<u8> dest = GetPixel(x >> 4, y >> 4);
             Common::Vec4<u8> blend_output = combiner_output;
 
             if (output_merger.alphablend_enable) {
-                auto params = output_merger.alpha_blending;
-
                 auto LookupFactor = [&](unsigned channel,
                                         FramebufferRegs::BlendFactor factor) -> u8 {
                     DEBUG_ASSERT(channel < 4);
@@ -842,8 +849,9 @@ static void ProcessTriangleInternal(const Vertex& v0, const Vertex& v1, const Ve
 
                     case FramebufferRegs::BlendFactor::SourceAlphaSaturate:
                         // Returns 1.0 for the alpha channel
-                        if (channel == 3)
+                        if (channel == 3) {
                             return 255;
+                        }
                         return std::min(combiner_output.a(), static_cast<u8>(255 - dest.a()));
 
                     default:
@@ -855,21 +863,25 @@ static void ProcessTriangleInternal(const Vertex& v0, const Vertex& v1, const Ve
                     return combiner_output[channel];
                 };
 
-                auto srcfactor = Common::MakeVec(LookupFactor(0, params.factor_source_rgb),
-                                                 LookupFactor(1, params.factor_source_rgb),
-                                                 LookupFactor(2, params.factor_source_rgb),
-                                                 LookupFactor(3, params.factor_source_a));
+                Common::Vec4<u8> srcfactor =
+                    Common::MakeVec(LookupFactor(0, output_merger.alpha_blending.factor_source_rgb),
+                                    LookupFactor(1, output_merger.alpha_blending.factor_source_rgb),
+                                    LookupFactor(2, output_merger.alpha_blending.factor_source_rgb),
+                                    LookupFactor(3, output_merger.alpha_blending.factor_source_a));
 
-                auto dstfactor = Common::MakeVec(LookupFactor(0, params.factor_dest_rgb),
-                                                 LookupFactor(1, params.factor_dest_rgb),
-                                                 LookupFactor(2, params.factor_dest_rgb),
-                                                 LookupFactor(3, params.factor_dest_a));
+                Common::Vec4<u8> dstfactor =
+                    Common::MakeVec(LookupFactor(0, output_merger.alpha_blending.factor_dest_rgb),
+                                    LookupFactor(1, output_merger.alpha_blending.factor_dest_rgb),
+                                    LookupFactor(2, output_merger.alpha_blending.factor_dest_rgb),
+                                    LookupFactor(3, output_merger.alpha_blending.factor_dest_a));
 
-                blend_output = EvaluateBlendEquation(combiner_output, srcfactor, dest, dstfactor,
-                                                     params.blend_equation_rgb);
-                blend_output.a() = EvaluateBlendEquation(combiner_output, srcfactor, dest,
-                                                         dstfactor, params.blend_equation_a)
-                                       .a();
+                blend_output =
+                    EvaluateBlendEquation(combiner_output, srcfactor, dest, dstfactor,
+                                          output_merger.alpha_blending.blend_equation_rgb);
+                blend_output.a() =
+                    EvaluateBlendEquation(combiner_output, srcfactor, dest, dstfactor,
+                                          output_merger.alpha_blending.blend_equation_a)
+                        .a();
             } else {
                 blend_output =
                     Common::MakeVec(LogicOp(combiner_output.r(), dest.r(), output_merger.logic_op),

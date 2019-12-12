@@ -355,8 +355,8 @@ std::vector<u8> GenerateEAPoLLogoffFrame(const MacAddress& mac_address, u16 netw
     eapol_logoff.max_nodes = max_nodes;
 
     for (std::size_t index = 0; index < total_nodes; ++index) {
-        const auto& node_info = nodes[index];
-        auto& node = eapol_logoff.nodes[index];
+        const Service::NWM::NodeInfo& node_info = nodes[index];
+        Service::NWM::EAPoLNodeInfo& node = eapol_logoff.nodes[index];
 
         node.friend_code_seed = node_info.friend_code_seed;
         node.network_node_id = node_info.network_node_id;

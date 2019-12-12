@@ -91,7 +91,7 @@ void QtMultimediaCamera::SetFrameRate(Service::CAM::FrameRate frame_rate) {
         /* Rate_30_To_10 */ QCamera::FrameRateRange(10, 30),
     };
 
-    auto framerate = FrameRateList[static_cast<int>(frame_rate)];
+    const QCamera::FrameRateRange framerate = FrameRateList[static_cast<int>(frame_rate)];
 
     if (handler->camera->supportedViewfinderFrameRateRanges().contains(framerate)) {
         handler->settings.setMinimumFrameRate(framerate.minimumFrameRate);
@@ -121,7 +121,7 @@ std::unordered_map<std::string, std::shared_ptr<QtMultimediaCameraHandler>>
     QtMultimediaCameraHandler::loaded;
 
 void QtMultimediaCameraHandler::Init() {
-    for (auto& handler : handlers) {
+    for (std::shared_ptr<Camera::QtMultimediaCameraHandler>& handler : handlers) {
         handler = std::make_shared<QtMultimediaCameraHandler>();
     }
 }
@@ -199,7 +199,7 @@ bool QtMultimediaCameraHandler::CameraAvailable() const {
 
 void QtMultimediaCameraHandler::StopCameras() {
     LOG_INFO(Service_CAM, "Stopping all cameras");
-    for (auto& handler : handlers) {
+    for (std::shared_ptr<Camera::QtMultimediaCameraHandler>& handler : handlers) {
         if (handler && handler->started) {
             handler->StopCamera();
         }
@@ -207,7 +207,7 @@ void QtMultimediaCameraHandler::StopCameras() {
 }
 
 void QtMultimediaCameraHandler::ResumeCameras() {
-    for (auto& handler : handlers) {
+    for (std::shared_ptr<Camera::QtMultimediaCameraHandler>& handler : handlers) {
         if (handler && handler->started) {
             handler->StartCamera();
         }

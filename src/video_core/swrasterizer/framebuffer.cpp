@@ -19,7 +19,8 @@
 namespace Pica::Rasterizer {
 
 void DrawPixel(int x, int y, const Common::Vec4<u8>& color) {
-    const auto& framebuffer = g_state.regs.framebuffer.framebuffer;
+    const Pica::FramebufferRegs::FramebufferConfig& framebuffer =
+        g_state.regs.framebuffer.framebuffer;
     const PAddr addr = framebuffer.GetColorBufferPhysicalAddress();
 
     // Similarly to textures, the render framebuffer is laid out from bottom to top, too.
@@ -62,7 +63,8 @@ void DrawPixel(int x, int y, const Common::Vec4<u8>& color) {
 }
 
 const Common::Vec4<u8> GetPixel(int x, int y) {
-    const auto& framebuffer = g_state.regs.framebuffer.framebuffer;
+    const Pica::FramebufferRegs::FramebufferConfig& framebuffer =
+        g_state.regs.framebuffer.framebuffer;
     const PAddr addr = framebuffer.GetColorBufferPhysicalAddress();
 
     y = framebuffer.height - y;
@@ -100,7 +102,8 @@ const Common::Vec4<u8> GetPixel(int x, int y) {
 }
 
 u32 GetDepth(int x, int y) {
-    const auto& framebuffer = g_state.regs.framebuffer.framebuffer;
+    const Pica::FramebufferRegs::FramebufferConfig& framebuffer =
+        g_state.regs.framebuffer.framebuffer;
     const PAddr addr = framebuffer.GetDepthBufferPhysicalAddress();
     u8* depth_buffer = VideoCore::g_memory->GetPhysicalPointer(addr);
 
@@ -129,7 +132,8 @@ u32 GetDepth(int x, int y) {
 }
 
 u8 GetStencil(int x, int y) {
-    const auto& framebuffer = g_state.regs.framebuffer.framebuffer;
+    const Pica::FramebufferRegs::FramebufferConfig& framebuffer =
+        g_state.regs.framebuffer.framebuffer;
     const PAddr addr = framebuffer.GetDepthBufferPhysicalAddress();
     u8* depth_buffer = VideoCore::g_memory->GetPhysicalPointer(addr);
 
@@ -156,7 +160,8 @@ u8 GetStencil(int x, int y) {
 }
 
 void SetDepth(int x, int y, u32 value) {
-    const auto& framebuffer = g_state.regs.framebuffer.framebuffer;
+    const Pica::FramebufferRegs::FramebufferConfig& framebuffer =
+        g_state.regs.framebuffer.framebuffer;
     const PAddr addr = framebuffer.GetDepthBufferPhysicalAddress();
     u8* depth_buffer = VideoCore::g_memory->GetPhysicalPointer(addr);
 
@@ -191,7 +196,8 @@ void SetDepth(int x, int y, u32 value) {
 }
 
 void SetStencil(int x, int y, u8 value) {
-    const auto& framebuffer = g_state.regs.framebuffer.framebuffer;
+    const Pica::FramebufferRegs::FramebufferConfig& framebuffer =
+        g_state.regs.framebuffer.framebuffer;
     const PAddr addr = framebuffer.GetDepthBufferPhysicalAddress();
     u8* depth_buffer = VideoCore::g_memory->GetPhysicalPointer(addr);
 
@@ -263,9 +269,8 @@ Common::Vec4<u8> EvaluateBlendEquation(const Common::Vec4<u8>& src,
                                        const Common::Vec4<u8>& destfactor,
                                        FramebufferRegs::BlendEquation equation) {
     Common::Vec4<int> result;
-
-    auto src_result = (src * srcfactor).Cast<int>();
-    auto dst_result = (dest * destfactor).Cast<int>();
+    Common::Vec4<int> src_result = (src * srcfactor).Cast<int>();
+    Common::Vec4<int> dst_result = (dest * destfactor).Cast<int>();
 
     switch (equation) {
     case FramebufferRegs::BlendEquation::Add:
@@ -376,8 +381,9 @@ static void EncodeX24S8Shadow(u8 stencil, u8* bytes) {
 }
 
 void DrawShadowMapPixel(int x, int y, u32 depth, u8 stencil) {
-    const auto& framebuffer = g_state.regs.framebuffer.framebuffer;
-    const auto& shadow = g_state.regs.framebuffer.shadow;
+    const Pica::FramebufferRegs::FramebufferConfig& framebuffer =
+        g_state.regs.framebuffer.framebuffer;
+    const Pica::FramebufferRegs::Shadow& shadow = g_state.regs.framebuffer.shadow;
     const PAddr addr = framebuffer.GetColorBufferPhysicalAddress();
 
     y = framebuffer.height - y;
@@ -388,7 +394,7 @@ void DrawShadowMapPixel(int x, int y, u32 depth, u8 stencil) {
                      coarse_y * framebuffer.width * bytes_per_pixel;
     u8* dst_pixel = VideoCore::g_memory->GetPhysicalPointer(addr) + dst_offset;
 
-    auto ref = DecodeD24S8Shadow(dst_pixel);
+    Common::Vec2<u32> ref = DecodeD24S8Shadow(dst_pixel);
     u32 ref_z = ref.x;
     u32 ref_s = ref.y;
 

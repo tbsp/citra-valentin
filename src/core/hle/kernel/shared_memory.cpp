@@ -27,7 +27,7 @@ SharedMemory::~SharedMemory() {
 ResultVal<std::shared_ptr<SharedMemory>> KernelSystem::CreateSharedMemory(
     Process* owner_process, u32 size, MemoryPermission permissions,
     MemoryPermission other_permissions, VAddr address, MemoryRegion region, std::string name) {
-    auto shared_memory{std::make_shared<SharedMemory>(*this)};
+    std::shared_ptr<Kernel::SharedMemory> shared_memory = std::make_shared<SharedMemory>(*this);
 
     shared_memory->owner_process = owner_process;
     shared_memory->name = std::move(name);
@@ -39,7 +39,7 @@ ResultVal<std::shared_ptr<SharedMemory>> KernelSystem::CreateSharedMemory(
         // We need to allocate a block from the Linear Heap ourselves.
         // We'll manually allocate some memory from the linear heap in the specified region.
         MemoryRegionInfo* memory_region = GetMemoryRegion(region);
-        auto offset = memory_region->LinearAllocate(size);
+        std::optional<u32> offset = memory_region->LinearAllocate(size);
 
         ASSERT_MSG(offset, "Not enough space in region to allocate shared memory!");
 
@@ -53,14 +53,15 @@ ResultVal<std::shared_ptr<SharedMemory>> KernelSystem::CreateSharedMemory(
             shared_memory->owner_process->memory_used += size;
         }
     } else {
-        auto& vm_manager = shared_memory->owner_process->vm_manager;
+        Kernel::VMManager& vm_manager = shared_memory->owner_process->vm_manager;
         // The memory is already available and mapped in the owner process.
 
         CASCADE_CODE(vm_manager.ChangeMemoryState(address, size, MemoryState::Private,
                                                   VMAPermission::ReadWrite, MemoryState::Locked,
                                                   SharedMemory::ConvertPermissions(permissions)));
 
-        auto backing_blocks = vm_manager.GetBackingBlocksForRange(address, size);
+        ResultVal<std::vector<std::pair<u8*, u32>>> backing_blocks =
+            vm_manager.GetBackingBlocksForRange(address, size);
         ASSERT(backing_blocks.Succeeded()); // should success after verifying memory state above
         shared_memory->backing_blocks = std::move(backing_blocks).Unwrap();
     }
@@ -72,11 +73,11 @@ ResultVal<std::shared_ptr<SharedMemory>> KernelSystem::CreateSharedMemory(
 std::shared_ptr<SharedMemory> KernelSystem::CreateSharedMemoryForApplet(
     u32 offset, u32 size, MemoryPermission permissions, MemoryPermission other_permissions,
     std::string name) {
-    auto shared_memory{std::make_shared<SharedMemory>(*this)};
+    std::shared_ptr<Kernel::SharedMemory> shared_memory = std::make_shared<SharedMemory>(*this);
 
     // Allocate memory in heap
     MemoryRegionInfo* memory_region = GetMemoryRegion(MemoryRegion::SYSTEM);
-    auto backing_blocks = memory_region->HeapAllocate(size);
+    boost::icl::interval_set<u32> backing_blocks = memory_region->HeapAllocate(size);
     ASSERT_MSG(!backing_blocks.empty(), "Not enough space in region to allocate shared memory!");
     shared_memory->holding_memory = backing_blocks;
     shared_memory->owner_process = nullptr;
@@ -155,7 +156,8 @@ ResultCode SharedMemory::Map(Process& target_process, VAddr address, MemoryPermi
         target_address = linear_heap_phys_offset + Memory::LINEAR_HEAP_VADDR;
     }
 
-    auto vma = target_process.vm_manager.FindVMA(target_address);
+    std::map<VAddr, Kernel::VirtualMemoryArea>::const_iterator vma =
+        target_process.vm_manager.FindVMA(target_address);
     if (vma->second.type != VMAType::Free ||
         vma->second.base + vma->second.size < target_address + size) {
         LOG_ERROR(Kernel,
@@ -166,9 +168,10 @@ ResultCode SharedMemory::Map(Process& target_process, VAddr address, MemoryPermi
 
     // Map the memory block into the target process
     VAddr interval_target = target_address;
-    for (const auto& interval : backing_blocks) {
-        auto vma = target_process.vm_manager.MapBackingMemory(interval_target, interval.first,
-                                                              interval.second, MemoryState::Shared);
+    for (const std::pair<u8*, u32>& interval : backing_blocks) {
+        ResultVal<std::map<VAddr, Kernel::VirtualMemoryArea>::const_iterator> vma =
+            target_process.vm_manager.MapBackingMemory(interval_target, interval.first,
+                                                       interval.second, MemoryState::Shared);
         ASSERT(vma.Succeeded());
         target_process.vm_manager.Reprotect(vma.Unwrap(), ConvertPermissions(permissions));
         interval_target += interval.second;

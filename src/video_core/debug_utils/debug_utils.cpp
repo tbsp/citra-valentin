@@ -55,7 +55,7 @@ void DebugContext::DoOnEvent(Event event, void* data) {
         at_breakpoint = true;
 
         // Tell all observers that we hit a breakpoint
-        for (auto& breakpoint_observer : breakpoint_observers) {
+        for (DebugContext::BreakPointObserver*& breakpoint_observer : breakpoint_observers) {
             breakpoint_observer->OnPicaBreakPointHit(event, data);
         }
 
@@ -69,7 +69,7 @@ void DebugContext::Resume() {
         std::lock_guard lock{breakpoint_mutex};
 
         // Tell all observers that we are about to resume
-        for (auto& breakpoint_observer : breakpoint_observers) {
+        for (DebugContext::BreakPointObserver*& breakpoint_observer : breakpoint_observers) {
             breakpoint_observer->OnPicaResume();
         }
 
@@ -153,20 +153,23 @@ void DumpShader(const std::string& filename, const ShaderRegs& config,
             {OutputAttributes::VIEW_Z, {OutputRegisterInfo::VIEW, 4}},
         };
 
-        for (const auto& semantic : std::vector<OutputAttributes::Semantic>{
+        for (const Pica::RasterizerRegs::VSOutputAttributes::Semantic& semantic :
+             std::vector<OutputAttributes::Semantic>{
                  output_attributes[i].map_x, output_attributes[i].map_y, output_attributes[i].map_z,
                  output_attributes[i].map_w}) {
-            if (semantic == OutputAttributes::INVALID)
+            if (semantic == OutputAttributes::INVALID) {
                 continue;
+            }
 
             try {
                 OutputRegisterInfo::Type type = map.at(semantic).first;
                 u32 component_mask = map.at(semantic).second;
 
-                auto it = std::find_if(output_info_table.begin(), output_info_table.end(),
-                                       [&i, &type](const OutputRegisterInfo& info) {
-                                           return info.id == i && info.type == type;
-                                       });
+                std::vector<OutputRegisterInfo>::iterator it =
+                    std::find_if(output_info_table.begin(), output_info_table.end(),
+                                 [&i, &type](const OutputRegisterInfo& info) {
+                                     return info.id == i && info.type == type;
+                                 });
 
                 if (it == output_info_table.end()) {
                     output_info_table.emplace_back();
@@ -260,14 +263,14 @@ void DumpShader(const std::string& filename, const ShaderRegs& config,
     }
     dvle.constant_table_offset = write_offset - dvlb.dvle_offset;
     dvle.constant_table_size = static_cast<uint32_t>(constant_table.size());
-    for (const auto& constant : constant_table) {
+    for (const nihstro::ConstantInfo& constant : constant_table) {
         QueueForWriting(reinterpret_cast<const u8*>(&constant), sizeof(constant));
     }
 
     // Write data to file
     std::ofstream file(filename, std::ios_base::out | std::ios_base::binary);
 
-    for (const auto& chunk : writing_queue) {
+    for (const StuffToWrite& chunk : writing_queue) {
         file.write(reinterpret_cast<const char*>(chunk.pointer), chunk.size);
     }
 }
@@ -342,8 +345,9 @@ static std::string GetTevStageConfigSourceString(
     };
 
     const auto src_it = source_map.find(source);
-    if (src_it == source_map.end())
+    if (src_it == source_map.end()) {
         return "Unknown";
+    }
 
     return src_it->second;
 }
@@ -366,11 +370,12 @@ static std::string GetTevStageConfigColorSourceString(
         {ColorModifier::OneMinusSourceBlue, "(1.0 - %source.bbb)"},
     };
 
-    auto src_str = GetTevStageConfigSourceString(source);
+    const std::string src_str = GetTevStageConfigSourceString(source);
     auto modifier_it = color_modifier_map.find(modifier);
     std::string modifier_str = "%source.????";
-    if (modifier_it != color_modifier_map.end())
+    if (modifier_it != color_modifier_map.end()) {
         modifier_str = modifier_it->second;
+    }
 
     return ReplacePattern(modifier_str, "%source", src_str);
 }
@@ -391,11 +396,12 @@ static std::string GetTevStageConfigAlphaSourceString(
         {AlphaModifier::OneMinusSourceBlue, "(1.0 - %source.b)"},
     };
 
-    auto src_str = GetTevStageConfigSourceString(source);
+    const std::string src_str = GetTevStageConfigSourceString(source);
     auto modifier_it = alpha_modifier_map.find(modifier);
     std::string modifier_str = "%source.????";
-    if (modifier_it != alpha_modifier_map.end())
+    if (modifier_it != alpha_modifier_map.end()) {
         modifier_str = modifier_it->second;
+    }
 
     return ReplacePattern(modifier_str, "%source", src_str);
 }
@@ -417,14 +423,15 @@ static std::string GetTevStageConfigOperationString(
     };
 
     const auto op_it = combiner_map.find(operation);
-    if (op_it == combiner_map.end())
+    if (op_it == combiner_map.end()) {
         return "Unknown op (%source1, %source2, %source3)";
+    }
 
     return op_it->second;
 }
 
 std::string GetTevStageConfigColorCombinerString(const TexturingRegs::TevStageConfig& tev_stage) {
-    auto op_str = GetTevStageConfigOperationString(tev_stage.color_op);
+    std::string op_str = GetTevStageConfigOperationString(tev_stage.color_op);
     op_str = ReplacePattern(
         op_str, "%source1",
         GetTevStageConfigColorSourceString(tev_stage.color_source1, tev_stage.color_modifier1));
@@ -437,7 +444,7 @@ std::string GetTevStageConfigColorCombinerString(const TexturingRegs::TevStageCo
 }
 
 std::string GetTevStageConfigAlphaCombinerString(const TexturingRegs::TevStageConfig& tev_stage) {
-    auto op_str = GetTevStageConfigOperationString(tev_stage.alpha_op);
+    std::string op_str = GetTevStageConfigOperationString(tev_stage.alpha_op);
     op_str = ReplacePattern(
         op_str, "%source1",
         GetTevStageConfigAlphaSourceString(tev_stage.alpha_source1, tev_stage.alpha_modifier1));
@@ -452,7 +459,7 @@ std::string GetTevStageConfigAlphaCombinerString(const TexturingRegs::TevStageCo
 void DumpTevStageConfig(const std::array<TexturingRegs::TevStageConfig, 6>& stages) {
     std::string stage_info = "Tev setup:\n";
     for (std::size_t index = 0; index < stages.size(); ++index) {
-        const auto& tev_stage = stages[index];
+        const Pica::TexturingRegs::TevStageConfig& tev_stage = stages[index];
         stage_info += "Stage " + std::to_string(index) + ": " +
                       GetTevStageConfigColorCombinerString(tev_stage) + "   " +
                       GetTevStageConfigAlphaCombinerString(tev_stage) + "\n";

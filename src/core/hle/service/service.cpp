@@ -128,7 +128,8 @@ ServiceFrameworkBase::ServiceFrameworkBase(const char* service_name, u32 max_ses
 ServiceFrameworkBase::~ServiceFrameworkBase() = default;
 
 void ServiceFrameworkBase::InstallAsService(SM::ServiceManager& service_manager) {
-    auto port = service_manager.RegisterService(service_name, max_sessions).Unwrap();
+    std::shared_ptr<Kernel::ServerPort> port =
+        service_manager.RegisterService(service_name, max_sessions).Unwrap();
     port->SetHleHandler(shared_from_this());
 }
 
@@ -213,7 +214,7 @@ static bool AttemptLLE(const ServiceModuleInfo& service_module) {
 void Init(Core::System& core) {
     SM::ServiceManager::InstallInterfaces(core);
 
-    for (const auto& service_module : service_module_map) {
+    for (const Service::ServiceModuleInfo& service_module : service_module_map) {
         if (!AttemptLLE(service_module) && service_module.init_function != nullptr)
             service_module.init_function(core);
     }

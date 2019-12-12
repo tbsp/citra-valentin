@@ -182,7 +182,7 @@ private:
     }
 
     bool SaveObjectToPrecompiled(bool object) {
-        const auto value = static_cast<u8>(object);
+        const u8 value = static_cast<u8>(object);
         return SaveArrayToPrecompiled(&value, 1);
     }
 

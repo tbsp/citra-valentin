@@ -147,11 +147,12 @@ bool FFmpegVideoStream::Init(AVFormatContext* format_context, AVOutputFormat* ou
     }
 
     // Create SWS Context
-    auto* context = sws_getCachedContext(
+    SwsContext* context = sws_getCachedContext(
         sws_context.get(), layout.width, layout.height, pixel_format, layout.width, layout.height,
         codec_context->pix_fmt, SWS_BICUBIC, nullptr, nullptr, nullptr);
-    if (context != sws_context.get())
+    if (context != sws_context.get()) {
         sws_context.reset(context);
+    }
 
     return true;
 }
@@ -236,7 +237,7 @@ bool FFmpegAudioStream::Init(AVFormatContext* format_context) {
     audio_frame->channels = codec_context->channels;
 
     // Allocate SWR context
-    auto* context =
+    SwrContext* context =
         swr_alloc_set_opts(nullptr, codec_context->channel_layout, codec_context->sample_fmt,
                            codec_context->sample_rate, codec_context->channel_layout,
                            AV_SAMPLE_FMT_S16P, AudioCore::native_sample_rate, 0, nullptr);
@@ -317,26 +318,27 @@ bool FFmpegMuxer::Init(const std::string& path, const std::string& format,
     // Get output format
     // Ensure webm here to avoid patent issues
     ASSERT_MSG(format == "webm", "Only webm is allowed for frame dumping");
-    auto* output_format = av_guess_format(format.c_str(), path.c_str(), "video/webm");
+    AVOutputFormat* output_format = av_guess_format(format.c_str(), path.c_str(), "video/webm");
     if (!output_format) {
         LOG_ERROR(Render, "Could not get format {}", format);
         return false;
     }
 
     // Initialize format context
-    auto* format_context_raw = format_context.get();
+    AVFormatContext* format_context_raw = format_context.get();
     if (avformat_alloc_output_context2(&format_context_raw, output_format, nullptr, path.c_str()) <
         0) {
-
         LOG_ERROR(Render, "Could not allocate output context");
         return false;
     }
     format_context.reset(format_context_raw);
 
-    if (!video_stream.Init(format_context.get(), output_format, layout))
+    if (!video_stream.Init(format_context.get(), output_format, layout)) {
         return false;
-    if (!audio_stream.Init(format_context.get()))
+    }
+    if (!audio_stream.Init(format_context.get())) {
         return false;
+    }
 
     // Open video file
     if (avio_open(&format_context->pb, path.c_str(), AVIO_FLAG_WRITE) < 0 ||
@@ -414,7 +416,7 @@ bool FFmpegBackend::StartDumping(const std::string& path, const std::string& for
             next_buffer = (current_buffer + 1) % 2;
             event1.Set();
             // Process this frame
-            auto& frame = video_frame_buffers[current_buffer];
+            VideoDumper::VideoFrame& frame = video_frame_buffers[current_buffer];
             if (frame.width == 0 && frame.height == 0) {
                 // An empty frame marks the end of frame data
                 ffmpeg.FlushVideo();
@@ -463,7 +465,7 @@ void FFmpegBackend::AddAudioFrame(const AudioCore::StereoFrame16& frame) {
         refactored_frame[1][i] = frame[i][1];
     }
 
-    for (auto i : {0, 1}) {
+    for (int i : {0, 1}) {
         audio_buffers[i].insert(audio_buffers[i].end(), refactored_frame[i].begin(),
                                 refactored_frame[i].end());
     }
@@ -471,7 +473,7 @@ void FFmpegBackend::AddAudioFrame(const AudioCore::StereoFrame16& frame) {
 }
 
 void FFmpegBackend::AddAudioSample(const std::array<s16, 2>& sample) {
-    for (auto i : {0, 1}) {
+    for (int i : {0, 1}) {
         audio_buffers[i].push_back(sample[i]);
     }
     CheckAudioBuffer();
@@ -483,7 +485,7 @@ void FFmpegBackend::StopDumping() {
 
     // Flush the video processing queue
     AddVideoFrame(VideoFrame());
-    for (auto i : {0, 1}) {
+    for (int i : {0, 1}) {
         // Add remaining data to audio queue
         if (audio_buffers[i].size() >= 0) {
             VariableAudioFrame buffer(audio_buffers[i].begin(), audio_buffers[i].end());
@@ -514,7 +516,7 @@ void FFmpegBackend::EndDumping() {
 }
 
 void FFmpegBackend::CheckAudioBuffer() {
-    for (auto i : {0, 1}) {
+    for (int i : {0, 1}) {
         const std::size_t frame_size = ffmpeg.GetAudioFrameSize();
         // Add audio data to the queue when there is enough to form a frame
         while (audio_buffers[i].size() >= frame_size) {

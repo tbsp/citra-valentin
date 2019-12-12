@@ -74,7 +74,7 @@ HostRoomWindow::~HostRoomWindow() = default;
 void HostRoomWindow::UpdateGameList(QStandardItemModel* list) {
     game_list->clear();
     for (int i = 0; i < list->rowCount(); i++) {
-        auto parent = list->item(i, 0);
+        QStandardItem* parent = list->item(i, 0);
         for (int j = 0; j < parent->rowCount(); j++) {
             game_list->appendRow(parent->child(j)->clone());
         }
@@ -132,7 +132,7 @@ void HostRoomWindow::Host() {
         if (ui->load_ban_list->isChecked()) {
             ban_list = UISettings::values.ban_list;
         }
-        if (auto room = Network::GetRoom().lock()) {
+        if (std::shared_ptr<Network::Room> room = Network::GetRoom().lock()) {
             const bool created = room->Create(
                 ui->room_name->text().toStdString(),
                 ui->room_description->toPlainText().toStdString(), "", port, password,
@@ -147,7 +147,8 @@ void HostRoomWindow::Host() {
         }
         // Start the announce session if they chose Public
         if (is_public) {
-            if (auto session = announce_multiplayer_session.lock()) {
+            if (std::shared_ptr<Core::AnnounceMultiplayerSession> session =
+                    announce_multiplayer_session.lock()) {
                 // Register the room first to ensure verify_UID is present when we connect
                 const Common::WebResult result = session->Register();
                 if (result.result_code != Common::WebResult::Code::Success) {
@@ -162,7 +163,7 @@ void HostRoomWindow::Host() {
                             QString::fromStdString(result.result_string),
                         QMessageBox::Ok);
                     ui->host->setEnabled(true);
-                    if (auto room = Network::GetRoom().lock()) {
+                    if (std::shared_ptr<Network::Room> room = Network::GetRoom().lock()) {
                         room->Destroy();
                     }
                     return;
@@ -176,7 +177,7 @@ void HostRoomWindow::Host() {
         if (is_public) {
             WebService::Client client(Settings::values.web_api_url, Settings::values.citra_username,
                                       Settings::values.citra_token);
-            if (auto room = Network::GetRoom().lock()) {
+            if (const std::shared_ptr<Network::Room> room = Network::GetRoom().lock()) {
                 token = client.GetExternalJWT(room->GetVerifyUID()).returned_data;
             }
             if (token.empty()) {
@@ -209,22 +210,23 @@ void HostRoomWindow::Host() {
 
 QVariant ComboBoxProxyModel::data(const QModelIndex& idx, int role) const {
     if (role != Qt::DisplayRole) {
-        auto val = QSortFilterProxyModel::data(idx, role);
+        QVariant variant = QSortFilterProxyModel::data(idx, role);
         // If its the icon, shrink it to 16x16
-        if (role == Qt::DecorationRole)
-            val = val.value<QImage>().scaled(16, 16, Qt::KeepAspectRatio);
-        return val;
+        if (role == Qt::DecorationRole) {
+            variant = variant.value<QImage>().scaled(16, 16, Qt::KeepAspectRatio);
+        }
+        return variant;
     }
     std::string filename;
     Common::SplitPath(
         QSortFilterProxyModel::data(idx, GameListItemPath::FullPathRole).toString().toStdString(),
         nullptr, &filename, nullptr);
-    QString title = QSortFilterProxyModel::data(idx, GameListItemPath::TitleRole).toString();
+    const QString title = QSortFilterProxyModel::data(idx, GameListItemPath::TitleRole).toString();
     return title.isEmpty() ? QString::fromStdString(filename) : title;
 }
 
 bool ComboBoxProxyModel::lessThan(const QModelIndex& left, const QModelIndex& right) const {
-    auto leftData = left.data(GameListItemPath::TitleRole).toString();
-    auto rightData = right.data(GameListItemPath::TitleRole).toString();
-    return leftData.compare(rightData) < 0;
+    const QString left_data = left.data(GameListItemPath::TitleRole).toString();
+    const QString right_data = right.data(GameListItemPath::TitleRole).toString();
+    return left_data.compare(right_data) < 0;
 }

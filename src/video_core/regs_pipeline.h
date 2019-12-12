@@ -20,7 +20,7 @@ struct PipelineRegs {
         FLOAT = 3,
     };
 
-    struct {
+    struct VertexAttributes {
         BitField<1, 28, u32> base_address;
 
         PAddr GetPhysicalBaseAddress() const {
@@ -96,7 +96,7 @@ struct PipelineRegs {
 
         // Attribute loaders map the source vertex data to input attributes
         // This e.g. allows to load different attributes from different memory locations
-        struct {
+        struct AttributeLoaders {
             // Source attribute data offset from the base address
             BitField<0, 28, u32> data_offset;
 
@@ -131,7 +131,7 @@ struct PipelineRegs {
         } attribute_loaders[12];
     } vertex_attributes;
 
-    struct {
+    struct IndexArray {
         enum IndexFormat : u32 {
             BYTE = 0,
             SHORT = 1,
@@ -168,7 +168,7 @@ struct PipelineRegs {
     INSERT_PADDING_WORDS(0x2);
 
     // These registers are used to setup the default "fall-back" vertex shader attributes
-    struct {
+    struct VsDefaultAttributesSetup {
         // Index of the current default attribute
         u32 index;
 

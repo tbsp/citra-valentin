@@ -530,7 +530,7 @@ Common::Rectangle<u32> SurfaceParams::GetSubRect(const SurfaceParams& sub_surfac
 }
 
 Common::Rectangle<u32> SurfaceParams::GetScaledSubRect(const SurfaceParams& sub_surface) const {
-    auto rect = GetSubRect(sub_surface);
+    Common::Rectangle<u32> rect = GetSubRect(sub_surface);
     rect.left = rect.left * res_scale;
     rect.right = rect.right * res_scale;
     rect.top = rect.top * res_scale;
@@ -621,7 +621,7 @@ bool CachedSurface::CanCopy(const SurfaceParams& dest_surface,
 
 SurfaceInterval SurfaceParams::GetCopyableInterval(const Surface& src_surface) const {
     SurfaceInterval result{};
-    const auto valid_regions =
+    const SurfaceRegions valid_regions =
         SurfaceRegions(GetInterval() & src_surface->GetInterval()) - src_surface->invalid_regions;
     for (auto& valid_interval : valid_regions) {
         const SurfaceInterval aligned_interval{
@@ -734,12 +734,12 @@ void CachedSurface::LoadGLBuffer(PAddr load_start, PAddr load_end) {
             tex_info.physical_address = addr;
 
             const SurfaceInterval load_interval(load_start, load_end);
-            const auto rect = GetSubRect(FromInterval(load_interval));
+            const Common::Rectangle<u32> rect = GetSubRect(FromInterval(load_interval));
             ASSERT(FromInterval(load_interval).GetInterval() == load_interval);
 
             for (unsigned y = rect.bottom; y < rect.top; ++y) {
                 for (unsigned x = rect.left; x < rect.right; ++x) {
-                    auto vec4 =
+                    Common::Vec4<u8> vec4 =
                         Pica::Texture::LookupTexture(texture_src_data, x, height - 1 - y, tex_info);
                     const std::size_t offset = (x + (width * y)) * 4;
                     std::memcpy(&gl_buffer[offset], vec4.AsArray(), 4);
@@ -972,7 +972,7 @@ void CachedSurface::UploadGLTexture(const Common::Rectangle<u32>& rect, GLuint r
     cur_state.Apply();
 
     if (res_scale != 1) {
-        auto scaled_rect = custom_rect;
+        Common::Rectangle<u32> scaled_rect = custom_rect;
         scaled_rect.left *= res_scale;
         scaled_rect.top *= res_scale;
         scaled_rect.right *= res_scale;
@@ -1013,7 +1013,7 @@ void CachedSurface::DownloadGLTexture(const Common::Rectangle<u32>& rect, GLuint
 
     // If not 1x scale, blit scaled texture to a new 1x texture and use that to flush
     if (res_scale != 1) {
-        auto scaled_rect = rect;
+        Common::Rectangle<u32> scaled_rect = rect;
         scaled_rect.left *= res_scale;
         scaled_rect.top *= res_scale;
         scaled_rect.right *= res_scale;
@@ -1085,11 +1085,11 @@ Surface FindMatch(const SurfaceCache& surface_cache, const SurfaceParams& params
     SurfaceInterval match_interval{};
 
     for (auto& pair : RangeFromInterval(surface_cache, params.GetInterval())) {
-        for (auto& surface : pair.second) {
+        for (const OpenGL::Surface surface : pair.second) {
             bool res_scale_matched = match_scale_type == ScaleMatch::Exact
                                          ? (params.res_scale == surface->res_scale)
                                          : (params.res_scale <= surface->res_scale);
-            // validity will be checked in GetCopyableInterval
+            // Validity will be checked in GetCopyableInterval
             bool is_valid =
                 find_flags & MatchFlags::Copy
                     ? true
@@ -1100,8 +1100,9 @@ Surface FindMatch(const SurfaceCache& surface_cache, const SurfaceParams& params
             }
 
             auto IsMatch_Helper = [&](auto check_type, auto match_fn) {
-                if (!(find_flags & check_type))
+                if (!(find_flags & check_type)) {
                     return;
+                }
 
                 bool matched;
                 SurfaceInterval surface_interval;
@@ -1149,7 +1150,7 @@ Surface FindMatch(const SurfaceCache& surface_cache, const SurfaceParams& params
             });
             IsMatch_Helper(std::integral_constant<MatchFlags, MatchFlags::Copy>{}, [&] {
                 ASSERT(validate_interval);
-                auto copy_interval =
+                OpenGL::SurfaceInterval copy_interval =
                     params.FromInterval(*validate_interval).GetCopyableInterval(surface);
                 bool matched = boost::icl::length(copy_interval & *validate_interval) != 0 &&
                                surface->CanCopy(params, copy_interval);
@@ -1478,7 +1479,7 @@ Surface RasterizerCacheOpenGL::GetTextureSurface(const Pica::Texture::TextureInf
         OpenGLState prev_state = OpenGLState::GetCurState();
         OpenGLState state;
         SCOPE_EXIT({ prev_state.Apply(); });
-        auto format_tuple = GetFormatTuple(params.pixel_format);
+        const OpenGL::FormatTuple format_tuple = GetFormatTuple(params.pixel_format);
 
         // Allocate more mipmap level if necessary
         if (!Settings::values.sharper_distant_objects && (surface->max_level < max_level)) {
@@ -1561,7 +1562,7 @@ Surface RasterizerCacheOpenGL::GetTextureSurface(const Pica::Texture::TextureInf
 }
 
 const CachedTextureCube& RasterizerCacheOpenGL::GetTextureCube(const TextureCubeConfig& config) {
-    auto& cube = texture_cube_cache[config];
+    OpenGL::CachedTextureCube& cube = texture_cube_cache[config];
 
     struct Face {
         Face(std::shared_ptr<SurfaceWatcher>& watcher, PAddr address, GLenum gl_face)
@@ -1654,8 +1655,8 @@ const CachedTextureCube& RasterizerCacheOpenGL::GetTextureCube(const TextureCube
 
 SurfaceSurfaceRect_Tuple RasterizerCacheOpenGL::GetFramebufferSurfaces(
     bool using_color_fb, bool using_depth_fb, const Common::Rectangle<s32>& viewport_rect) {
-    const auto& regs = Pica::g_state.regs;
-    const auto& config = regs.framebuffer.framebuffer;
+    const Pica::Regs& regs = Pica::g_state.regs;
+    const Pica::FramebufferRegs::FramebufferConfig& config = regs.framebuffer.framebuffer;
 
     // update resolution_scale_factor and reset cache if changed
     static u16 resolution_scale_factor = VideoCore::GetResolutionScaleFactor();
@@ -1690,8 +1691,10 @@ SurfaceSurfaceRect_Tuple RasterizerCacheOpenGL::GetFramebufferSurfaces(
     depth_params.pixel_format = SurfaceParams::PixelFormatFromDepthFormat(config.depth_format);
     depth_params.UpdateParams();
 
-    const auto color_vp_interval = color_params.GetSubRectInterval(viewport_clamped);
-    const auto depth_vp_interval = depth_params.GetSubRectInterval(viewport_clamped);
+    const OpenGL::SurfaceInterval color_vp_interval =
+        color_params.GetSubRectInterval(viewport_clamped);
+    const OpenGL::SurfaceInterval depth_vp_interval =
+        depth_params.GetSubRectInterval(viewport_clamped);
 
     // Make sure that framebuffers don't overlap if both color and depth are being used
     if (using_color_fb && using_depth_fb &&
@@ -1831,7 +1834,8 @@ void RasterizerCacheOpenGL::ValidateSurface(const Surface& surface, PAddr addr, 
             break;
         }
 
-        const auto interval = *it & validate_interval;
+        const OpenGL::SurfaceInterval interval = *it & validate_interval;
+
         // Look for a valid surface to copy from
         SurfaceParams params = surface->FromInterval(interval);
 
@@ -1842,6 +1846,19 @@ void RasterizerCacheOpenGL::ValidateSurface(const Surface& surface, PAddr addr, 
             CopySurface(copy_surface, surface, copy_interval);
             surface->invalid_regions.erase(copy_interval);
             continue;
+        }
+
+        if (Settings::values.ignore_format_reinterpretation) {
+            bool retry = false;
+
+            for (const auto& pair : RangeFromInterval(dirty_regions, interval)) {
+                surface->invalid_regions.erase(pair.first & interval);
+                retry = true;
+            }
+
+            if (retry) {
+                continue;
+            }
         }
 
         // D24S8 to RGBA8
@@ -1866,19 +1883,6 @@ void RasterizerCacheOpenGL::ValidateSurface(const Surface& surface, PAddr addr, 
             }
         }
 
-        if (Settings::values.ignore_format_reinterpretation) {
-            bool retry = false;
-
-            for (const auto& pair : RangeFromInterval(dirty_regions, interval)) {
-                surface->invalid_regions.erase(pair.first & interval);
-                retry = true;
-            }
-
-            if (retry) {
-                continue;
-            }
-        }
-
         // Load data from 3DS memory
         FlushRegion(params.addr, params.size);
         surface->LoadGLBuffer(params.addr, params.end);
@@ -1889,8 +1893,9 @@ void RasterizerCacheOpenGL::ValidateSurface(const Surface& surface, PAddr addr, 
 }
 
 void RasterizerCacheOpenGL::FlushRegion(PAddr addr, u32 size, Surface flush_surface) {
-    if (size == 0)
+    if (size == 0) {
         return;
+    }
 
     const SurfaceInterval flush_interval(addr, addr + size);
     SurfaceRegions flushed_intervals;
@@ -1900,10 +1905,11 @@ void RasterizerCacheOpenGL::FlushRegion(PAddr addr, u32 size, Surface flush_surf
         // the point is to avoid thousands of small writes every frame if the cpu decides to access
         // that region, anything higher than 8 you're guaranteed it comes from a service
         const auto interval = size <= 8 ? pair.first : pair.first & flush_interval;
-        auto& surface = pair.second;
+        OpenGL::Surface& surface = pair.second;
 
-        if (flush_surface != nullptr && surface != flush_surface)
+        if (flush_surface != nullptr && surface != flush_surface) {
             continue;
+        }
 
         // Sanity check, this surface is the last one that marked this region dirty
         ASSERT(surface->IsRegionValid(interval));
@@ -1913,9 +1919,11 @@ void RasterizerCacheOpenGL::FlushRegion(PAddr addr, u32 size, Surface flush_surf
             surface->DownloadGLTexture(surface->GetSubRect(params), read_framebuffer.handle,
                                        draw_framebuffer.handle);
         }
+
         surface->FlushGLBuffer(boost::icl::first(interval), boost::icl::last_next(interval));
         flushed_intervals += interval;
     }
+
     // Reset dirty regions
     dirty_regions -= flushed_intervals;
 }
@@ -1940,7 +1948,7 @@ void RasterizerCacheOpenGL::InvalidateRegion(PAddr addr, u32 size, const Surface
     }
 
     for (auto& pair : RangeFromInterval(surface_cache, invalid_interval)) {
-        for (auto& cached_surface : pair.second) {
+        for (const OpenGL::Surface& cached_surface : pair.second) {
             if (cached_surface == region_owner) {
                 continue;
             }
@@ -1972,7 +1980,7 @@ void RasterizerCacheOpenGL::InvalidateRegion(PAddr addr, u32 size, const Surface
         dirty_regions.erase(invalid_interval);
     }
 
-    for (auto& remove_surface : remove_surfaces) {
+    for (const OpenGL::Surface& remove_surface : remove_surfaces) {
         if (remove_surface == region_owner) {
             const Surface expanded_surface = FindMatch<MatchFlags::SubRect | MatchFlags::Invalid>(
                 surface_cache, *region_owner, ScaleMatch::Ignore);
@@ -1984,6 +1992,7 @@ void RasterizerCacheOpenGL::InvalidateRegion(PAddr addr, u32 size, const Surface
                 continue;
             }
         }
+
         UnregisterSurface(remove_surface);
     }
 

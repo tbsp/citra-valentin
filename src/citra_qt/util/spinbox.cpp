@@ -45,7 +45,7 @@ CSpinBox::CSpinBox(QWidget* parent)
 }
 
 void CSpinBox::SetValue(qint64 val) {
-    auto old_value = value;
+    qint64 old_value = value;
     value = std::max(std::min(val, max_value), min_value);
 
     if (old_value != value) {
@@ -63,7 +63,7 @@ void CSpinBox::SetRange(qint64 min, qint64 max) {
 }
 
 void CSpinBox::stepBy(int steps) {
-    auto new_value = value;
+    qint64 new_value = value;
     // Scale number of steps by the currently selected digit
     // TODO: Move this code elsewhere and enable it.
     // TODO: Support for num_digits==0, too

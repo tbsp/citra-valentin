@@ -80,27 +80,27 @@ Common::Vec4<u8> LookupTexelInTile(const u8* source, unsigned int x, unsigned in
 
     switch (info.format) {
     case TextureFormat::RGBA8: {
-        auto res = Color::DecodeRGBA8(source + MortonInterleave(x, y) * 4);
+        Common::Vec4<u8> res = Color::DecodeRGBA8(source + MortonInterleave(x, y) * 4);
         return {res.r(), res.g(), res.b(), static_cast<u8>(disable_alpha ? 255 : res.a())};
     }
 
     case TextureFormat::RGB8: {
-        auto res = Color::DecodeRGB8(source + MortonInterleave(x, y) * 3);
+        Common::Vec4<u8> res = Color::DecodeRGB8(source + MortonInterleave(x, y) * 3);
         return {res.r(), res.g(), res.b(), 255};
     }
 
     case TextureFormat::RGB5A1: {
-        auto res = Color::DecodeRGB5A1(source + MortonInterleave(x, y) * 2);
+        Common::Vec4<u8> res = Color::DecodeRGB5A1(source + MortonInterleave(x, y) * 2);
         return {res.r(), res.g(), res.b(), static_cast<u8>(disable_alpha ? 255 : res.a())};
     }
 
     case TextureFormat::RGB565: {
-        auto res = Color::DecodeRGB565(source + MortonInterleave(x, y) * 2);
+        Common::Vec4<u8> res = Color::DecodeRGB565(source + MortonInterleave(x, y) * 2);
         return {res.r(), res.g(), res.b(), 255};
     }
 
     case TextureFormat::RGBA4: {
-        auto res = Color::DecodeRGBA4(source + MortonInterleave(x, y) * 2);
+        Common::Vec4<u8> res = Color::DecodeRGBA4(source + MortonInterleave(x, y) * 2);
         return {res.r(), res.g(), res.b(), static_cast<u8>(disable_alpha ? 255 : res.a())};
     }
 
@@ -116,7 +116,7 @@ Common::Vec4<u8> LookupTexelInTile(const u8* source, unsigned int x, unsigned in
     }
 
     case TextureFormat::RG8: {
-        auto res = Color::DecodeRG8(source + MortonInterleave(x, y) * 2);
+        Common::Vec4<u8> res = Color::DecodeRG8(source + MortonInterleave(x, y) * 2);
         return {res.r(), res.g(), 0, 255};
     }
 
@@ -191,14 +191,14 @@ Common::Vec4<u8> LookupTexelInTile(const u8* source, unsigned int x, unsigned in
         u8 alpha = 255;
         if (has_alpha) {
             u64_le packed_alpha;
-            memcpy(&packed_alpha, subtile_ptr, sizeof(u64));
+            std::memcpy(&packed_alpha, subtile_ptr, sizeof(u64));
             subtile_ptr += sizeof(u64);
 
             alpha = Color::Convert4To8((packed_alpha >> (4 * (x * subtile_width + y))) & 0xF);
         }
 
         u64_le subtile_data;
-        memcpy(&subtile_data, subtile_ptr, sizeof(u64));
+        std::memcpy(&subtile_data, subtile_ptr, sizeof(u64));
 
         return Common::MakeVec(SampleETC1Subtile(subtile_data, x, y),
                                disable_alpha ? (u8)255 : alpha);

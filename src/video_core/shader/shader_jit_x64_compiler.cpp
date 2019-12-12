@@ -850,7 +850,7 @@ void JitShader::Compile_NextInstr() {
     Instruction instr = {(*program_code)[program_counter++]};
 
     OpCode::Id opcode = instr.opcode.Value();
-    auto instr_func = instr_table[static_cast<unsigned>(opcode)];
+    Pica::Shader::JitFunction instr_func = instr_table[static_cast<unsigned>(opcode)];
 
     if (instr_func) {
         // JIT the instruction!

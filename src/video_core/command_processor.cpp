@@ -66,7 +66,7 @@ static void WriteUniformIntReg(Shader::ShaderSetup& setup, unsigned index,
 
 static void WriteUniformFloatReg(ShaderRegs& config, Shader::ShaderSetup& setup,
                                  int& float_regs_counter, u32 uniform_write_buffer[4], u32 value) {
-    auto& uniform_setup = config.uniform_setup;
+    Pica::ShaderRegs::UniformSetup& uniform_setup = config.uniform_setup;
 
     // TODO: Does actual hardware indeed keep an intermediate buffer or does
     //       it directly write the values?
@@ -88,8 +88,9 @@ static void WriteUniformFloatReg(ShaderRegs& config, Shader::ShaderSetup& setup,
 
             // NOTE: The destination component order indeed is "backwards"
             if (uniform_setup.IsFloat32()) {
-                for (auto i : {0, 1, 2, 3})
+                for (int i : {0, 1, 2, 3}) {
                     uniform[3 - i] = float24::FromFloat32(*(float*)(&uniform_write_buffer[i]));
+                }
             } else {
                 // TODO: Untested
                 uniform.w = float24::FromRaw(uniform_write_buffer[0] >> 8);
@@ -174,7 +175,8 @@ static void WritePicaReg(u32 id, u32 value, u32 mask) {
         if (g_state.default_attr_counter >= 3) {
             g_state.default_attr_counter = 0;
 
-            auto& setup = regs.pipeline.vs_default_attributes_setup;
+            Pica::PipelineRegs::VsDefaultAttributesSetup& setup =
+                regs.pipeline.vs_default_attributes_setup;
 
             if (setup.index >= 16) {
                 LOG_ERROR(HW_GPU, "Invalid VS default attribute index {}", (int)setup.index);
@@ -205,7 +207,7 @@ static void WritePicaReg(u32 id, u32 value, u32 mask) {
                 // the primitive assembler.
 
                 Shader::AttributeBuffer& immediate_input = g_state.immediate.input_vertex;
-                auto& immediate_attribute_id = g_state.immediate.current_attribute;
+                u32& immediate_attribute_id = g_state.immediate.current_attribute;
 
                 immediate_input.attr[immediate_attribute_id] = attribute;
 
@@ -349,7 +351,7 @@ static void WritePicaReg(u32 id, u32 value, u32 mask) {
         }
 
         // Load vertices
-        const auto& index_info = regs.pipeline.index_array;
+        const Pica::PipelineRegs::IndexArray& index_info = regs.pipeline.index_array;
         const u8* index_address_8 =
             VideoCore::g_memory->GetPhysicalPointer(base_address + index_info.offset);
         if (index_address_8 == nullptr) {
@@ -474,10 +476,10 @@ static void WritePicaReg(u32 id, u32 value, u32 mask) {
             ASSERT(is_indexed);
         }
 
-        const auto AddTriangle = [rasterizer = VideoCore::g_renderer->Rasterizer()](
-                                     const auto& v0, const auto& v1, const auto& v2) {
-            rasterizer->AddTriangle(v0, v1, v2);
-        };
+        const auto AddTriangle =
+            [rasterizer = VideoCore::g_renderer->Rasterizer()](
+                const Pica::Shader::OutputVertex& v0, const Pica::Shader::OutputVertex& v1,
+                const Pica::Shader::OutputVertex& v2) { rasterizer->AddTriangle(v0, v1, v2); };
 
         for (u32 index = 0; index < regs.pipeline.num_vertices; ++index) {
             const u32 vertex = VertexIndex(index);
@@ -507,7 +509,7 @@ static void WritePicaReg(u32 id, u32 value, u32 mask) {
             future.get();
         }
 
-        for (auto& range : memory_accesses.ranges) {
+        for (std::pair<const unsigned int, u32>& range : memory_accesses.ranges) {
             g_debug_context->recorder->MemoryAccessed(
                 VideoCore::g_memory->GetPhysicalPointer(range.first), range.second, range.first);
         }
@@ -529,7 +531,7 @@ static void WritePicaReg(u32 id, u32 value, u32 mask) {
     case PICA_REG_INDEX(gs.int_uniforms[2]):
     case PICA_REG_INDEX(gs.int_uniforms[3]): {
         const unsigned index = (id - PICA_REG_INDEX(gs.int_uniforms[0]));
-        auto& values = regs.gs.int_uniforms[index];
+        Pica::ShaderRegs::IntUniforms& values = regs.gs.int_uniforms[index];
         WriteUniformIntReg(g_state.gs, index,
                            Common::Vec4<u8>(values.x, values.y, values.z, values.w));
         break;
@@ -597,7 +599,7 @@ static void WritePicaReg(u32 id, u32 value, u32 mask) {
     case PICA_REG_INDEX(vs.int_uniforms[3]): {
         // TODO (wwylele): does regs.pipeline.gs_unit_exclusive_configuration affect this?
         const unsigned index = (id - PICA_REG_INDEX(vs.int_uniforms[0]));
-        auto& values = regs.vs.int_uniforms[index];
+        Pica::ShaderRegs::IntUniforms& values = regs.vs.int_uniforms[index];
         WriteUniformIntReg(g_state.vs, index,
                            Common::Vec4<u8>(values.x, values.y, values.z, values.w));
         break;
@@ -671,7 +673,7 @@ static void WritePicaReg(u32 id, u32 value, u32 mask) {
     case PICA_REG_INDEX(lighting.lut_data[5]):
     case PICA_REG_INDEX(lighting.lut_data[6]):
     case PICA_REG_INDEX(lighting.lut_data[7]): {
-        auto& lut_config = regs.lighting.lut_config;
+        Pica::LightingRegs::LutConfig& lut_config = regs.lighting.lut_config;
 
         ASSERT_MSG(lut_config.index < 256, "lut_config.index exceeded maximum value of 255!");
 
@@ -701,7 +703,7 @@ static void WritePicaReg(u32 id, u32 value, u32 mask) {
     case PICA_REG_INDEX(texturing.proctex_lut_data[5]):
     case PICA_REG_INDEX(texturing.proctex_lut_data[6]):
     case PICA_REG_INDEX(texturing.proctex_lut_data[7]): {
-        auto& index = regs.texturing.proctex_lut_config.index;
+        BitField<0, 8, u32>& index = regs.texturing.proctex_lut_config.index;
         Pica::State::ProcTex& pt = g_state.proctex;
 
         switch (regs.texturing.proctex_lut_config.ref_table.Value()) {

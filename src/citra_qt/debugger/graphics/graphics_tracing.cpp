@@ -44,10 +44,10 @@ GraphicsTracingWidget::GraphicsTracingWidget(std::shared_ptr<Pica::DebugContext>
     stop_recording->setVisible(false);
     abort_recording->setVisible(false);
 
-    auto main_widget = new QWidget;
-    auto main_layout = new QVBoxLayout;
+    QWidget* main_widget = new QWidget;
+    QVBoxLayout* main_layout = new QVBoxLayout;
     {
-        auto sub_layout = new QHBoxLayout;
+        QHBoxLayout* sub_layout = new QHBoxLayout;
         sub_layout->addWidget(start_recording);
         sub_layout->addWidget(stop_recording);
         sub_layout->addWidget(abort_recording);
@@ -58,12 +58,13 @@ GraphicsTracingWidget::GraphicsTracingWidget(std::shared_ptr<Pica::DebugContext>
 }
 
 void GraphicsTracingWidget::StartRecording() {
-    auto context = context_weak.lock();
-    if (!context)
+    std::shared_ptr<Pica::DebugContext> context = context_weak.lock();
+    if (!context) {
         return;
+    }
 
-    auto shader_binary = Pica::g_state.vs.program_code;
-    auto swizzle_data = Pica::g_state.vs.swizzle_data;
+    const Pica::Shader::ProgramCode& shader_binary = Pica::g_state.vs.program_code;
+    const Pica::Shader::SwizzleData& swizzle_data = Pica::g_state.vs.swizzle_data;
 
     // Encode floating point numbers to 24-bit values
     // TODO: Drop this explicit conversion once we store float24 values bit-correctly internally.
@@ -96,7 +97,7 @@ void GraphicsTracingWidget::StartRecording() {
     // boost::copy(TODO: Not implemented, std::back_inserter(state.gs_swizzle_data));
     // boost::copy(TODO: Not implemented, std::back_inserter(state.gs_float_uniforms));
 
-    auto recorder = new CiTrace::Recorder(state);
+    CiTrace::Recorder* recorder = new CiTrace::Recorder(state);
     context->recorder = std::shared_ptr<CiTrace::Recorder>(recorder);
 
     emit SetStartTracingButtonEnabled(false);
@@ -105,13 +106,14 @@ void GraphicsTracingWidget::StartRecording() {
 }
 
 void GraphicsTracingWidget::StopRecording() {
-    auto context = context_weak.lock();
-    if (!context)
+    std::shared_ptr<Pica::DebugContext> context = context_weak.lock();
+    if (!context) {
         return;
+    }
 
-    QString filename = QFileDialog::getSaveFileName(this, QStringLiteral("Save CiTrace"),
-                                                    QStringLiteral("citrace.ctf"),
-                                                    QStringLiteral("CiTrace File (*.ctf)"));
+    const QString filename = QFileDialog::getSaveFileName(this, QStringLiteral("Save CiTrace"),
+                                                          QStringLiteral("citrace.ctf"),
+                                                          QStringLiteral("CiTrace File (*.ctf)"));
 
     if (filename.isEmpty()) {
         // If the user canceled the dialog, keep recording
@@ -127,9 +129,10 @@ void GraphicsTracingWidget::StopRecording() {
 }
 
 void GraphicsTracingWidget::AbortRecording() {
-    auto context = context_weak.lock();
-    if (!context)
+    std::shared_ptr<Pica::DebugContext> context = context_weak.lock();
+    if (!context) {
         return;
+    }
 
     context->recorder = nullptr;
 
@@ -154,18 +157,17 @@ void GraphicsTracingWidget::OnEmulationStarting(EmuThread* emu_thread) {
 void GraphicsTracingWidget::OnEmulationStopping() {
     // TODO: Is it safe to access the context here?
 
-    auto context = context_weak.lock();
-    if (!context)
+    std::shared_ptr<Pica::DebugContext> context = context_weak.lock();
+    if (!context) {
         return;
+    }
 
     if (context->recorder) {
-        auto reply = QMessageBox::question(
-            this, QStringLiteral("CiTracing still active"),
-            QStringLiteral("A CiTrace is still being recorded. Do you want to save it? "
-                           "If not, all recorded data will be discarded."),
-            QMessageBox::Yes | QMessageBox::No, QMessageBox::Yes);
-
-        if (reply == QMessageBox::Yes) {
+        if (QMessageBox::question(
+                this, QStringLiteral("CiTracing still active"),
+                QStringLiteral("A CiTrace is still being recorded. Do you want to save it? "
+                               "If not, all recorded data will be discarded."),
+                QMessageBox::Yes | QMessageBox::No, QMessageBox::Yes) == QMessageBox::Yes) {
             StopRecording();
         } else {
             AbortRecording();

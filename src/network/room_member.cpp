@@ -247,10 +247,10 @@ void RoomMember::RoomMemberImpl::MemberLoop() {
         }
         {
             std::lock_guard lock(send_list_mutex);
-            for (const auto& packet : send_list) {
-                ENetPacket* enetPacket = enet_packet_create(packet.GetData(), packet.GetDataSize(),
-                                                            ENET_PACKET_FLAG_RELIABLE);
-                enet_peer_send(server, 0, enetPacket);
+            for (const Network::Packet& packet : send_list) {
+                ENetPacket* enet_packet = enet_packet_create(packet.GetData(), packet.GetDataSize(),
+                                                             ENET_PACKET_FLAG_RELIABLE);
+                enet_peer_send(server, 0, enet_packet);
             }
             enet_host_flush(client);
             send_list.clear();
@@ -309,7 +309,7 @@ void RoomMember::RoomMemberImpl::HandleRoomInformationPacket(const ENetEvent* ev
     packet >> num_members;
     member_information.resize(num_members);
 
-    for (auto& member : member_information) {
+    for (Network::RoomMember::MemberInformation& member : member_information) {
         packet >> member.nickname;
         packet >> member.mac_address;
         packet >> member.game_info.name;

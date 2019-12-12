@@ -68,8 +68,8 @@ void CheatEngine::SaveCheatFile() const {
     std::ofstream file;
     OpenFStream(file, filepath, std::ios_base::out);
 
-    auto cheats = GetCheats();
-    for (const auto& cheat : cheats) {
+    std::vector<std::shared_ptr<Cheats::CheatBase>> cheats = GetCheats();
+    for (const std::shared_ptr<Cheats::CheatBase>& cheat : cheats) {
         file << cheat->ToString();
     }
 
@@ -85,10 +85,12 @@ void CheatEngine::LoadCheatFile() {
         FileUtil::CreateDir(cheat_dir);
     }
 
-    if (!FileUtil::Exists(filepath))
+    if (!FileUtil::Exists(filepath)) {
         return;
+    }
 
-    auto gateway_cheats = GatewayCheat::LoadFile(filepath);
+    std::vector<std::unique_ptr<Cheats::CheatBase>> gateway_cheats =
+        GatewayCheat::LoadFile(filepath);
     {
         std::unique_lock<std::shared_mutex> lock(cheats_list_mutex);
         std::move(gateway_cheats.begin(), gateway_cheats.end(), std::back_inserter(cheats_list));
@@ -98,7 +100,7 @@ void CheatEngine::LoadCheatFile() {
 void CheatEngine::RunCallback([[maybe_unused]] u64 userdata, int cycles_late) {
     {
         std::shared_lock<std::shared_mutex> lock(cheats_list_mutex);
-        for (auto& cheat : cheats_list) {
+        for (std::shared_ptr<Cheats::CheatBase>& cheat : cheats_list) {
             if (cheat->IsEnabled()) {
                 cheat->Execute(system);
             }

@@ -99,61 +99,68 @@ static_assert(offsetof(FrameBufferUpdate, framebuffer_info[1]) == 0x20,
               "FrameBufferInfo element has incorrect alignment");
 #endif
 
+struct DmaRequest {
+    u32 source_address;
+    u32 dest_address;
+    u32 size;
+};
+
+struct SubmitGpuCommandList {
+    u32 address;
+    u32 size;
+    u32 flags;
+    u32 unused[3];
+    u32 do_flush;
+};
+
+struct MemoryFill {
+    u32 start1;
+    u32 value1;
+    u32 end1;
+
+    u32 start2;
+    u32 value2;
+    u32 end2;
+
+    u16 control1;
+    u16 control2;
+};
+
+struct DisplayTransfer {
+    u32 in_buffer_address;
+    u32 out_buffer_address;
+    u32 in_buffer_size;
+    u32 out_buffer_size;
+    u32 flags;
+};
+
+struct TextureCopy {
+    u32 in_buffer_address;
+    u32 out_buffer_address;
+    u32 size;
+    u32 in_width_gap;
+    u32 out_width_gap;
+    u32 flags;
+};
+
+struct CacheFlush {
+    struct {
+        u32 address;
+        u32 size;
+    } regions[3];
+};
+
 /// GSP command
 struct Command {
     BitField<0, 8, CommandId> id;
 
     union {
-        struct {
-            u32 source_address;
-            u32 dest_address;
-            u32 size;
-        } dma_request;
-
-        struct {
-            u32 address;
-            u32 size;
-            u32 flags;
-            u32 unused[3];
-            u32 do_flush;
-        } submit_gpu_cmdlist;
-
-        struct {
-            u32 start1;
-            u32 value1;
-            u32 end1;
-
-            u32 start2;
-            u32 value2;
-            u32 end2;
-
-            u16 control1;
-            u16 control2;
-        } memory_fill;
-
-        struct {
-            u32 in_buffer_address;
-            u32 out_buffer_address;
-            u32 in_buffer_size;
-            u32 out_buffer_size;
-            u32 flags;
-        } display_transfer;
-
-        struct {
-            u32 in_buffer_address;
-            u32 out_buffer_address;
-            u32 size;
-            u32 in_width_gap;
-            u32 out_width_gap;
-            u32 flags;
-        } texture_copy;
-
-        struct {
-            struct {
-                u32 address;
-                u32 size;
-            } regions[3];
-        } cache_flush;
+        DmaRequest dma_request;
+        SubmitGpuCommandList submit_gpu_command_list;
+        MemoryFill memory_fill;
+        DisplayTransfer display_transfer;
+        TextureCopy texture_copy;
+        CacheFlush cache_flush;
 
         u8 raw_data[0x1C];
     };

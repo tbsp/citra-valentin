@@ -51,7 +51,8 @@ std::size_t WaitTreeItem::Row() const {
 }
 
 std::vector<std::unique_ptr<WaitTreeThread>> WaitTreeItem::MakeThreadItemList() {
-    const auto& threads = Core::System::GetInstance().Kernel().GetThreadManager().GetThreadList();
+    const std::vector<std::shared_ptr<Kernel::Thread>>& threads =
+        Core::System::GetInstance().Kernel().GetThreadManager().GetThreadList();
     std::vector<std::unique_ptr<WaitTreeThread>> item_list;
     item_list.reserve(threads.size());
     for (std::size_t i = 0; i < threads.size(); ++i) {
@@ -101,7 +102,7 @@ std::unique_ptr<WaitTreeWaitObject> WaitTreeWaitObject::make(const Kernel::WaitO
 std::vector<std::unique_ptr<WaitTreeItem>> WaitTreeWaitObject::GetChildren() const {
     std::vector<std::unique_ptr<WaitTreeItem>> list;
 
-    const auto& threads = object.GetWaitingThreads();
+    const std::vector<std::shared_ptr<Kernel::Thread>>& threads = object.GetWaitingThreads();
     if (threads.empty()) {
         list.push_back(std::make_unique<WaitTreeText>(QStringLiteral("waited by no thread")));
     } else {
@@ -135,15 +136,16 @@ QString WaitTreeObjectList::GetText() const {
 
 std::vector<std::unique_ptr<WaitTreeItem>> WaitTreeObjectList::GetChildren() const {
     std::vector<std::unique_ptr<WaitTreeItem>> list(object_list.size());
-    std::transform(object_list.begin(), object_list.end(), list.begin(),
-                   [](const auto& t) { return WaitTreeWaitObject::make(*t); });
+    std::transform(
+        object_list.begin(), object_list.end(), list.begin(),
+        [](const std::shared_ptr<Kernel::WaitObject>& t) { return WaitTreeWaitObject::make(*t); });
     return list;
 }
 
 WaitTreeThread::WaitTreeThread(const Kernel::Thread& thread) : WaitTreeWaitObject(thread) {}
 
 QString WaitTreeThread::GetText() const {
-    const auto& thread = static_cast<const Kernel::Thread&>(object);
+    const Kernel::Thread& thread = static_cast<const Kernel::Thread&>(object);
     QString status;
     switch (thread.status) {
     case Kernel::ThreadStatus::Running:
@@ -183,7 +185,7 @@ QString WaitTreeThread::GetText() const {
 }
 
 QColor WaitTreeThread::GetColor() const {
-    const auto& thread = static_cast<const Kernel::Thread&>(object);
+    const Kernel::Thread& thread = static_cast<const Kernel::Thread&>(object);
     switch (thread.status) {
     case Kernel::ThreadStatus::Running:
         return QColor(Qt::GlobalColor::darkGreen);
@@ -211,7 +213,7 @@ QColor WaitTreeThread::GetColor() const {
 std::vector<std::unique_ptr<WaitTreeItem>> WaitTreeThread::GetChildren() const {
     std::vector<std::unique_ptr<WaitTreeItem>> list(WaitTreeWaitObject::GetChildren());
 
-    const auto& thread = static_cast<const Kernel::Thread&>(object);
+    const Kernel::Thread& thread = static_cast<const Kernel::Thread&>(object);
 
     QString processor;
     switch (thread.processor_id) {
@@ -273,7 +275,7 @@ WaitTreeMutex::WaitTreeMutex(const Kernel::Mutex& object) : WaitTreeWaitObject(o
 std::vector<std::unique_ptr<WaitTreeItem>> WaitTreeMutex::GetChildren() const {
     std::vector<std::unique_ptr<WaitTreeItem>> list(WaitTreeWaitObject::GetChildren());
 
-    const auto& mutex = static_cast<const Kernel::Mutex&>(object);
+    const Kernel::Mutex& mutex = static_cast<const Kernel::Mutex&>(object);
     if (mutex.lock_count) {
         list.push_back(std::make_unique<WaitTreeText>(
             QStringLiteral("locked %1 times by thread:").arg(mutex.lock_count)));
@@ -290,7 +292,8 @@ WaitTreeSemaphore::WaitTreeSemaphore(const Kernel::Semaphore& object)
 std::vector<std::unique_ptr<WaitTreeItem>> WaitTreeSemaphore::GetChildren() const {
     std::vector<std::unique_ptr<WaitTreeItem>> list(WaitTreeWaitObject::GetChildren());
 
-    const auto& semaphore = static_cast<const Kernel::Semaphore&>(object);
+const Kernel::Semaphore &semaphore
+= static_cast<const Kernel::Semaphore&>(object);
     list.push_back(std::make_unique<WaitTreeText>(
         QStringLiteral("available count = %1").arg(semaphore.available_count)));
     list.push_back(
@@ -303,7 +306,7 @@ WaitTreeTimer::WaitTreeTimer(const Kernel::Timer& object) : WaitTreeWaitObject(o
 std::vector<std::unique_ptr<WaitTreeItem>> WaitTreeTimer::GetChildren() const {
     std::vector<std::unique_ptr<WaitTreeItem>> list(WaitTreeWaitObject::GetChildren());
 
-    const auto& timer = static_cast<const Kernel::Timer&>(object);
+    const Kernel::Timer& timer = static_cast<const Kernel::Timer&>(object);
 
     list.push_back(std::make_unique<WaitTreeText>(
         QStringLiteral("reset type = %1").arg(GetResetTypeQString(timer.GetResetType()))));
@@ -325,7 +328,7 @@ QString WaitTreeMutexList::GetText() const {
 std::vector<std::unique_ptr<WaitTreeItem>> WaitTreeMutexList::GetChildren() const {
     std::vector<std::unique_ptr<WaitTreeItem>> list(mutex_list.size());
     std::transform(mutex_list.begin(), mutex_list.end(), list.begin(),
-                   [](const auto& t) { return std::make_unique<WaitTreeMutex>(*t); });
+                   [](const std::shared_ptr<Kernel::Mutex>& t) { return std::make_unique<WaitTreeMutex>(*t); });
     return list;
 }
 
@@ -339,7 +342,7 @@ QString WaitTreeThreadList::GetText() const {
 std::vector<std::unique_ptr<WaitTreeItem>> WaitTreeThreadList::GetChildren() const {
     std::vector<std::unique_ptr<WaitTreeItem>> list(thread_list.size());
     std::transform(thread_list.begin(), thread_list.end(), list.begin(),
-                   [](const auto& t) { return std::make_unique<WaitTreeThread>(*t); });
+                   [](const std::shared_ptr<Kernel::Thread>& t) { return std::make_unique<WaitTreeThread>(*t); });
     return list;
 }
 

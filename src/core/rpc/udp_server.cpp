@@ -60,7 +60,7 @@ private:
 
     void SendReply(boost::asio::ip::udp::endpoint endpoint, Packet& reply_packet) {
         std::vector<u8> reply_buffer(MIN_PACKET_SIZE + reply_packet.GetPacketDataSize());
-        auto reply_header = reply_packet.GetHeader();
+        const RPC::PacketHeader reply_header = reply_packet.GetHeader();
 
         std::memcpy(reply_buffer.data(), &reply_header, sizeof(reply_header));
         std::memcpy(reply_buffer.data() + (4 * sizeof(u32)), reply_packet.GetPacketData().data(),

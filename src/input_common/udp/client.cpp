@@ -59,7 +59,8 @@ public:
 
 private:
     void HandleReceive(const boost::system::error_code& error, std::size_t bytes_transferred) {
-        if (auto type = Response::Validate(receive_buffer.data(), bytes_transferred)) {
+        if (std::optional<InputCommon::CemuhookUDP::Type> type =
+                Response::Validate(receive_buffer.data(), bytes_transferred)) {
             switch (*type) {
             case Type::Version: {
                 Response::Version version;
@@ -88,13 +89,15 @@ private:
     void HandleSend(const boost::system::error_code& error) {
         // Send a request for getting port info for the pad
         Request::PortInfo port_info{1, {pad_index, 0, 0, 0}};
-        auto port_message = Request::Create(port_info, client_id);
+        InputCommon::CemuhookUDP::Message<InputCommon::CemuhookUDP::Request::PortInfo>
+            port_message = Request::Create(port_info, client_id);
         std::memcpy(&send_buffer1, &port_message, PORT_INFO_SIZE);
         std::size_t len = socket.send_to(boost::asio::buffer(send_buffer1), send_endpoint);
 
         // Send a request for getting pad data for the pad
         Request::PadData pad_data{Request::PadData::Flags::Id, pad_index, EMPTY_MAC_ADDRESS};
-        auto pad_message = Request::Create(pad_data, client_id);
+        InputCommon::CemuhookUDP::Message<InputCommon::CemuhookUDP::Request::PadData> pad_message =
+            Request::Create(pad_data, client_id);
         std::memcpy(send_buffer2.data(), &pad_message, PAD_DATA_SIZE);
         std::size_t len2 = socket.send_to(boost::asio::buffer(send_buffer2), send_endpoint);
         StartSend(timer.expiry());

@@ -11,7 +11,7 @@
 namespace Service::NEWS {
 
 void InstallInterfaces(Core::System& system) {
-    auto& service_manager = system.ServiceManager();
+    Service::SM::ServiceManager& service_manager = system.ServiceManager();
     std::make_shared<NEWS_S>()->InstallAsService(service_manager);
     std::make_shared<NEWS_U>()->InstallAsService(service_manager);
 }

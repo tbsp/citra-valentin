@@ -31,7 +31,7 @@ private:
     public:
         explicit Device(std::weak_ptr<TouchState>&& touch_state) : touch_state(touch_state) {}
         std::tuple<float, float, bool> GetStatus() const override {
-            if (auto state = touch_state.lock()) {
+            if (std::shared_ptr<Frontend::EmuWindow::TouchState> state = touch_state.lock()) {
                 std::lock_guard guard{state->mutex};
                 return std::make_tuple(state->touch_x, state->touch_y, state->touch_pressed);
             }

@@ -22,23 +22,24 @@
 TEST_CASE("DSP HLE Audio Decoder", "[audio_core]") {
     Memory::MemorySystem memory;
     SECTION("decoder should produce correct samples") {
-        auto decoder =
 #ifdef HAVE_MF
+        std::unique_ptr<AudioCore::HLE::WMFDecoder> decoder =
             std::make_unique<AudioCore::HLE::WMFDecoder>(memory);
 #elif HAVE_FFMPEG
+        std::unique_ptr<AudioCore::HLE::FFMPEGDecoder> decoder =
             std::make_unique<AudioCore::HLE::FFMPEGDecoder>(memory);
 #endif
         AudioCore::HLE::BinaryRequest request;
 
         request.codec = AudioCore::HLE::DecoderCodec::AAC;
         request.cmd = AudioCore::HLE::DecoderCommand::Init;
-        // initialize decoder
+        // Initialize decoder
         std::optional<AudioCore::HLE::BinaryResponse> response = decoder->ProcessRequest(request);
 
         request.cmd = AudioCore::HLE::DecoderCommand::Decode;
         u8* fcram = memory.GetFCRAMPointer(0);
 
-        memcpy(fcram, fixure_buffer, fixure_buffer_size);
+        std::memcpy(fcram, fixure_buffer, fixure_buffer_size);
         request.src_addr = Memory::FCRAM_PADDR;
         request.dst_addr_ch0 = Memory::FCRAM_PADDR + 1024;
         request.dst_addr_ch1 = Memory::FCRAM_PADDR + 1048576; // 1 MB
@@ -46,7 +47,7 @@ TEST_CASE("DSP HLE Audio Decoder", "[audio_core]") {
 
         response = decoder->ProcessRequest(request);
         response = decoder->ProcessRequest(request);
-        // remove this line
+        // Remove this line
         request.src_addr = Memory::FCRAM_PADDR;
     }
 }

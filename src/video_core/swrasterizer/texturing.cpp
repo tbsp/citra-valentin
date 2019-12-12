@@ -133,7 +133,7 @@ Common::Vec3<u8> ColorCombine(TevStageConfig::Operation op, const Common::Vec3<u
         return ((input[0] * input[1]) / 255).Cast<u8>();
 
     case Operation::Add: {
-        auto result = input[0] + input[1];
+        Common::Vec3<int> result = input[0] + input[1];
         result.r() = std::min(255, result.r());
         result.g() = std::min(255, result.g());
         result.b() = std::min(255, result.b());
@@ -143,7 +143,7 @@ Common::Vec3<u8> ColorCombine(TevStageConfig::Operation op, const Common::Vec3<u
     case Operation::AddSigned: {
         // TODO(bunnei): Verify that the color conversion from (float) 0.5f to
         // (byte) 128 is correct
-        auto result =
+        Common::Vec3<int> result =
             input[0].Cast<int>() + input[1].Cast<int>() - Common::MakeVec<int>(128, 128, 128);
         result.r() = std::clamp<int>(result.r(), 0, 255);
         result.g() = std::clamp<int>(result.g(), 0, 255);
@@ -158,7 +158,7 @@ Common::Vec3<u8> ColorCombine(TevStageConfig::Operation op, const Common::Vec3<u
             .Cast<u8>();
 
     case Operation::Subtract: {
-        auto result = input[0].Cast<int>() - input[1].Cast<int>();
+        Common::Vec3<int> result = input[0].Cast<int>() - input[1].Cast<int>();
         result.r() = std::max(0, result.r());
         result.g() = std::max(0, result.g());
         result.b() = std::max(0, result.b());
@@ -166,7 +166,7 @@ Common::Vec3<u8> ColorCombine(TevStageConfig::Operation op, const Common::Vec3<u
     }
 
     case Operation::MultiplyThenAdd: {
-        auto result = (input[0] * input[1] + 255 * input[2].Cast<int>()) / 255;
+        Common::Vec3<int> result = (input[0] * input[1] + 255 * input[2].Cast<int>()) / 255;
         result.r() = std::min(255, result.r());
         result.g() = std::min(255, result.g());
         result.b() = std::min(255, result.b());
@@ -174,7 +174,7 @@ Common::Vec3<u8> ColorCombine(TevStageConfig::Operation op, const Common::Vec3<u
     }
 
     case Operation::AddThenMultiply: {
-        auto result = input[0] + input[1];
+        Common::Vec3<int> result = input[0] + input[1];
         result.r() = std::min(255, result.r());
         result.g() = std::min(255, result.g());
         result.b() = std::min(255, result.b());
@@ -214,7 +214,7 @@ u8 AlphaCombine(TevStageConfig::Operation op, const std::array<u8, 3>& input) {
 
     case Operation::AddSigned: {
         // TODO(bunnei): Verify that the color conversion from (float) 0.5f to (byte) 128 is correct
-        auto result = static_cast<int>(input[0]) + static_cast<int>(input[1]) - 128;
+        int result = static_cast<int>(input[0]) + static_cast<int>(input[1]) - 128;
         return static_cast<u8>(std::clamp<int>(result, 0, 255));
     }
 

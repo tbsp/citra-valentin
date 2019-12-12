@@ -62,7 +62,7 @@ void ConfigureEnhancements::updateShaders(bool anaglyph) {
 
     ui->shader_combobox->setCurrentIndex(0);
 
-    for (const auto& shader : OpenGL::GetPostProcessingShaderList(anaglyph)) {
+    for (const std::string& shader : OpenGL::GetPostProcessingShaderList(anaglyph)) {
         ui->shader_combobox->addItem(QString::fromStdString(shader));
 
         if (Settings::values.pp_shader_name == shader) {

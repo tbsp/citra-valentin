@@ -90,8 +90,8 @@ void ConfigureDialog::PopulateSelectionList() {
          {QStringLiteral("Graphics"), {ui->enhancementsTab, ui->graphicsTab, ui->customLayoutTab}},
          {QStringLiteral("Controls"), {ui->inputTab, ui->hotkeysTab}}}};
 
-    for (const auto& entry : items) {
-        auto* const item = new QListWidgetItem(entry.first);
+    for (const std::pair<QString, QWidgetList>& entry : items) {
+        QListWidgetItem* const item = new QListWidgetItem(entry.first);
         item->setData(Qt::UserRole, QVariant::fromValue(entry.second));
 
         ui->selectorList->addItem(item);
@@ -99,7 +99,7 @@ void ConfigureDialog::PopulateSelectionList() {
 }
 
 void ConfigureDialog::UpdateVisibleTabs() {
-    const auto items = ui->selectorList->selectedItems();
+    const QList<QListWidgetItem*> items = ui->selectorList->selectedItems();
     if (items.isEmpty()) {
         return;
     }
@@ -124,7 +124,7 @@ void ConfigureDialog::UpdateVisibleTabs() {
 
     const QList<QWidget*> tabs = qvariant_cast<QList<QWidget*>>(items[0]->data(Qt::UserRole));
 
-    for (const auto tab : tabs) {
+    for (QWidget* const tab : tabs) {
         ui->tabWidget->addTab(tab, widgets.at(tab));
     }
 }

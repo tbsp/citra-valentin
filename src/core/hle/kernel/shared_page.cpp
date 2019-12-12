@@ -24,12 +24,13 @@ static std::chrono::seconds GetInitTime() {
 
     switch (Settings::values.init_clock) {
     case Settings::InitClock::SystemTime: {
-        auto now = std::chrono::system_clock::now();
+        std::chrono::time_point<std::chrono::system_clock> now = std::chrono::system_clock::now();
         // If the system time is in daylight saving, we give an additional hour to console time
         std::time_t now_time_t = std::chrono::system_clock::to_time_t(now);
         std::tm* now_tm = std::localtime(&now_time_t);
-        if (now_tm && now_tm->tm_isdst > 0)
+        if (now_tm && now_tm->tm_isdst > 0) {
             now = now + std::chrono::hours(1);
+        }
         return std::chrono::duration_cast<std::chrono::seconds>(now.time_since_epoch());
     }
     case Settings::InitClock::FixedTime:

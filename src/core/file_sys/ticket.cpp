@@ -49,8 +49,8 @@ std::optional<std::array<u8, 16>> Ticket::GetTitleKey() const {
     if (!HW::AES::IsNormalKeyAvailable(HW::AES::KeySlotID::TicketCommonKey)) {
         return {};
     }
-    auto key = HW::AES::GetNormalKey(HW::AES::KeySlotID::TicketCommonKey);
-    auto title_key = ticket_body.title_key;
+    HW::AES::AESKey key = HW::AES::GetNormalKey(HW::AES::KeySlotID::TicketCommonKey);
+    HW::AES::AESKey title_key = ticket_body.title_key;
     CryptoPP::CBC_Mode<CryptoPP::AES>::Decryption{key.data(), key.size(), ctr.data()}.ProcessData(
         title_key.data(), title_key.data(), title_key.size());
     return title_key;

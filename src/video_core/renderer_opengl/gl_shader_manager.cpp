@@ -32,7 +32,7 @@ static OGLProgram GeneratePrecompiledProgram(const ShaderDiskCacheDump& dump,
         return {};
     }
 
-    auto shader = OGLProgram();
+    OGLProgram shader;
     shader.handle = glCreateProgram();
     glProgramParameteri(shader.handle, GL_PROGRAM_SEPARABLE, GL_TRUE);
     glProgramBinary(shader.handle, dump.binary_format, dump.binary.data(),
@@ -369,7 +369,7 @@ bool ShaderProgramManager::UseProgrammableVertexShader(const Pica::Regs& regs,
     impl->current.vs = handle;
     // Save VS to the disk cache if its a new shader
     if (result) {
-        auto& disk_cache = impl->disk_cache;
+        OpenGL::ShaderDiskCache& disk_cache = impl->disk_cache;
         ProgramCode program_code{setup.program_code.begin(), setup.program_code.end()};
         program_code.insert(program_code.end(), setup.swizzle_data.begin(),
                             setup.swizzle_data.end());
@@ -400,7 +400,7 @@ void ShaderProgramManager::UseFragmentShader(const Pica::Regs& regs) {
     impl->current.fs = handle;
     // Save FS to the disk cache if its a new shader
     if (result) {
-        auto& disk_cache = impl->disk_cache;
+        OpenGL::ShaderDiskCache& disk_cache = impl->disk_cache;
         u64 unique_identifier = GetUniqueIdentifier(regs, {});
         ShaderDiskCacheRaw raw{unique_identifier, ProgramType::FS, regs, {}};
         disk_cache.SaveRaw(raw);
@@ -471,7 +471,7 @@ void ShaderProgramManager::LoadDiskCache(const std::atomic_bool& stop_loading,
         callback(VideoCore::LoadCallbackStage::Decompile, 0, raws.size());
     }
     std::vector<std::size_t> load_raws_index;
-    // Loads both decompiled and precompiled shaders from the cache. If either one is missing for
+    // Loads both decompiled and precompiled shaders from the cache.
     const auto LoadPrecompiledWorker =
         [&](std::size_t begin, std::size_t end, const std::vector<ShaderDiskCacheRaw>& raws,
             const ShaderDecompiledMap& decompiled, const ShaderDumpsMap& dumps) {
@@ -479,8 +479,9 @@ void ShaderProgramManager::LoadDiskCache(const std::atomic_bool& stop_loading,
                 if (stop_loading || compilation_failed) {
                     return;
                 }
-                const auto& raw{raws[i]};
-                const u64 unique_identifier{raw.GetUniqueIdentifier()};
+
+                const OpenGL::ShaderDiskCacheRaw& raw = raws[i];
+                const u64 unique_identifier = raw.GetUniqueIdentifier();
 
                 const u64 calculated_hash =
                     GetUniqueIdentifier(raw.GetRawShaderConfig(), raw.GetProgramCode());
@@ -493,8 +494,8 @@ void ShaderProgramManager::LoadDiskCache(const std::atomic_bool& stop_loading,
                     return;
                 }
 
-                const auto dump{dumps.find(unique_identifier)};
-                const auto decomp{decompiled.find(unique_identifier)};
+                const auto dump = dumps.find(unique_identifier);
+                const auto decomp = decompiled.find(unique_identifier);
                 OGLProgram shader;
 
                 if (dump != dumps.end() && decomp != decompiled.end()) {
@@ -506,7 +507,8 @@ void ShaderProgramManager::LoadDiskCache(const std::atomic_bool& stop_loading,
                         compilation_failed = true;
                         return;
                     }
-                    // we have both the binary shader and the decompiled, so inject it into the
+
+                    // We have both the binary shader and the decompiled, so inject it into the
                     // cache
                     if (raw.GetProgramType() == ProgramType::VS) {
                         auto [conf, setup] = BuildVSConfigFromRaw(raw);
@@ -519,8 +521,7 @@ void ShaderProgramManager::LoadDiskCache(const std::atomic_bool& stop_loading,
                         impl->fragment_shaders.Inject(conf, decomp->second.code, std::move(shader));
                     } else {
                         // Unsupported shader type got stored somehow so nuke the cache
-
-                        LOG_CRITICAL(Frontend, "failed to load raw programtype {}",
+                        LOG_CRITICAL(Frontend, "failed to load raw program type {}",
                                      static_cast<u32>(raw.GetProgramType()));
                         compilation_failed = true;
                         return;
@@ -557,7 +558,8 @@ void ShaderProgramManager::LoadDiskCache(const std::atomic_bool& stop_loading,
             if (stop_loading || compilation_failed) {
                 return;
             }
-            const auto& raw{raws[i]};
+
+            const OpenGL::ShaderDiskCacheRaw& raw = raws[i];
             const u64 unique_identifier{raw.GetUniqueIdentifier()};
 
             GLuint handle{0};

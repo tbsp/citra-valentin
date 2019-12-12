@@ -90,7 +90,7 @@ public:
     GLenum logic_op; // GL_LOGIC_OP_MODE
 
     // 3 texture units - one for each that is used in PICA fragment shader emulation
-    struct {
+    struct TextureUnit {
         GLuint texture_2d; // GL_TEXTURE_BINDING_2D
         GLuint sampler;    // GL_SAMPLER_BINDING
     } texture_units[3];

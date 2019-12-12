@@ -41,12 +41,13 @@ void Module::APTInterface::Initialize(Kernel::HLERequestContext& ctx) {
     LOG_DEBUG(Service_APT, "called app_id={:#010X}, attributes={:#010X}", static_cast<u32>(app_id),
               attributes);
 
-    auto result = apt->applet_manager->Initialize(app_id, attributes);
+    ResultVal<Service::APT::AppletManager::InitializeResult> result =
+        apt->applet_manager->Initialize(app_id, attributes);
     if (result.Failed()) {
         IPC::RequestBuilder rb = rp.MakeBuilder(1, 0);
         rb.Push(result.Code());
     } else {
-        auto events = std::move(result).Unwrap();
+        Service::APT::AppletManager::InitializeResult events = std::move(result).Unwrap();
         IPC::RequestBuilder rb = rp.MakeBuilder(1, 3);
         rb.Push(RESULT_SUCCESS);
         rb.PushCopyObjects(events.notification_event, events.parameter_event);
@@ -109,7 +110,7 @@ static u32 DecompressLZ11(const u8* in, u8* out) {
 
 bool Module::LoadSharedFont() {
     u8 font_region_code;
-    auto cfg = Service::CFG::GetModule(system);
+    std::shared_ptr<Service::CFG::Module> cfg = Service::CFG::GetModule(system);
     ASSERT_MSG(cfg, "CFG Module missing!");
     switch (cfg->GetRegionValue()) {
     case 4: // CHN
@@ -133,11 +134,13 @@ bool Module::LoadSharedFont() {
     FileSys::Path file_path(romfs_path);
     FileSys::Mode open_mode = {};
     open_mode.read_flag.Assign(1);
-    auto file_result = archive.OpenFile(file_path, open_mode);
-    if (file_result.Failed())
+    ResultVal<std::unique_ptr<FileSys::FileBackend>> file_result =
+        archive.OpenFile(file_path, open_mode);
+    if (file_result.Failed()) {
         return false;
+    }
 
-    auto romfs = std::move(file_result).Unwrap();
+    std::unique_ptr<FileSys::FileBackend> romfs = std::move(file_result).Unwrap();
     std::vector<u8> romfs_buffer(romfs->GetSize());
     romfs->Read(0, romfs_buffer.size(), romfs_buffer.data());
     romfs->Close();
@@ -146,8 +149,9 @@ bool Module::LoadSharedFont() {
                                     u"cbf_ko-Hang-KR.bcfnt.lz", u"cbf_zh-Hant-TW.bcfnt.lz"};
     const RomFS::RomFSFile font_file =
         RomFS::GetFile(romfs_buffer.data(), {file_name[font_region_code - 1]});
-    if (font_file.Data() == nullptr)
+    if (font_file.Data() == nullptr) {
         return false;
+    }
 
     struct {
         u32_le status;
@@ -339,7 +343,8 @@ void Module::APTInterface::ReceiveParameter(Kernel::HLERequestContext& ctx) {
     LOG_DEBUG(Service_APT, "called app_id={:#010X}, buffer_size={:#010X}", static_cast<u32>(app_id),
               buffer_size);
 
-    auto next_parameter = apt->applet_manager->ReceiveParameter(app_id);
+    ResultVal<Service::APT::MessageParameter> next_parameter =
+        apt->applet_manager->ReceiveParameter(app_id);
 
     if (next_parameter.Failed()) {
         IPC::RequestBuilder rb = rp.MakeBuilder(1, 0);
@@ -367,7 +372,8 @@ void Module::APTInterface::GlanceParameter(Kernel::HLERequestContext& ctx) {
     LOG_DEBUG(Service_APT, "called app_id={:#010X}, buffer_size={:#010X}", static_cast<u32>(app_id),
               buffer_size);
 
-    auto next_parameter = apt->applet_manager->GlanceParameter(app_id);
+    ResultVal<Service::APT::MessageParameter> next_parameter =
+        apt->applet_manager->GlanceParameter(app_id);
 
     if (next_parameter.Failed()) {
         IPC::RequestBuilder rb = rp.MakeBuilder(1, 0);
@@ -409,7 +415,7 @@ void Module::APTInterface::CancelParameter(Kernel::HLERequestContext& ctx) {
 
 void Module::APTInterface::PrepareToDoApplicationJump(Kernel::HLERequestContext& ctx) {
     IPC::RequestParser rp(ctx, 0x31, 4, 0); // 0x00310100
-    auto flags = rp.PopEnum<ApplicationJumpFlags>();
+    Service::APT::ApplicationJumpFlags flags = rp.PopEnum<ApplicationJumpFlags>();
     u64 title_id = rp.Pop<u64>();
     u8 media_type = rp.Pop<u8>();
 
@@ -428,8 +434,8 @@ void Module::APTInterface::DoApplicationJump(Kernel::HLERequestContext& ctx) {
     u32 param_size = rp.Pop<u32>();
     u32 hmac_size = rp.Pop<u32>();
 
-    auto param = rp.PopStaticBuffer();
-    auto hmac = rp.PopStaticBuffer();
+    std::vector<u8> param = rp.PopStaticBuffer();
+    std::vector<u8> hmac = rp.PopStaticBuffer();
 
     LOG_WARNING(Service_APT, "(STUBBED) called param_size={:08X}, hmac_size={:08X}", param_size,
                 hmac_size);
@@ -445,7 +451,8 @@ void Module::APTInterface::GetProgramIdOnApplicationJump(Kernel::HLERequestConte
 
     LOG_DEBUG(Service_APT, "called");
 
-    auto parameters = apt->applet_manager->GetApplicationJumpParameters();
+    Service::APT::AppletManager::ApplicationJumpParameters parameters =
+        apt->applet_manager->GetApplicationJumpParameters();
 
     IPC::RequestBuilder rb = rp.MakeBuilder(7, 0);
     rb.Push(RESULT_SUCCESS);
@@ -637,7 +644,7 @@ void Module::APTInterface::PrepareToCloseLibraryApplet(Kernel::HLERequestContext
 void Module::APTInterface::CloseLibraryApplet(Kernel::HLERequestContext& ctx) {
     IPC::RequestParser rp(ctx, 0x28, 1, 4); // 0x00280044
     u32 parameter_size = rp.Pop<u32>();
-    auto object = rp.PopGenericObject();
+    std::shared_ptr<Kernel::Object> object = rp.PopGenericObject();
     std::vector<u8> buffer = rp.PopStaticBuffer();
 
     LOG_DEBUG(Service_APT, "called size={}", parameter_size);
@@ -690,11 +697,12 @@ void Module::APTInterface::GetScreenCapPostPermission(Kernel::HLERequestContext&
 
 void Module::APTInterface::GetAppletInfo(Kernel::HLERequestContext& ctx) {
     IPC::RequestParser rp(ctx, 0x6, 1, 0); // 0x60040
-    auto app_id = rp.PopEnum<AppletId>();
+    Service::APT::AppletId app_id = rp.PopEnum<AppletId>();
 
     LOG_DEBUG(Service_APT, "called, app_id={}", static_cast<u32>(app_id));
 
-    auto info = apt->applet_manager->GetAppletInfo(app_id);
+    ResultVal<Service::APT::AppletManager::AppletInfo> info =
+        apt->applet_manager->GetAppletInfo(app_id);
     if (info.Failed()) {
         IPC::RequestBuilder rb = rp.MakeBuilder(1, 0);
         rb.Push(info.Code());
@@ -741,9 +749,9 @@ void Module::APTInterface::Wrap(Kernel::HLERequestContext& ctx) {
     const u32 input_size = rp.Pop<u32>();
     const u32 nonce_offset = rp.Pop<u32>();
     u32 nonce_size = rp.Pop<u32>();
-    auto& input = rp.PopMappedBuffer();
+    Kernel::MappedBuffer& input = rp.PopMappedBuffer();
     ASSERT(input.GetSize() == input_size);
-    auto& output = rp.PopMappedBuffer();
+    Kernel::MappedBuffer& output = rp.PopMappedBuffer();
     ASSERT(output.GetSize() == output_size);
 
     // Note: real 3DS still returns SUCCESS when the sizes don't match. It seems that it doesn't
@@ -766,7 +774,7 @@ void Module::APTInterface::Wrap(Kernel::HLERequestContext& ctx) {
     input.Read(pdata.data() + nonce_offset, nonce_offset + nonce_size, pdata_size - nonce_offset);
 
     // Encrypts the plaintext using AES-CCM
-    auto cipher = HW::AES::EncryptSignCCM(pdata, nonce, HW::AES::KeySlotID::APTWrap);
+    std::vector<u8> cipher = HW::AES::EncryptSignCCM(pdata, nonce, HW::AES::KeySlotID::APTWrap);
 
     // Puts the nonce to the beginning of the output, with ciphertext followed
     output.Write(nonce.data(), 0, nonce_size);
@@ -786,9 +794,9 @@ void Module::APTInterface::Unwrap(Kernel::HLERequestContext& ctx) {
     const u32 input_size = rp.Pop<u32>();
     const u32 nonce_offset = rp.Pop<u32>();
     u32 nonce_size = rp.Pop<u32>();
-    auto& input = rp.PopMappedBuffer();
+    Kernel::MappedBuffer& input = rp.PopMappedBuffer();
     ASSERT(input.GetSize() == input_size);
-    auto& output = rp.PopMappedBuffer();
+    Kernel::MappedBuffer& output = rp.PopMappedBuffer();
     ASSERT(output.GetSize() == output_size);
 
     // Note: real 3DS still returns SUCCESS when the sizes don't match. It seems that it doesn't
@@ -810,7 +818,7 @@ void Module::APTInterface::Unwrap(Kernel::HLERequestContext& ctx) {
     input.Read(cipher.data(), nonce_size, cipher_size);
 
     // Decrypts the ciphertext using AES-CCM
-    auto pdata = HW::AES::DecryptVerifyCCM(cipher, nonce, HW::AES::KeySlotID::APTWrap);
+    std::vector<u8> pdata = HW::AES::DecryptVerifyCCM(cipher, nonce, HW::AES::KeySlotID::APTWrap);
 
     IPC::RequestBuilder rb = rp.MakeBuilder(1, 4);
     if (!pdata.empty()) {
@@ -875,8 +883,8 @@ Module::Module(Core::System& system) : system(system) {
 Module::~Module() {}
 
 void InstallInterfaces(Core::System& system) {
-    auto& service_manager = system.ServiceManager();
-    auto apt = std::make_shared<Module>(system);
+    Service::SM::ServiceManager& service_manager = system.ServiceManager();
+    std::shared_ptr<Service::APT::Module> apt = std::make_shared<Module>(system);
     std::make_shared<APT_U>(apt)->InstallAsService(service_manager);
     std::make_shared<APT_S>(apt)->InstallAsService(service_manager);
     std::make_shared<APT_A>(apt)->InstallAsService(service_manager);

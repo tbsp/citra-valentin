@@ -17,7 +17,7 @@
 QtMiiSelectorDialog::QtMiiSelectorDialog(QWidget* parent, QtMiiSelector* mii_selector_)
     : QDialog(parent), mii_selector(mii_selector_) {
     using namespace Frontend;
-    const auto config = mii_selector->config;
+    const Frontend::MiiSelectorConfig config = mii_selector->config;
     layout = new QVBoxLayout;
     combobox = new QComboBox;
     buttons = new QDialogButtonBox;
@@ -37,17 +37,19 @@ QtMiiSelectorDialog::QtMiiSelectorDialog(QWidget* parent, QtMiiSelector* mii_sel
     std::string nand_directory{FileUtil::GetUserPath(FileUtil::UserPath::NANDDir)};
     FileSys::ArchiveFactory_ExtSaveData extdata_archive_factory(nand_directory, true);
 
-    auto archive_result = extdata_archive_factory.Open(Service::PTM::ptm_shared_extdata_id, 0);
+    ResultVal<std::unique_ptr<FileSys::ArchiveBackend>> archive_result =
+        extdata_archive_factory.Open(Service::PTM::ptm_shared_extdata_id, 0);
     if (archive_result.Succeeded()) {
-        auto archive = std::move(archive_result).Unwrap();
+        std::unique_ptr<FileSys::ArchiveBackend> archive = std::move(archive_result).Unwrap();
 
         FileSys::Path file_path = "/CFL_DB.dat";
         FileSys::Mode mode{};
         mode.read_flag.Assign(1);
 
-        auto file_result = archive->OpenFile(file_path, mode);
+        ResultVal<std::unique_ptr<FileSys::FileBackend>> file_result =
+            archive->OpenFile(file_path, mode);
         if (file_result.Succeeded()) {
-            auto file = std::move(file_result).Unwrap();
+            std::unique_ptr<FileSys::FileBackend> file = std::move(file_result).Unwrap();
 
             u32 saved_miis_offset = 0x8;
             // The Mii Maker has a 100 Mii limit on the 3ds
@@ -94,11 +96,12 @@ void QtMiiSelector::OpenDialog() {
     dialog.setWindowModality(Qt::WindowModal);
     dialog.exec();
 
-    const auto index = dialog.combobox->currentIndex();
-    LOG_INFO(Frontend, "Mii Selector dialog finished (return_code={}, index={})",
-             dialog.return_code, index);
+    const int index = dialog.combobox->currentIndex();
 
-    const auto mii_data = dialog.miis.at(index);
+    const HLE::Applets::MiiData mii_data = dialog.miis.at(index);
     Finalize(dialog.return_code,
              dialog.return_code == 0 ? std::move(mii_data) : HLE::Applets::MiiData{});
+
+    LOG_INFO(Frontend, "Mii Selector dialog finished (return_code={}, index={})",
+             dialog.return_code, index);
 }

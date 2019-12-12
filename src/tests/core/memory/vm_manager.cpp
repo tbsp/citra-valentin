@@ -10,16 +10,18 @@
 #include "core/memory.h"
 
 TEST_CASE("Memory Basics", "[kernel][memory]") {
-    auto block = std::make_shared<std::vector<u8>>(Memory::PAGE_SIZE);
+    std::shared_ptr<std::vector<u8>> block = std::make_shared<std::vector<u8>>(Memory::PAGE_SIZE);
     Memory::MemorySystem memory;
     SECTION("mapping memory") {
         // Because of the PageTable, Kernel::VMManager is too big to be created on the stack.
-        auto manager = std::make_unique<Kernel::VMManager>(memory);
-        auto result = manager->MapBackingMemory(Memory::HEAP_VADDR, block->data(), block->size(),
-                                                Kernel::MemoryState::Private);
+        std::unique_ptr<Kernel::VMManager> manager = std::make_unique<Kernel::VMManager>(memory);
+        ResultVal<std::map<VAddr, Kernel::VirtualMemoryArea>::const_iterator> result =
+            manager->MapBackingMemory(Memory::HEAP_VADDR, block->data(), block->size(),
+                                      Kernel::MemoryState::Private);
         REQUIRE(result.Code() == RESULT_SUCCESS);
 
-        auto vma = manager->FindVMA(Memory::HEAP_VADDR);
+        std::map<VAddr, Kernel::VirtualMemoryArea>::const_iterator vma =
+            manager->FindVMA(Memory::HEAP_VADDR);
         CHECK(vma != manager->vma_map.end());
         CHECK(vma->second.size == block->size());
         CHECK(vma->second.type == Kernel::VMAType::BackingMemory);
@@ -29,15 +31,17 @@ TEST_CASE("Memory Basics", "[kernel][memory]") {
 
     SECTION("unmapping memory") {
         // Because of the PageTable, Kernel::VMManager is too big to be created on the stack.
-        auto manager = std::make_unique<Kernel::VMManager>(memory);
-        auto result = manager->MapBackingMemory(Memory::HEAP_VADDR, block->data(), block->size(),
-                                                Kernel::MemoryState::Private);
+        std::unique_ptr<Kernel::VMManager> manager = std::make_unique<Kernel::VMManager>(memory);
+        ResultVal<std::map<VAddr, Kernel::VirtualMemoryArea>::const_iterator> result =
+            manager->MapBackingMemory(Memory::HEAP_VADDR, block->data(), block->size(),
+                                      Kernel::MemoryState::Private);
         REQUIRE(result.Code() == RESULT_SUCCESS);
 
         ResultCode code = manager->UnmapRange(Memory::HEAP_VADDR, block->size());
         REQUIRE(code == RESULT_SUCCESS);
 
-        auto vma = manager->FindVMA(Memory::HEAP_VADDR);
+        std::map<VAddr, Kernel::VirtualMemoryArea>::const_iterator vma =
+            manager->FindVMA(Memory::HEAP_VADDR);
         CHECK(vma != manager->vma_map.end());
         CHECK(vma->second.type == Kernel::VMAType::Free);
         CHECK(vma->second.backing_memory == nullptr);
@@ -45,16 +49,18 @@ TEST_CASE("Memory Basics", "[kernel][memory]") {
 
     SECTION("changing memory permissions") {
         // Because of the PageTable, Kernel::VMManager is too big to be created on the stack.
-        auto manager = std::make_unique<Kernel::VMManager>(memory);
-        auto result = manager->MapBackingMemory(Memory::HEAP_VADDR, block->data(), block->size(),
-                                                Kernel::MemoryState::Private);
+        std::unique_ptr<Kernel::VMManager> manager = std::make_unique<Kernel::VMManager>(memory);
+        ResultVal<std::map<VAddr, Kernel::VirtualMemoryArea>::const_iterator> result =
+            manager->MapBackingMemory(Memory::HEAP_VADDR, block->data(), block->size(),
+                                      Kernel::MemoryState::Private);
         REQUIRE(result.Code() == RESULT_SUCCESS);
 
         ResultCode code = manager->ReprotectRange(Memory::HEAP_VADDR, block->size(),
                                                   Kernel::VMAPermission::Execute);
         CHECK(code == RESULT_SUCCESS);
 
-        auto vma = manager->FindVMA(Memory::HEAP_VADDR);
+        std::map<VAddr, Kernel::VirtualMemoryArea>::const_iterator vma =
+            manager->FindVMA(Memory::HEAP_VADDR);
         CHECK(vma != manager->vma_map.end());
         CHECK(vma->second.permissions == Kernel::VMAPermission::Execute);
 
@@ -64,9 +70,10 @@ TEST_CASE("Memory Basics", "[kernel][memory]") {
 
     SECTION("changing memory state") {
         // Because of the PageTable, Kernel::VMManager is too big to be created on the stack.
-        auto manager = std::make_unique<Kernel::VMManager>(memory);
-        auto result = manager->MapBackingMemory(Memory::HEAP_VADDR, block->data(), block->size(),
-                                                Kernel::MemoryState::Private);
+        std::unique_ptr<Kernel::VMManager> manager = std::make_unique<Kernel::VMManager>(memory);
+        ResultVal<std::map<VAddr, Kernel::VirtualMemoryArea>::const_iterator> result =
+            manager->MapBackingMemory(Memory::HEAP_VADDR, block->data(), block->size(),
+                                      Kernel::MemoryState::Private);
         REQUIRE(result.Code() == RESULT_SUCCESS);
 
         ResultCode code = manager->ReprotectRange(Memory::HEAP_VADDR, block->size(),
@@ -88,7 +95,8 @@ TEST_CASE("Memory Basics", "[kernel][memory]") {
                 Kernel::VMAPermission::Write);
             CHECK(code == RESULT_SUCCESS);
 
-            auto vma = manager->FindVMA(Memory::HEAP_VADDR);
+            std::map<VAddr, Kernel::VirtualMemoryArea>::const_iterator vma =
+                manager->FindVMA(Memory::HEAP_VADDR);
             CHECK(vma != manager->vma_map.end());
             CHECK(vma->second.permissions == Kernel::VMAPermission::Write);
             CHECK(vma->second.meminfo_state == Kernel::MemoryState::Locked);
@@ -101,7 +109,8 @@ TEST_CASE("Memory Basics", "[kernel][memory]") {
                 Kernel::VMAPermission::Execute);
             CHECK(code == RESULT_SUCCESS);
 
-            auto vma = manager->FindVMA(Memory::HEAP_VADDR);
+            std::map<VAddr, Kernel::VirtualMemoryArea>::const_iterator vma =
+                manager->FindVMA(Memory::HEAP_VADDR);
             CHECK(vma != manager->vma_map.end());
             CHECK(vma->second.permissions == Kernel::VMAPermission::Execute);
             CHECK(vma->second.meminfo_state == Kernel::MemoryState::Aliased);
@@ -114,7 +123,8 @@ TEST_CASE("Memory Basics", "[kernel][memory]") {
                 Kernel::VMAPermission::Execute);
             CHECK(code == Kernel::ERR_INVALID_ADDRESS_STATE);
 
-            auto vma = manager->FindVMA(Memory::HEAP_VADDR);
+            std::map<VAddr, Kernel::VirtualMemoryArea>::const_iterator vma =
+                manager->FindVMA(Memory::HEAP_VADDR);
             CHECK(vma != manager->vma_map.end());
             CHECK(vma->second.permissions == Kernel::VMAPermission::ReadWrite);
             CHECK(vma->second.meminfo_state == Kernel::MemoryState::Private);
@@ -127,7 +137,8 @@ TEST_CASE("Memory Basics", "[kernel][memory]") {
                 Kernel::VMAPermission::Execute);
             CHECK(code == Kernel::ERR_INVALID_ADDRESS_STATE);
 
-            auto vma = manager->FindVMA(Memory::HEAP_VADDR);
+            std::map<VAddr, Kernel::VirtualMemoryArea>::const_iterator vma =
+                manager->FindVMA(Memory::HEAP_VADDR);
             CHECK(vma != manager->vma_map.end());
             CHECK(vma->second.permissions == Kernel::VMAPermission::ReadWrite);
             CHECK(vma->second.meminfo_state == Kernel::MemoryState::Private);

@@ -30,18 +30,17 @@ ServerSession::~ServerSession() {
 
 ResultVal<std::shared_ptr<ServerSession>> ServerSession::Create(KernelSystem& kernel,
                                                                 std::string name) {
-    auto server_session{std::make_shared<ServerSession>(kernel)};
-
+    std::shared_ptr<Kernel::ServerSession> server_session = std::make_shared<ServerSession>(kernel);
     server_session->name = std::move(name);
     server_session->parent = nullptr;
-
     return MakeResult(std::move(server_session));
 }
 
 bool ServerSession::ShouldWait(const Thread* thread) const {
     // Closed sessions should never wait, an error will be returned from svcReplyAndReceive.
-    if (parent->client == nullptr)
+    if (parent->client == nullptr) {
         return false;
+    }
     // Wait if we have no pending requests, or if we're currently handling a request.
     return pending_requesting_threads.empty() || currently_handling != nullptr;
 }
@@ -122,8 +121,9 @@ ResultCode ServerSession::HandleSyncRequest(std::shared_ptr<Thread> thread) {
 
 KernelSystem::SessionPair KernelSystem::CreateSessionPair(const std::string& name,
                                                           std::shared_ptr<ClientPort> port) {
-    auto server_session = ServerSession::Create(*this, name + "_Server").Unwrap();
-    auto client_session{std::make_shared<ClientSession>(*this)};
+    std::shared_ptr<Kernel::ServerSession> server_session =
+        ServerSession::Create(*this, name + "_Server").Unwrap();
+    std::shared_ptr<Kernel::ClientSession> client_session = std::make_shared<ClientSession>(*this);
     client_session->name = name + "_Client";
 
     std::shared_ptr<Session> parent(new Session);

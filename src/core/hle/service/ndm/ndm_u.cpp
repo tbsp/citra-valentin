@@ -238,7 +238,7 @@ NDM_U::NDM_U() : ServiceFramework("ndm:u", 6) {
 }
 
 void InstallInterfaces(Core::System& system) {
-    auto& service_manager = system.ServiceManager();
+    Service::SM::ServiceManager& service_manager = system.ServiceManager();
     std::make_shared<NDM_U>()->InstallAsService(service_manager);
 }
 

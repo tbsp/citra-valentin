@@ -103,10 +103,11 @@ struct State {
             }
         };
 
-        std::array<std::array<LutEntry, 256>, 24> luts;
+        using Lut = std::array<LutEntry, 256>;
+        std::array<Lut, 24> luts;
     } lighting;
 
-    struct {
+    struct Fog {
         union LutEntry {
             // Used for raw access
             u32 raw;
@@ -123,7 +124,8 @@ struct State {
             }
         };
 
-        std::array<LutEntry, 128> lut;
+        using Lut = std::array<LutEntry, 128>;
+        Lut lut;
     } fog;
 
     /// Current Pica command list

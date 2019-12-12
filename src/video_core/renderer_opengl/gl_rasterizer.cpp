@@ -192,9 +192,11 @@ void RasterizerOpenGL::SyncEntireState() {
     SyncDepthOffset();
     SyncAlphaTest();
     SyncCombinerColor();
-    auto& tev_stages = Pica::g_state.regs.texturing.GetTevStages();
-    for (std::size_t index = 0; index < tev_stages.size(); ++index)
+
+    const Pica::TexturingRegs::TevStages& tev_stages = Pica::g_state.regs.texturing.GetTevStages();
+    for (std::size_t index = 0; index < tev_stages.size(); ++index) {
         SyncTevConstColor(index, tev_stages[index]);
+    }
 
     SyncGlobalAmbient();
     for (unsigned light_index = 0; light_index < 8; light_index++) {
@@ -261,13 +263,13 @@ struct VertexArrayInfo {
 };
 
 RasterizerOpenGL::VertexArrayInfo RasterizerOpenGL::AnalyzeVertexArray(bool is_indexed) {
-    const auto& regs = Pica::g_state.regs;
-    const auto& vertex_attributes = regs.pipeline.vertex_attributes;
+    const Pica::Regs& regs = Pica::g_state.regs;
+    const Pica::PipelineRegs::VertexAttributes& vertex_attributes = regs.pipeline.vertex_attributes;
 
     u32 vertex_min;
     u32 vertex_max;
     if (is_indexed) {
-        const auto& index_info = regs.pipeline.index_array;
+        const Pica::PipelineRegs::IndexArray& index_info = regs.pipeline.index_array;
         PAddr address = vertex_attributes.GetPhysicalBaseAddress() + index_info.offset;
         const u8* index_address_8 = VideoCore::g_memory->GetPhysicalPointer(address);
         const u16* index_address_16 = reinterpret_cast<const u16*>(index_address_8);
@@ -289,7 +291,8 @@ RasterizerOpenGL::VertexArrayInfo RasterizerOpenGL::AnalyzeVertexArray(bool is_i
 
     u32 vertex_num = vertex_max - vertex_min + 1;
     u32 vs_input_size = 0;
-    for (auto& loader : vertex_attributes.attribute_loaders) {
+    for (const Pica::PipelineRegs::VertexAttributes::AttributeLoaders& loader :
+         vertex_attributes.attribute_loaders) {
         if (loader.component_count != 0) {
             vs_input_size += loader.byte_count * vertex_num;
         }
@@ -302,8 +305,8 @@ void RasterizerOpenGL::SetupVertexArray(u8* array_ptr, GLintptr buffer_offset,
                                         GLuint vs_input_index_min, GLuint vs_input_index_max) {
     Common::Profiler::Scope scope(Core::System::GetInstance().profiler, "OpenGL",
                                   "Setup Vertex Array");
-    const auto& regs = Pica::g_state.regs;
-    const auto& vertex_attributes = regs.pipeline.vertex_attributes;
+    const Pica::Regs& regs = Pica::g_state.regs;
+    const Pica::PipelineRegs::VertexAttributes& vertex_attributes = regs.pipeline.vertex_attributes;
     PAddr base_address = vertex_attributes.GetPhysicalBaseAddress();
 
     state.draw.vertex_array = hw_vao.handle;
@@ -312,7 +315,8 @@ void RasterizerOpenGL::SetupVertexArray(u8* array_ptr, GLintptr buffer_offset,
 
     std::array<bool, 16> enable_attributes{};
 
-    for (const auto& loader : vertex_attributes.attribute_loaders) {
+    for (const Pica::PipelineRegs::VertexAttributes::AttributeLoaders& loader :
+         vertex_attributes.attribute_loaders) {
         if (loader.component_count == 0 || loader.byte_count == 0) {
             continue;
         }
@@ -370,7 +374,8 @@ void RasterizerOpenGL::SetupVertexArray(u8* array_ptr, GLintptr buffer_offset,
         if (vertex_attributes.IsDefaultAttribute(i)) {
             u32 reg = regs.vs.GetRegisterForAttribute(i);
             if (!enable_attributes[reg]) {
-                const auto& attr = Pica::g_state.input_default_attributes.attr[i];
+                const Common::Vec4<Pica::float24>& attr =
+                    Pica::g_state.input_default_attributes.attr[i];
                 glVertexAttrib4f(reg, attr.x.ToFloat32(), attr.y.ToFloat32(), attr.z.ToFloat32(),
                                  attr.w.ToFloat32());
             }
@@ -388,7 +393,7 @@ bool RasterizerOpenGL::SetupVertexShader() {
 bool RasterizerOpenGL::SetupGeometryShader() {
     Common::Profiler::Scope scope(Core::System::GetInstance().profiler, "OpenGL",
                                   "Setup Geometry Shader");
-    const auto& regs = Pica::g_state.regs;
+    const Pica::Regs& regs = Pica::g_state.regs;
     if (regs.pipeline.use_gs == Pica::PipelineRegs::UseGS::No) {
         shader_program_manager->UseFixedGeometryShader(regs);
         return true;
@@ -398,7 +403,7 @@ bool RasterizerOpenGL::SetupGeometryShader() {
 }
 
 bool RasterizerOpenGL::AccelerateDrawBatch(bool is_indexed) {
-    const auto& regs = Pica::g_state.regs;
+    const Pica::Regs& regs = Pica::g_state.regs;
     if (regs.pipeline.use_gs != Pica::PipelineRegs::UseGS::No) {
         if (regs.pipeline.gs_config.mode != Pica::PipelineRegs::GSMode::Point) {
             return false;
@@ -418,7 +423,7 @@ bool RasterizerOpenGL::AccelerateDrawBatch(bool is_indexed) {
 }
 
 static GLenum GetCurrentPrimitiveMode() {
-    const auto& regs = Pica::g_state.regs;
+    const Pica::Regs& regs = Pica::g_state.regs;
     switch (regs.pipeline.triangle_topology) {
     case Pica::PipelineRegs::TriangleTopology::Shader:
     case Pica::PipelineRegs::TriangleTopology::List:
@@ -433,7 +438,7 @@ static GLenum GetCurrentPrimitiveMode() {
 }
 
 bool RasterizerOpenGL::AccelerateDrawBatchInternal(bool is_indexed) {
-    const auto& regs = Pica::g_state.regs;
+    const Pica::Regs& regs = Pica::g_state.regs;
     GLenum primitive_mode = GetCurrentPrimitiveMode();
 
     auto [vs_input_index_min, vs_input_index_max, vs_input_size] = AnalyzeVertexArray(is_indexed);
@@ -490,7 +495,7 @@ void RasterizerOpenGL::DrawTriangles() {
 
 bool RasterizerOpenGL::Draw(bool accelerate, bool is_indexed) {
     Common::Profiler::Scope scope(Core::System::GetInstance().profiler, "OpenGL", "Drawing");
-    const auto& regs = Pica::g_state.regs;
+    const Pica::Regs& regs = Pica::g_state.regs;
 
     bool shadow_rendering = regs.framebuffer.output_merger.fragment_operation_mode ==
                             Pica::FramebufferRegs::FragmentOperationMode::Shadow;
@@ -635,17 +640,18 @@ bool RasterizerOpenGL::Draw(bool accelerate, bool is_indexed) {
     };
 
     // Sync and bind the texture surfaces
-    const auto pica_textures = regs.texturing.GetTextures();
+    const Pica::TexturingRegs::Textures pica_textures = regs.texturing.GetTextures();
     for (unsigned texture_index = 0; texture_index < pica_textures.size(); ++texture_index) {
-        const auto& texture = pica_textures[texture_index];
+        const Pica::TexturingRegs::FullTextureConfig& texture = pica_textures[texture_index];
 
         if (texture.enabled) {
             if (texture_index == 0) {
                 using TextureType = Pica::TexturingRegs::TextureConfig::TextureType;
                 switch (texture.config.type.Value()) {
                 case TextureType::Shadow2D: {
-                    if (!allow_shadow)
+                    if (!allow_shadow) {
                         continue;
+                    }
 
                     Surface surface = res_cache.GetTextureSurface(texture);
                     if (surface != nullptr) {
@@ -656,8 +662,9 @@ bool RasterizerOpenGL::Draw(bool accelerate, bool is_indexed) {
                     continue;
                 }
                 case TextureType::ShadowCube: {
-                    if (!allow_shadow)
+                    if (!allow_shadow) {
                         continue;
+                    }
                     Pica::Texture::TextureInfo info = Pica::Texture::TextureInfo::FromPicaRegister(
                         texture.config, texture.format);
                     Surface surface;
@@ -843,12 +850,12 @@ bool RasterizerOpenGL::Draw(bool accelerate, bool is_indexed) {
                                               draw_rect.bottom / res_scale};
 
     if (color_surface != nullptr && write_color_fb) {
-        auto interval = color_surface->GetSubRectInterval(draw_rect_unscaled);
+        OpenGL::SurfaceInterval interval = color_surface->GetSubRectInterval(draw_rect_unscaled);
         res_cache.InvalidateRegion(boost::icl::first(interval), boost::icl::length(interval),
                                    color_surface);
     }
     if (depth_surface != nullptr && write_depth_fb) {
-        auto interval = depth_surface->GetSubRectInterval(draw_rect_unscaled);
+        OpenGL::SurfaceInterval interval = depth_surface->GetSubRectInterval(draw_rect_unscaled);
         res_cache.InvalidateRegion(boost::icl::first(interval), boost::icl::length(interval),
                                    depth_surface);
     }
@@ -857,7 +864,7 @@ bool RasterizerOpenGL::Draw(bool accelerate, bool is_indexed) {
 }
 
 void RasterizerOpenGL::NotifyPicaRegisterChanged(u32 id) {
-    const auto& regs = Pica::g_state.regs;
+    const Pica::Regs& regs = Pica::g_state.regs;
 
     switch (id) {
     // Culling
@@ -1338,7 +1345,7 @@ void RasterizerOpenGL::NotifyPicaRegisterChanged(u32 id) {
     case PICA_REG_INDEX(lighting.lut_data[5]):
     case PICA_REG_INDEX(lighting.lut_data[6]):
     case PICA_REG_INDEX(lighting.lut_data[7]): {
-        auto& lut_config = regs.lighting.lut_config;
+        const Pica::LightingRegs::LutConfig lut_config = regs.lighting.lut_config;
         uniform_block_data.lighting_lut_dirty[lut_config.type] = true;
         uniform_block_data.lighting_lut_dirty_any = true;
         break;
@@ -1610,7 +1617,7 @@ void RasterizerOpenGL::SamplerInfo::SyncWithConfig(
     if (wrap_s == TextureConfig::ClampToBorder || wrap_t == TextureConfig::ClampToBorder) {
         if (border_color != config.border_color.raw) {
             border_color = config.border_color.raw;
-            auto gl_color = PicaToGL::ColorRGBA8(border_color);
+            GLvec4 gl_color = PicaToGL::ColorRGBA8(border_color);
             glSamplerParameterfv(s, GL_TEXTURE_BORDER_COLOR, gl_color.data());
         }
     }
@@ -1640,7 +1647,7 @@ void RasterizerOpenGL::SyncClipEnabled() {
 }
 
 void RasterizerOpenGL::SyncClipCoef() {
-    const auto raw_clip_coef = Pica::g_state.regs.rasterizer.GetClipCoef();
+    const Common::Vec4<Pica::float24> raw_clip_coef = Pica::g_state.regs.rasterizer.GetClipCoef();
     const GLvec4 new_clip_coef = {raw_clip_coef.x.ToFloat32(), raw_clip_coef.y.ToFloat32(),
                                   raw_clip_coef.z.ToFloat32(), raw_clip_coef.w.ToFloat32()};
     if (new_clip_coef != uniform_block_data.data.clip_coef) {
@@ -1650,7 +1657,7 @@ void RasterizerOpenGL::SyncClipCoef() {
 }
 
 void RasterizerOpenGL::SyncCullMode() {
-    const auto& regs = Pica::g_state.regs;
+    const Pica::Regs& regs = Pica::g_state.regs;
 
     switch (regs.rasterizer.cull_mode) {
     case Pica::RasterizerRegs::CullMode::KeepAll:
@@ -1698,7 +1705,7 @@ void RasterizerOpenGL::SyncBlendEnabled() {
 }
 
 void RasterizerOpenGL::SyncBlendFuncs() {
-    const auto& regs = Pica::g_state.regs;
+    const Pica::Regs& regs = Pica::g_state.regs;
     state.blend.rgb_equation =
         PicaToGL::BlendEquation(regs.framebuffer.output_merger.alpha_blending.blend_equation_rgb);
     state.blend.a_equation =
@@ -1714,7 +1721,7 @@ void RasterizerOpenGL::SyncBlendFuncs() {
 }
 
 void RasterizerOpenGL::SyncBlendColor() {
-    auto blend_color =
+    GLvec4 blend_color =
         PicaToGL::ColorRGBA8(Pica::g_state.regs.framebuffer.output_merger.blend_const.raw);
     state.blend.color.red = blend_color[0];
     state.blend.color.green = blend_color[1];
@@ -1723,7 +1730,7 @@ void RasterizerOpenGL::SyncBlendColor() {
 }
 
 void RasterizerOpenGL::SyncFogColor() {
-    const auto& regs = Pica::g_state.regs;
+    const Pica::Regs& regs = Pica::g_state.regs;
     uniform_block_data.data.fog_color = {
         regs.texturing.fog_color.r.Value() / 255.0f,
         regs.texturing.fog_color.g.Value() / 255.0f,
@@ -1733,7 +1740,7 @@ void RasterizerOpenGL::SyncFogColor() {
 }
 
 void RasterizerOpenGL::SyncProcTexNoise() {
-    const auto& regs = Pica::g_state.regs.texturing;
+    const Pica::TexturingRegs& regs = Pica::g_state.regs.texturing;
     uniform_block_data.data.proctex_noise_f = {
         Pica::float16::FromRaw(regs.proctex_noise_frequency.u).ToFloat32(),
         Pica::float16::FromRaw(regs.proctex_noise_frequency.v).ToFloat32(),
@@ -1751,16 +1758,15 @@ void RasterizerOpenGL::SyncProcTexNoise() {
 }
 
 void RasterizerOpenGL::SyncProcTexBias() {
-    const auto& regs = Pica::g_state.regs.texturing;
+    const Pica::TexturingRegs& regs = Pica::g_state.regs.texturing;
     uniform_block_data.data.proctex_bias =
         Pica::float16::FromRaw(regs.proctex.bias_low | (regs.proctex_lut.bias_high << 8))
             .ToFloat32();
-
     uniform_block_data.dirty = true;
 }
 
 void RasterizerOpenGL::SyncAlphaTest() {
-    const auto& regs = Pica::g_state.regs;
+    const Pica::Regs& regs = Pica::g_state.regs;
     if (regs.framebuffer.output_merger.alpha_test.ref != uniform_block_data.data.alphatest_ref) {
         uniform_block_data.data.alphatest_ref = regs.framebuffer.output_merger.alpha_test.ref;
         uniform_block_data.dirty = true;
@@ -1772,7 +1778,7 @@ void RasterizerOpenGL::SyncLogicOp() {
 }
 
 void RasterizerOpenGL::SyncColorWriteMask() {
-    const auto& regs = Pica::g_state.regs;
+    const Pica::Regs& regs = Pica::g_state.regs;
 
     auto IsColorWriteEnabled = [&](u32 value) {
         return (regs.framebuffer.framebuffer.allow_color_write != 0 && value != 0) ? GL_TRUE
@@ -1788,7 +1794,7 @@ void RasterizerOpenGL::SyncColorWriteMask() {
 }
 
 void RasterizerOpenGL::SyncStencilWriteMask() {
-    const auto& regs = Pica::g_state.regs;
+    const Pica::Regs& regs = Pica::g_state.regs;
     state.stencil.write_mask =
         (regs.framebuffer.framebuffer.allow_depth_stencil_write != 0)
             ? static_cast<GLuint>(regs.framebuffer.output_merger.stencil_test.write_mask)
@@ -1796,7 +1802,7 @@ void RasterizerOpenGL::SyncStencilWriteMask() {
 }
 
 void RasterizerOpenGL::SyncDepthWriteMask() {
-    const auto& regs = Pica::g_state.regs;
+    const Pica::Regs& regs = Pica::g_state.regs;
     state.depth.write_mask = (regs.framebuffer.framebuffer.allow_depth_stencil_write != 0 &&
                               regs.framebuffer.output_merger.depth_write_enable)
                                  ? GL_TRUE
@@ -1804,7 +1810,7 @@ void RasterizerOpenGL::SyncDepthWriteMask() {
 }
 
 void RasterizerOpenGL::SyncStencilTest() {
-    const auto& regs = Pica::g_state.regs;
+    const Pica::Regs& regs = Pica::g_state.regs;
     state.stencil.test_enabled =
         regs.framebuffer.output_merger.stencil_test.enable &&
         regs.framebuffer.framebuffer.depth_format == Pica::FramebufferRegs::DepthFormat::D24S8;
@@ -1821,7 +1827,7 @@ void RasterizerOpenGL::SyncStencilTest() {
 }
 
 void RasterizerOpenGL::SyncDepthTest() {
-    const auto& regs = Pica::g_state.regs;
+    const Pica::Regs& regs = Pica::g_state.regs;
     state.depth.test_enabled = regs.framebuffer.output_merger.depth_test_enable == 1 ||
                                regs.framebuffer.output_merger.depth_write_enable == 1;
     state.depth.test_func =
@@ -1831,7 +1837,7 @@ void RasterizerOpenGL::SyncDepthTest() {
 }
 
 void RasterizerOpenGL::SyncCombinerColor() {
-    auto combiner_color =
+    GLvec4 combiner_color =
         PicaToGL::ColorRGBA8(Pica::g_state.regs.texturing.tev_combiner_buffer_color.raw);
     if (combiner_color != uniform_block_data.data.tev_combiner_buffer_color) {
         uniform_block_data.data.tev_combiner_buffer_color = combiner_color;
@@ -1841,7 +1847,7 @@ void RasterizerOpenGL::SyncCombinerColor() {
 
 void RasterizerOpenGL::SyncTevConstColor(int stage_index,
                                          const Pica::TexturingRegs::TevStageConfig& tev_stage) {
-    auto const_color = PicaToGL::ColorRGBA8(tev_stage.const_color);
+    GLvec4 const_color = PicaToGL::ColorRGBA8(tev_stage.const_color);
     if (const_color != uniform_block_data.data.const_color[stage_index]) {
         uniform_block_data.data.const_color[stage_index] = const_color;
         uniform_block_data.dirty = true;
@@ -1849,7 +1855,7 @@ void RasterizerOpenGL::SyncTevConstColor(int stage_index,
 }
 
 void RasterizerOpenGL::SyncGlobalAmbient() {
-    auto color = PicaToGL::LightColor(Pica::g_state.regs.lighting.global_ambient);
+    GLvec3 color = PicaToGL::LightColor(Pica::g_state.regs.lighting.global_ambient);
     if (color != uniform_block_data.data.lighting_global_ambient) {
         uniform_block_data.data.lighting_global_ambient = color;
         uniform_block_data.dirty = true;
@@ -1857,7 +1863,7 @@ void RasterizerOpenGL::SyncGlobalAmbient() {
 }
 
 void RasterizerOpenGL::SyncLightSpecular0(int light_index) {
-    auto color = PicaToGL::LightColor(Pica::g_state.regs.lighting.light[light_index].specular_0);
+    GLvec3 color = PicaToGL::LightColor(Pica::g_state.regs.lighting.light[light_index].specular_0);
     if (color != uniform_block_data.data.light_src[light_index].specular_0) {
         uniform_block_data.data.light_src[light_index].specular_0 = color;
         uniform_block_data.dirty = true;
@@ -1865,7 +1871,7 @@ void RasterizerOpenGL::SyncLightSpecular0(int light_index) {
 }
 
 void RasterizerOpenGL::SyncLightSpecular1(int light_index) {
-    auto color = PicaToGL::LightColor(Pica::g_state.regs.lighting.light[light_index].specular_1);
+    GLvec3 color = PicaToGL::LightColor(Pica::g_state.regs.lighting.light[light_index].specular_1);
     if (color != uniform_block_data.data.light_src[light_index].specular_1) {
         uniform_block_data.data.light_src[light_index].specular_1 = color;
         uniform_block_data.dirty = true;
@@ -1873,7 +1879,7 @@ void RasterizerOpenGL::SyncLightSpecular1(int light_index) {
 }
 
 void RasterizerOpenGL::SyncLightDiffuse(int light_index) {
-    auto color = PicaToGL::LightColor(Pica::g_state.regs.lighting.light[light_index].diffuse);
+    GLvec3 color = PicaToGL::LightColor(Pica::g_state.regs.lighting.light[light_index].diffuse);
     if (color != uniform_block_data.data.light_src[light_index].diffuse) {
         uniform_block_data.data.light_src[light_index].diffuse = color;
         uniform_block_data.dirty = true;
@@ -1881,7 +1887,7 @@ void RasterizerOpenGL::SyncLightDiffuse(int light_index) {
 }
 
 void RasterizerOpenGL::SyncLightAmbient(int light_index) {
-    auto color = PicaToGL::LightColor(Pica::g_state.regs.lighting.light[light_index].ambient);
+    GLvec3 color = PicaToGL::LightColor(Pica::g_state.regs.lighting.light[light_index].ambient);
     if (color != uniform_block_data.data.light_src[light_index].ambient) {
         uniform_block_data.data.light_src[light_index].ambient = color;
         uniform_block_data.dirty = true;
@@ -1901,7 +1907,7 @@ void RasterizerOpenGL::SyncLightPosition(int light_index) {
 }
 
 void RasterizerOpenGL::SyncLightSpotDirection(int light_index) {
-    const auto& light = Pica::g_state.regs.lighting.light[light_index];
+    const Pica::LightingRegs::LightSrc& light = Pica::g_state.regs.lighting.light[light_index];
     GLvec3 spot_direction = {light.spot_x / 2047.0f, light.spot_y / 2047.0f,
                              light.spot_z / 2047.0f};
 
@@ -1934,7 +1940,7 @@ void RasterizerOpenGL::SyncLightDistanceAttenuationScale(int light_index) {
 }
 
 void RasterizerOpenGL::SyncShadowBias() {
-    const auto& shadow = Pica::g_state.regs.framebuffer.shadow;
+    const Pica::FramebufferRegs::Shadow& shadow = Pica::g_state.regs.framebuffer.shadow;
     GLfloat constant = Pica::float16::FromRaw(shadow.constant).ToFloat32();
     GLfloat linear = Pica::float16::FromRaw(shadow.linear).ToFloat32();
 
@@ -1981,9 +1987,9 @@ void RasterizerOpenGL::SyncAndUploadLUTs() {
         for (unsigned index = 0; index < uniform_block_data.lighting_lut_dirty.size(); index++) {
             if (uniform_block_data.lighting_lut_dirty[index] || invalidate) {
                 std::array<GLvec2, 256> new_data;
-                const auto& source_lut = Pica::g_state.lighting.luts[index];
+                const Pica::State::Lighting::Lut& source_lut = Pica::g_state.lighting.luts[index];
                 std::transform(source_lut.begin(), source_lut.end(), new_data.begin(),
-                               [](const auto& entry) {
+                               [](const Pica::State::Lighting::LutEntry& entry) {
                                    return GLvec2{entry.ToFloat(), entry.DiffToFloat()};
                                });
 
@@ -2007,7 +2013,7 @@ void RasterizerOpenGL::SyncAndUploadLUTs() {
         std::array<GLvec2, 128> new_data;
 
         std::transform(Pica::g_state.fog.lut.begin(), Pica::g_state.fog.lut.end(), new_data.begin(),
-                       [](const auto& entry) {
+                       [](const Pica::State::Fog::LutEntry& entry) {
                            return GLvec2{entry.ToFloat(), entry.DiffToFloat()};
                        });
 
@@ -2021,14 +2027,15 @@ void RasterizerOpenGL::SyncAndUploadLUTs() {
         uniform_block_data.fog_lut_dirty = false;
     }
 
-    // helper function for SyncProcTexNoiseLUT/ColorMap/AlphaMap
+    // Helper function for SyncProcTexNoiseLUT/ColorMap/AlphaMap
     auto SyncProcTexValueLUT = [this, buffer, offset, invalidate, &bytes_used](
                                    const std::array<Pica::State::ProcTex::ValueEntry, 128>& lut,
                                    std::array<GLvec2, 128>& lut_data, GLint& lut_offset) {
         std::array<GLvec2, 128> new_data;
-        std::transform(lut.begin(), lut.end(), new_data.begin(), [](const auto& entry) {
-            return GLvec2{entry.ToFloat(), entry.DiffToFloat()};
-        });
+        std::transform(lut.begin(), lut.end(), new_data.begin(),
+                       [](const Pica::State::ProcTex::ValueEntry& entry) {
+                           return GLvec2{entry.ToFloat(), entry.DiffToFloat()};
+                       });
 
         if (new_data != lut_data || invalidate) {
             lut_data = new_data;
@@ -2066,8 +2073,8 @@ void RasterizerOpenGL::SyncAndUploadLUTs() {
 
         std::transform(Pica::g_state.proctex.color_table.begin(),
                        Pica::g_state.proctex.color_table.end(), new_data.begin(),
-                       [](const auto& entry) {
-                           auto rgba = entry.ToVector() / 255.0f;
+                       [](const Pica::State::ProcTex::ColorEntry& entry) {
+                           Common::Vec4f rgba = entry.ToVector() / 255.0f;
                            return GLvec4{rgba.r(), rgba.g(), rgba.b(), rgba.a()};
                        });
 
@@ -2078,6 +2085,7 @@ void RasterizerOpenGL::SyncAndUploadLUTs() {
             uniform_block_data.dirty = true;
             bytes_used += new_data.size() * sizeof(GLvec4);
         }
+
         uniform_block_data.proctex_lut_dirty = false;
     }
 
@@ -2087,8 +2095,8 @@ void RasterizerOpenGL::SyncAndUploadLUTs() {
 
         std::transform(Pica::g_state.proctex.color_diff_table.begin(),
                        Pica::g_state.proctex.color_diff_table.end(), new_data.begin(),
-                       [](const auto& entry) {
-                           auto rgba = entry.ToVector() / 255.0f;
+                       [](const Pica::State::ProcTex::ColorDifferenceEntry& entry) {
+                           Common::Vec4f rgba = entry.ToVector() / 255.0f;
                            return GLvec4{rgba.r(), rgba.g(), rgba.b(), rgba.a()};
                        });
 

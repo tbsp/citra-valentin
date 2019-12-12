@@ -315,7 +315,7 @@ ResultCode SetBufferSwap(u32 screen_id, const FrameBufferInfo& info) {
 void GSP_GPU::SetBufferSwap(Kernel::HLERequestContext& ctx) {
     IPC::RequestParser rp(ctx, 0x5, 8, 0);
     u32 screen_id = rp.Pop<u32>();
-    auto fb_info = rp.PopRaw<FrameBufferInfo>();
+    Service::GSP::FrameBufferInfo fb_info = rp.PopRaw<FrameBufferInfo>();
 
     IPC::RequestBuilder rb = rp.MakeBuilder(1, 0);
     rb.Push(GSP::SetBufferSwap(screen_id, fb_info));
@@ -325,7 +325,7 @@ void GSP_GPU::FlushDataCache(Kernel::HLERequestContext& ctx) {
     IPC::RequestParser rp(ctx, 0x8, 2, 2);
     u32 address = rp.Pop<u32>();
     u32 size = rp.Pop<u32>();
-    auto process = rp.PopObject<Kernel::Process>();
+    std::shared_ptr<Kernel::Process> process = rp.PopObject<Kernel::Process>();
 
     // TODO(purpasmart96): Verify return header on HW
 
@@ -340,7 +340,7 @@ void GSP_GPU::InvalidateDataCache(Kernel::HLERequestContext& ctx) {
     IPC::RequestParser rp(ctx, 0x9, 2, 2);
     u32 address = rp.Pop<u32>();
     u32 size = rp.Pop<u32>();
-    auto process = rp.PopObject<Kernel::Process>();
+    std::shared_ptr<Kernel::Process> process = rp.PopObject<Kernel::Process>();
 
     // TODO(purpasmart96): Verify return header on HW
 
@@ -365,7 +365,7 @@ void GSP_GPU::RegisterInterruptRelayQueue(Kernel::HLERequestContext& ctx) {
     IPC::RequestParser rp(ctx, 0x13, 1, 2);
     u32 flags = rp.Pop<u32>();
 
-    auto interrupt_event = rp.PopObject<Kernel::Event>();
+    std::shared_ptr<Kernel::Event> interrupt_event = rp.PopObject<Kernel::Event>();
     // TODO(mailwl): return right error code instead assert
     ASSERT_MSG((interrupt_event != nullptr), "handle is not valid!");
 
@@ -406,10 +406,11 @@ void GSP_GPU::UnregisterInterruptRelayQueue(Kernel::HLERequestContext& ctx) {
 
 void GSP_GPU::SignalInterruptForThread(InterruptId interrupt_id, u32 thread_id) {
     SessionData* session_data = FindRegisteredThreadData(thread_id);
-    if (session_data == nullptr)
+    if (session_data == nullptr) {
         return;
+    }
 
-    auto interrupt_event = session_data->interrupt_event;
+    std::shared_ptr<Kernel::Event> interrupt_event = session_data->interrupt_event;
     if (interrupt_event == nullptr) {
         LOG_WARNING(Service_GSP, "cannot synchronize until GSP event has been created!");
         return;
@@ -504,7 +505,7 @@ static void ExecuteCommand(const Command& command, u32 thread_id) {
     }
     // TODO: This will need some rework in the future. (why?)
     case CommandId::SUBMIT_GPU_CMDLIST: {
-        auto& params = command.submit_gpu_cmdlist;
+        const Service::GSP::SubmitGpuCommandList& params = command.submit_gpu_command_list;
 
         if (params.do_flush) {
             // This flag flushes the command list (params.address, params.size) from the cache.
@@ -529,7 +530,7 @@ static void ExecuteCommand(const Command& command, u32 thread_id) {
     // It's assumed that the two "blocks" behave equivalently.
     // Presumably this is done simply to allow two memory fills to run in parallel.
     case CommandId::SET_MEMORY_FILL: {
-        auto& params = command.memory_fill;
+        const Service::GSP::MemoryFill& params = command.memory_fill;
 
         if (params.start1 != 0) {
             WriteGPURegister(static_cast<u32>(GPU_REG_INDEX(memory_fill_config[0].address_start)),
@@ -556,7 +557,7 @@ static void ExecuteCommand(const Command& command, u32 thread_id) {
     }
 
     case CommandId::SET_DISPLAY_TRANSFER: {
-        auto& params = command.display_transfer;
+        const Service::GSP::DisplayTransfer& params = command.display_transfer;
         WriteGPURegister(static_cast<u32>(GPU_REG_INDEX(display_transfer_config.input_address)),
                          VirtualToPhysicalAddress(params.in_buffer_address) >> 3);
         WriteGPURegister(static_cast<u32>(GPU_REG_INDEX(display_transfer_config.output_address)),
@@ -572,7 +573,7 @@ static void ExecuteCommand(const Command& command, u32 thread_id) {
     }
 
     case CommandId::SET_TEXTURE_COPY: {
-        auto& params = command.texture_copy;
+        const Service::GSP::TextureCopy& params = command.texture_copy;
         WriteGPURegister((u32)GPU_REG_INDEX(display_transfer_config.input_address),
                          VirtualToPhysicalAddress(params.in_buffer_address) >> 3);
         WriteGPURegister((u32)GPU_REG_INDEX(display_transfer_config.output_address),
@@ -690,7 +691,7 @@ void GSP_GPU::AcquireRight(Kernel::HLERequestContext& ctx) {
     IPC::RequestParser rp(ctx, 0x16, 1, 2);
 
     u32 flag = rp.Pop<u32>();
-    auto process = rp.PopObject<Kernel::Process>();
+    std::shared_ptr<Kernel::Process> process = rp.PopObject<Kernel::Process>();
 
     SessionData* session_data = GetSessionData(ctx.Session());
 
@@ -736,7 +737,7 @@ void GSP_GPU::StoreDataCache(Kernel::HLERequestContext& ctx) {
 
     u32 address = rp.Pop<u32>();
     u32 size = rp.Pop<u32>();
-    auto process = rp.PopObject<Kernel::Process>();
+    std::shared_ptr<Kernel::Process> process = rp.PopObject<Kernel::Process>();
 
     IPC::RequestBuilder rb = rp.MakeBuilder(1, 0);
     rb.Push(RESULT_SUCCESS);
@@ -758,12 +759,14 @@ void GSP_GPU::SetLedForceOff(Kernel::HLERequestContext& ctx) {
 }
 
 SessionData* GSP_GPU::FindRegisteredThreadData(u32 thread_id) {
-    for (auto& session_info : connected_sessions) {
+    for (Kernel::SessionRequestHandler::SessionInfo& session_info : connected_sessions) {
         SessionData* data = static_cast<SessionData*>(session_info.data.get());
-        if (!data->registered)
+        if (!data->registered) {
             continue;
-        if (data->thread_id == thread_id)
+        }
+        if (data->thread_id == thread_id) {
             return data;
+        }
     }
     return nullptr;
 }

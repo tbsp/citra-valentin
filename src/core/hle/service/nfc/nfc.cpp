@@ -346,8 +346,8 @@ Module::Module(Core::System& system) {
 Module::~Module() = default;
 
 void InstallInterfaces(Core::System& system) {
-    auto& service_manager = system.ServiceManager();
-    auto nfc = std::make_shared<Module>(system);
+    Service::SM::ServiceManager& service_manager = system.ServiceManager();
+    std::shared_ptr<Service::NFC::Module> nfc = std::make_shared<Module>(system);
     std::make_shared<NFC_M>(nfc)->InstallAsService(service_manager);
     std::make_shared<NFC_U>(nfc)->InstallAsService(service_manager);
 }

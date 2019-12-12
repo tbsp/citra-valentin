@@ -200,7 +200,7 @@ int main(int argc, char** argv) {
     char* endarg;
 #ifdef _WIN32
     int argc_w;
-    auto argv_w = CommandLineToArgvW(GetCommandLineW(), &argc_w);
+    LPWSTR* argv_w = CommandLineToArgvW(GetCommandLineW(), &argc_w);
 
     if (argv_w == nullptr) {
         LOG_CRITICAL(Frontend, "Failed to get command line arguments");

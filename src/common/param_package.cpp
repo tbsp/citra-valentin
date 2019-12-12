@@ -57,7 +57,7 @@ std::string ParamPackage::Serialize() const {
 
     std::string result;
 
-    for (const auto& pair : data) {
+    for (const std::pair<const std::string, std::string>& pair : data) {
         std::array<std::string, 2> key_value{{pair.first, pair.second}};
         for (std::string& part : key_value) {
             part = Common::ReplaceAll(part, {ESCAPE_CHARACTER}, ESCAPE_CHARACTER_ESCAPE);
@@ -72,7 +72,7 @@ std::string ParamPackage::Serialize() const {
 }
 
 std::string ParamPackage::Get(const std::string& key, const std::string& default_value) const {
-    auto pair = data.find(key);
+    const auto pair = data.find(key);
     if (pair == data.end()) {
         LOG_DEBUG(Common, "key {} not found", key);
         return default_value;
@@ -82,7 +82,7 @@ std::string ParamPackage::Get(const std::string& key, const std::string& default
 }
 
 int ParamPackage::Get(const std::string& key, int default_value) const {
-    auto pair = data.find(key);
+    const auto pair = data.find(key);
     if (pair == data.end()) {
         LOG_DEBUG(Common, "key {} not found", key);
         return default_value;
@@ -97,7 +97,7 @@ int ParamPackage::Get(const std::string& key, int default_value) const {
 }
 
 float ParamPackage::Get(const std::string& key, float default_value) const {
-    auto pair = data.find(key);
+    const auto pair = data.find(key);
     if (pair == data.end()) {
         LOG_DEBUG(Common, "key {} not found", key);
         return default_value;

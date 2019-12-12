@@ -54,17 +54,16 @@ static void ConvertYUVToRGB(InputFormat input_format, const u8* input_Y, const u
             }
 
             // This conversion process is bit-exact with hardware, as far as could be tested.
-            auto& c = coefficients;
-            s32 cY = c[0] * Y;
+            s32 cY = coefficients[0] * Y;
 
-            s32 r = cY + c[1] * V;
-            s32 g = cY - c[2] * V - c[3] * U;
-            s32 b = cY + c[4] * U;
+            s32 r = cY + coefficients[1] * V;
+            s32 g = cY - coefficients[2] * V - coefficients[3] * U;
+            s32 b = cY + coefficients[4] * U;
 
             const s32 rounding_offset = 0x18;
-            r = (r >> 3) + c[5] + rounding_offset;
-            g = (g >> 3) + c[6] + rounding_offset;
-            b = (b >> 3) + c[7] + rounding_offset;
+            r = (r >> 3) + coefficients[5] + rounding_offset;
+            g = (g >> 3) + coefficients[6] + rounding_offset;
+            b = (b >> 3) + coefficients[7] + rounding_offset;
 
             unsigned int tile = x / 8;
             unsigned int tile_x = x % 8;

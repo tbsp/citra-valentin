@@ -17,17 +17,17 @@ using OpCode = nihstro::OpCode;
 using SourceRegister = nihstro::SourceRegister;
 
 static std::unique_ptr<JitShader> CompileShader(std::initializer_list<nihstro::InlineAsm> code) {
-    const auto shbin = nihstro::InlineAsm::CompileToRawBinary(code);
+    const nihstro::ShaderBinary shbin = nihstro::InlineAsm::CompileToRawBinary(code);
 
     std::array<u32, Pica::Shader::MAX_PROGRAM_CODE_LENGTH> program_code{};
     std::array<u32, Pica::Shader::MAX_SWIZZLE_DATA_LENGTH> swizzle_data{};
 
     std::transform(shbin.program.begin(), shbin.program.end(), program_code.begin(),
-                   [](const auto& x) { return x.hex; });
+                   [](const nihstro::Instruction& x) { return x.hex; });
     std::transform(shbin.swizzle_table.begin(), shbin.swizzle_table.end(), swizzle_data.begin(),
-                   [](const auto& x) { return x.hex; });
+                   [](const nihstro::Instruction& x) { return x.hex; });
 
-    auto shader = std::make_unique<JitShader>();
+    std::unique_ptr<JitShader> shader = std::make_unique<JitShader>();
     shader->Compile(&program_code, &swizzle_data);
 
     return shader;
@@ -52,10 +52,10 @@ public:
 };
 
 TEST_CASE("LG2", "[video_core][shader][shader_jit]") {
-    const auto sh_input = SourceRegister::MakeInput(0);
-    const auto sh_output = DestRegister::MakeOutput(0);
+    const nihstro::SourceRegister sh_input = SourceRegister::MakeInput(0);
+    const nihstro::DestRegister sh_output = DestRegister::MakeOutput(0);
 
-    auto shader = ShaderTest({
+    ShaderTest shader({
         // clang-format off
         {OpCode::Id::LG2, sh_output, sh_input},
         {OpCode::Id::END},
@@ -71,10 +71,10 @@ TEST_CASE("LG2", "[video_core][shader][shader_jit]") {
 }
 
 TEST_CASE("EX2", "[video_core][shader][shader_jit]") {
-    const auto sh_input = SourceRegister::MakeInput(0);
-    const auto sh_output = DestRegister::MakeOutput(0);
+    const nihstro::SourceRegister sh_input = SourceRegister::MakeInput(0);
+    const nihstro::DestRegister sh_output = DestRegister::MakeOutput(0);
 
-    auto shader = ShaderTest({
+    ShaderTest shader({
         // clang-format off
         {OpCode::Id::EX2, sh_output, sh_input},
         {OpCode::Id::END},

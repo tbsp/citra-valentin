@@ -12,7 +12,7 @@
 namespace Service::QTM {
 
 void InstallInterfaces(Core::System& system) {
-    auto& service_manager = system.ServiceManager();
+    Service::SM::ServiceManager& service_manager = system.ServiceManager();
     std::make_shared<QTM_C>()->InstallAsService(service_manager);
     std::make_shared<QTM_S>()->InstallAsService(service_manager);
     std::make_shared<QTM_SP>()->InstallAsService(service_manager);

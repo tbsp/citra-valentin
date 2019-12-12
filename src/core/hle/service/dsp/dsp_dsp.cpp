@@ -71,7 +71,7 @@ void DSP_DSP::WriteProcessPipe(Kernel::HLERequestContext& ctx) {
     IPC::RequestParser rp(ctx, 0x0D, 2, 2);
     const u32 channel = rp.Pop<u32>();
     const u32 size = rp.Pop<u32>();
-    auto buffer = rp.PopStaticBuffer();
+    std::vector<u8> buffer = rp.PopStaticBuffer();
 
     const DspPipe pipe = static_cast<DspPipe>(channel);
 
@@ -168,7 +168,7 @@ void DSP_DSP::LoadComponent(Kernel::HLERequestContext& ctx) {
     const u32 size = rp.Pop<u32>();
     const u32 prog_mask = rp.Pop<u32>();
     const u32 data_mask = rp.Pop<u32>();
-    auto& buffer = rp.PopMappedBuffer();
+    Kernel::MappedBuffer& buffer = rp.PopMappedBuffer();
 
     IPC::RequestBuilder rb = rp.MakeBuilder(2, 2);
     rb.Push(RESULT_SUCCESS);
@@ -199,7 +199,7 @@ void DSP_DSP::FlushDataCache(Kernel::HLERequestContext& ctx) {
     IPC::RequestParser rp(ctx, 0x13, 2, 2);
     const VAddr address = rp.Pop<u32>();
     const u32 size = rp.Pop<u32>();
-    const auto process = rp.PopObject<Kernel::Process>();
+    const std::shared_ptr<Kernel::Process> process = rp.PopObject<Kernel::Process>();
 
     IPC::RequestBuilder rb = rp.MakeBuilder(1, 0);
     rb.Push(RESULT_SUCCESS);
@@ -212,7 +212,7 @@ void DSP_DSP::InvalidateDataCache(Kernel::HLERequestContext& ctx) {
     IPC::RequestParser rp(ctx, 0x14, 2, 2);
     const VAddr address = rp.Pop<u32>();
     const u32 size = rp.Pop<u32>();
-    const auto process = rp.PopObject<Kernel::Process>();
+    const std::shared_ptr<Kernel::Process> process = rp.PopObject<Kernel::Process>();
 
     IPC::RequestBuilder rb = rp.MakeBuilder(1, 0);
     rb.Push(RESULT_SUCCESS);
@@ -225,7 +225,7 @@ void DSP_DSP::RegisterInterruptEvents(Kernel::HLERequestContext& ctx) {
     IPC::RequestParser rp(ctx, 0x15, 2, 2);
     const u32 interrupt = rp.Pop<u32>();
     const u32 channel = rp.Pop<u32>();
-    auto event = rp.PopObject<Kernel::Event>();
+    std::shared_ptr<Kernel::Event> event = rp.PopObject<Kernel::Event>();
 
     ASSERT_MSG(interrupt < NUM_INTERRUPT_TYPE && channel < AudioCore::num_dsp_pipe,
                "Invalid type or pipe: interrupt = {}, channel = {}", interrupt, channel);
@@ -303,9 +303,10 @@ void DSP_DSP::ForceHeadphoneOut(Kernel::HLERequestContext& ctx) {
 void DSP_DSP::SignalInterrupt(InterruptType type, DspPipe pipe) {
     LOG_DEBUG(Service_DSP, "called, type={}, pipe={}", static_cast<u32>(type),
               static_cast<u32>(pipe));
-    const auto& event = GetInterruptEvent(type, pipe);
-    if (event)
+    const std::shared_ptr<Kernel::Event>& event = GetInterruptEvent(type, pipe);
+    if (event) {
         event->Signal();
+    }
 }
 
 std::shared_ptr<Kernel::Event>& DSP_DSP::GetInterruptEvent(InterruptType type, DspPipe pipe) {
@@ -325,12 +326,15 @@ std::shared_ptr<Kernel::Event>& DSP_DSP::GetInterruptEvent(InterruptType type, D
 
 bool DSP_DSP::HasTooManyEventsRegistered() const {
     std::size_t number =
-        std::count_if(pipes.begin(), pipes.end(), [](const auto& evt) { return evt != nullptr; });
+        std::count_if(pipes.begin(), pipes.end(),
+                      [](const std::shared_ptr<Kernel::Event>& event) { return event != nullptr; });
 
-    if (interrupt_zero != nullptr)
+    if (interrupt_zero != nullptr) {
         number++;
-    if (interrupt_one != nullptr)
+    }
+    if (interrupt_one != nullptr) {
         number++;
+    }
 
     LOG_DEBUG(Service_DSP, "Number of events registered = {}", number);
     return number >= max_number_of_interrupt_events;
@@ -391,8 +395,8 @@ DSP_DSP::~DSP_DSP() {
 }
 
 void InstallInterfaces(Core::System& system) {
-    auto& service_manager = system.ServiceManager();
-    auto dsp = std::make_shared<DSP_DSP>(system);
+    Service::SM::ServiceManager& service_manager = system.ServiceManager();
+    std::shared_ptr<Service::DSP::DSP_DSP> dsp = std::make_shared<DSP_DSP>(system);
     dsp->InstallAsService(service_manager);
     system.DSP().SetServiceToInterrupt(std::move(dsp));
 }

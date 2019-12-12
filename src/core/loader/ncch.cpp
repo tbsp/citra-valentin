@@ -137,7 +137,7 @@ void AppLoader_NCCH::ParseRegionLockoutInfo() {
     std::vector<u8> smdh_buffer;
     if (ReadIcon(smdh_buffer) == ResultStatus::Success && smdh_buffer.size() >= sizeof(SMDH)) {
         SMDH smdh;
-        memcpy(&smdh, smdh_buffer.data(), sizeof(SMDH));
+        std::memcpy(&smdh, smdh_buffer.data(), sizeof(SMDH));
         u32 region_lockout = smdh.region_lockout;
         constexpr u32 REGION_COUNT = 7;
         std::vector<u32> regions;
@@ -147,7 +147,8 @@ void AppLoader_NCCH::ParseRegionLockoutInfo() {
             }
             region_lockout >>= 1;
         }
-        auto cfg = Service::CFG::GetModule(Core::System::GetInstance());
+        std::shared_ptr<Service::CFG::Module> cfg =
+            Service::CFG::GetModule(Core::System::GetInstance());
         ASSERT_MSG(cfg, "CFG Module missing!");
         cfg->SetPreferredRegionCodes(regions);
     }
@@ -188,7 +189,7 @@ ResultStatus AppLoader_NCCH::Load(std::shared_ptr<Kernel::Process>& process) {
     if (ResultStatus::Success != result)
         return result;
 
-    auto& system = Core::System::GetInstance();
+    Core::System& system = Core::System::GetInstance();
     system.ArchiveManager().RegisterSelfNCCH(*this);
 
     ParseRegionLockoutInfo();
@@ -261,8 +262,9 @@ ResultStatus AppLoader_NCCH::ReadTitle(std::string& title) {
 
     memcpy(&smdh, data.data(), sizeof(Loader::SMDH));
 
-    const auto& short_title = smdh.GetShortTitle(SMDH::TitleLanguage::English);
-    auto title_end = std::find(short_title.begin(), short_title.end(), u'\0');
+    const std::array<u16, 0x40> short_title = smdh.GetShortTitle(SMDH::TitleLanguage::English);
+    std::array<u16, 0x40>::const_iterator title_end =
+        std::find(short_title.begin(), short_title.end(), u'\0');
     title = Common::UTF16ToUTF8(std::u16string{short_title.begin(), title_end});
 
     return ResultStatus::Success;

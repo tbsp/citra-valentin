@@ -56,8 +56,8 @@ void PerfStats::BeginSystemFrame() {
 void PerfStats::EndSystemFrame() {
     std::lock_guard lock{object_mutex};
 
-    auto frame_end = Clock::now();
-    const auto frame_time = frame_end - frame_begin;
+    std::chrono::time_point<std::chrono::steady_clock> frame_end = Clock::now();
+    const std::chrono::nanoseconds frame_time = frame_end - frame_begin;
     if (current_index < perf_history.size()) {
         perf_history[current_index++] =
             std::chrono::duration<double, std::milli>(frame_time).count();
@@ -91,12 +91,13 @@ double PerfStats::GetMeanFrametime() {
 PerfStats::Results PerfStats::GetAndResetStats(microseconds current_system_time_us) {
     std::lock_guard lock(object_mutex);
 
-    const auto now = Clock::now();
+    const std::chrono::time_point<std::chrono::steady_clock> now = Clock::now();
 
     // Walltime elapsed since stats were reset
-    const auto interval = duration_cast<DoubleSecs>(now - reset_point).count();
+    const double interval = duration_cast<DoubleSecs>(now - reset_point).count();
 
-    const auto system_us_per_second = (current_system_time_us - reset_point_system_us) / interval;
+    const std::chrono::duration<double, std::micro> system_us_per_second =
+        (current_system_time_us - reset_point_system_us) / interval;
 
     Results results;
     results.system_fps = static_cast<double>(system_frames) / interval;
@@ -132,7 +133,7 @@ void FrameLimiter::DoFrameLimiting(microseconds current_system_time_us) {
         return;
     }
 
-    auto now = Clock::now();
+    std::chrono::time_point<std::chrono::steady_clock> now = Clock::now();
     const double sleep_scale = Settings::values.frame_limit / 100.0;
 
     // Max lag caused by slow frames. Shouldn't be more than the length of a frame at the current
@@ -149,7 +150,7 @@ void FrameLimiter::DoFrameLimiting(microseconds current_system_time_us) {
 
     if (frame_limiting_delta_err > microseconds::zero()) {
         std::this_thread::sleep_for(frame_limiting_delta_err);
-        const auto now_after_sleep = Clock::now();
+        const std::chrono::time_point<std::chrono::steady_clock> now_after_sleep = Clock::now();
         frame_limiting_delta_err -= duration_cast<microseconds>(now_after_sleep - now);
         now = now_after_sleep;
     }

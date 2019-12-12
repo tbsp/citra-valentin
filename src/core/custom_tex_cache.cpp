@@ -57,7 +57,7 @@ void CustomTexCache::FindCustomTextures() {
         FileUtil::ScanDirectoryTree(load_path, texture_dir, 64);
         FileUtil::GetAllFilesFromNestedEntries(texture_dir, textures);
 
-        for (const auto& file : textures) {
+        for (const FileUtil::FSTEntry& file : textures) {
             if (file.isDirectory) {
                 continue;
             }
@@ -79,7 +79,7 @@ void CustomTexCache::FindCustomTextures() {
 }
 
 void CustomTexCache::PreloadTextures() {
-    for (const auto& path : custom_texture_paths) {
+    for (const std::pair<const u64, Core::CustomTexPathInfo>& path : custom_texture_paths) {
         const std::shared_ptr<Frontend::ImageInterface>& image_interface =
             Core::System::GetInstance().GetImageInterface();
         const CustomTexPathInfo& path_info = path.second;

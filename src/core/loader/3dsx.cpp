@@ -170,7 +170,7 @@ static THREEDSX_Error Load3DSXFile(FileUtil::IOFile& file, u32 base_addr,
 
                 for (unsigned current_inprogress = 0;
                      current_inprogress < remaining && pos < end_pos; current_inprogress++) {
-                    const auto& table = reloc_table[current_inprogress];
+                    const Loader::THREEDSX_Reloc& table = reloc_table[current_inprogress];
                     LOG_TRACE(Loader, "(t={},skip={},patch={})", current_segment_reloc_table,
                               static_cast<u32>(table.skip), static_cast<u32>(table.patch));
                     pos += table.skip;

@@ -84,7 +84,7 @@ void SRV::EnableNotification(Kernel::HLERequestContext& ctx) {
  */
 void SRV::GetServiceHandle(Kernel::HLERequestContext& ctx) {
     IPC::RequestParser rp(ctx, 0x5, 4, 0);
-    auto name_buf = rp.PopRaw<std::array<char, 8>>();
+    std::array<char, 8> name_buf = rp.PopRaw<std::array<char, 8>>();
     std::size_t name_len = rp.Pop<u32>();
     u32 flags = rp.Pop<u32>();
 
@@ -104,9 +104,10 @@ void SRV::GetServiceHandle(Kernel::HLERequestContext& ctx) {
                                    Kernel::HLERequestContext& ctx,
                                    Kernel::ThreadWakeupReason reason) {
         LOG_ERROR(Service_SRV, "called service={} wakeup", name);
-        auto client_port = system.ServiceManager().GetServicePort(name);
+        ResultVal<std::shared_ptr<Kernel::ClientPort>> client_port =
+            system.ServiceManager().GetServicePort(name);
 
-        auto session = client_port.Unwrap()->Connect();
+        ResultVal<std::shared_ptr<Kernel::ClientSession>> session = client_port.Unwrap()->Connect();
         if (session.Succeeded()) {
             LOG_DEBUG(Service_SRV, "called service={} -> session={}", name,
                       (*session)->GetObjectId());
@@ -123,7 +124,8 @@ void SRV::GetServiceHandle(Kernel::HLERequestContext& ctx) {
         }
     };
 
-    auto client_port = system.ServiceManager().GetServicePort(name);
+    ResultVal<std::shared_ptr<Kernel::ClientPort>> client_port =
+        system.ServiceManager().GetServicePort(name);
     if (client_port.Failed()) {
         if (wait_until_available && client_port.Code() == ERR_SERVICE_NOT_REGISTERED) {
             LOG_INFO(Service_SRV, "called service={} delayed", name);
@@ -140,7 +142,7 @@ void SRV::GetServiceHandle(Kernel::HLERequestContext& ctx) {
         }
     }
 
-    auto session = client_port.Unwrap()->Connect();
+    ResultVal<std::shared_ptr<Kernel::ClientSession>> session = client_port.Unwrap()->Connect();
     if (session.Succeeded()) {
         LOG_DEBUG(Service_SRV, "called service={} -> session={}", name, (*session)->GetObjectId());
         IPC::RequestBuilder rb = rp.MakeBuilder(1, 2);
@@ -217,13 +219,14 @@ void SRV::PublishToSubscriber(Kernel::HLERequestContext& ctx) {
 void SRV::RegisterService(Kernel::HLERequestContext& ctx) {
     IPC::RequestParser rp(ctx, 0x3, 4, 0);
 
-    auto name_buf = rp.PopRaw<std::array<char, 8>>();
+    std::array<char, 8> name_buf = rp.PopRaw<std::array<char, 8>>();
     std::size_t name_len = rp.Pop<u32>();
     u32 max_sessions = rp.Pop<u32>();
 
     std::string name(name_buf.data(), std::min(name_len, name_buf.size()));
 
-    auto port = system.ServiceManager().RegisterService(name, max_sessions);
+    ResultVal<std::shared_ptr<Kernel::ServerPort>> port =
+        system.ServiceManager().RegisterService(name, max_sessions);
 
     if (port.Failed()) {
         IPC::RequestBuilder rb = rp.MakeBuilder(1, 0);

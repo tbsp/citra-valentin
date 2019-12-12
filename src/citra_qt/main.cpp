@@ -264,7 +264,7 @@ void GMainWindow::InitializeWidgets() {
     emu_frametime_label->setToolTip(
         "Time taken to emulate a 3DS frame, not counting framelimiting or v-sync.");
 
-    for (auto& label : {emu_speed_label, emu_frametime_label}) {
+    for (QLabel* const label : {emu_speed_label, emu_frametime_label}) {
         label->setVisible(false);
         label->setFrameStyle(QFrame::NoFrame);
         label->setContentsMargins(4, 0, 4, 0);
@@ -2033,7 +2033,7 @@ void GMainWindow::UpdateStatusBar() {
         return;
     }
 
-    auto results = Core::System::GetInstance().GetAndResetPerfStats();
+    const Core::PerfStats::Results results = Core::System::GetInstance().GetAndResetPerfStats();
 
     if (Settings::values.use_frame_limit) {
         emu_speed_label->setText(QStringLiteral("%1 FPS (%2% / %3%)")

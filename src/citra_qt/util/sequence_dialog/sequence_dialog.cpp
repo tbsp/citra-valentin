@@ -13,10 +13,11 @@ SequenceDialog::SequenceDialog(QWidget* parent) : QDialog(parent) {
 
     key_sequence = new QKeySequenceEdit;
 
-    auto* const buttons = new QDialogButtonBox(QDialogButtonBox::Ok | QDialogButtonBox::Cancel);
+    QDialogButtonBox* const buttons =
+        new QDialogButtonBox(QDialogButtonBox::Ok | QDialogButtonBox::Cancel);
     buttons->setCenterButtons(true);
 
-    auto* const layout = new QVBoxLayout(this);
+    QVBoxLayout* const layout = new QVBoxLayout(this);
     layout->addWidget(key_sequence);
     layout->addWidget(buttons);
 

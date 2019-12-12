@@ -41,7 +41,7 @@ struct TexturingRegs {
             Linear = 1,
         };
 
-        union {
+        union BorderColor {
             u32 raw;
             BitField<0, 8, u32> r;
             BitField<8, 8, u32> g;
@@ -148,14 +148,15 @@ struct TexturingRegs {
         NegativeZ = 5,
     };
 
-    BitField<0, 22, u32> cube_address[5];
+    using CubeAddress = BitField<0, 22, u32>;
+    CubeAddress cube_address[5];
 
     PAddr GetCubePhysicalAddress(CubeFace face) const {
         PAddr address = texture0.address;
         if (face != CubeFace::PositiveX) {
             // Bits [22:27] from the main texture address is shared with all cubemap additional
             // addresses.
-            auto& face_addr = cube_address[static_cast<std::size_t>(face) - 1];
+            const CubeAddress& face_addr = cube_address[static_cast<std::size_t>(face) - 1];
             address &= ~face_addr.mask;
             address |= face_addr;
         }
@@ -184,7 +185,10 @@ struct TexturingRegs {
         const TextureConfig config;
         const TextureFormat format;
     };
-    const std::array<FullTextureConfig, 3> GetTextures() const {
+
+    using Textures = std::array<FullTextureConfig, 3>;
+
+    const Textures GetTextures() const {
         return {{
             {static_cast<bool>(main_config.texture0_enable), texture0, texture0_format},
             {static_cast<bool>(main_config.texture1_enable), texture1, texture1_format},
@@ -458,7 +462,8 @@ struct TexturingRegs {
 
     INSERT_PADDING_WORDS(0x2);
 
-    const std::array<TevStageConfig, 6> GetTevStages() const {
+    using TevStages = std::array<TevStageConfig, 6>;
+    const TevStages GetTevStages() const {
         return {{tev_stage0, tev_stage1, tev_stage2, tev_stage3, tev_stage4, tev_stage5}};
     };
 };

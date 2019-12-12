@@ -49,10 +49,11 @@ QList<QKeySequence> ConfigureHotkeys::GetUsedKeyList() const {
 }
 
 void ConfigureHotkeys::Populate(const HotkeyRegistry& registry) {
-    for (const auto& group : registry.hotkey_groups) {
+    for (const std::pair<const QString, std::map<QString, HotkeyRegistry::Hotkey>>& group :
+         registry.hotkey_groups) {
         QStandardItem* parent_item = new QStandardItem(group.first);
         parent_item->setEditable(false);
-        for (const auto& hotkey : group.second) {
+        for (const std::pair<const QString, HotkeyRegistry::Hotkey>& hotkey : group.second) {
             QStandardItem* action = new QStandardItem(hotkey.first);
             QStandardItem* keyseq =
                 new QStandardItem(hotkey.second.keyseq.toString(QKeySequence::NativeText));
@@ -76,13 +77,13 @@ void ConfigureHotkeys::Configure(QModelIndex index) {
     }
 
     index = index.sibling(index.row(), 1);
-    auto* const model = ui->hotkey_list->model();
-    const auto previous_key = model->data(index);
+    QAbstractItemModel* const model = ui->hotkey_list->model();
+    const QVariant previous_key = model->data(index);
 
     SequenceDialog hotkey_dialog{this};
 
     const int return_code = hotkey_dialog.exec();
-    const auto key_sequence = hotkey_dialog.GetSequence();
+    const QKeySequence key_sequence = hotkey_dialog.GetSequence();
     if (return_code == QDialog::Rejected || key_sequence.isEmpty()) {
         return;
     }

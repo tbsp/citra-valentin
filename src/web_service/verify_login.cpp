@@ -11,7 +11,7 @@ namespace WebService {
 
 bool VerifyLogin(const std::string& host, const std::string& username, const std::string& token) {
     Client client(host, username, token);
-    auto reply = client.GetJson("/profile", false).returned_data;
+    const std::string reply = client.GetJson("/profile", false).returned_data;
     if (reply.empty()) {
         return false;
     }

@@ -15,7 +15,7 @@ namespace Pica {
 struct ShaderRegs {
     BitField<0, 16, u32> bool_uniforms;
 
-    union {
+    union IntUniforms {
         BitField<0, 8, u32> x;
         BitField<8, 8, u32> y;
         BitField<16, 8, u32> z;
@@ -54,7 +54,7 @@ struct ShaderRegs {
     // 0x28E, CODETRANSFER_END
     INSERT_PADDING_WORDS(0x2);
 
-    struct {
+    struct UniformSetup {
         enum Format : u32 {
             FLOAT24 = 0,
             FLOAT32 = 1,
@@ -76,7 +76,6 @@ struct ShaderRegs {
 
         // Writing to these registers sets the current uniform.
         u32 set_value[8];
-
     } uniform_setup;
 
     INSERT_PADDING_WORDS(0x2);

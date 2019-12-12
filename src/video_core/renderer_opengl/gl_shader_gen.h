@@ -58,8 +58,8 @@ struct PicaFSConfigState {
     Pica::TexturingRegs::FogMode fog_mode;
     bool fog_flip;
 
-    struct {
-        struct {
+    struct Lighting {
+        struct Light {
             unsigned num;
             bool directional;
             bool two_sided_diffuse;

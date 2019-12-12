@@ -140,7 +140,7 @@ private:
     /// Event type for the thread wake up event
     Core::TimingEventType* ThreadWakeupEventType = nullptr;
 
-    // Lists all threadsthat aren't deleted.
+    // Lists all threads that aren't deleted.
     std::vector<std::shared_ptr<Thread>> thread_list;
 
     friend class Thread;

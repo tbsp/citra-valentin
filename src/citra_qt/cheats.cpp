@@ -26,7 +26,7 @@ CheatDialog::CheatDialog(QWidget* parent)
     ui->lineName->setEnabled(false);
     ui->textCode->setEnabled(false);
     ui->textNotes->setEnabled(false);
-    const auto game_id = fmt::format(
+    const std::string game_id = fmt::format(
         "{:016X}", Core::System::GetInstance().Kernel().GetCurrentProcess()->codeset->program_id);
     ui->labelTitle->setText(QStringLiteral("Title ID: %1").arg(QString::fromStdString(game_id)));
 
@@ -51,8 +51,8 @@ void CheatDialog::LoadCheats() {
 
     ui->tableCheats->setRowCount(cheats.size());
 
-    for (size_t i = 0; i < cheats.size(); i++) {
-        QCheckBox* enabled = new QCheckBox();
+    for (std::size_t i = 0; i < cheats.size(); i++) {
+        QCheckBox* enabled = new QCheckBox;
         enabled->setChecked(cheats[i]->IsEnabled());
         enabled->setStyleSheet("margin-left:7px;");
         ui->tableCheats->setItem(i, 0, new QTableWidgetItem());
@@ -68,7 +68,7 @@ void CheatDialog::LoadCheats() {
 }
 
 bool CheatDialog::CheckSaveCheat() {
-    auto answer = QMessageBox::warning(
+    const QMessageBox::StandardButton answer = QMessageBox::warning(
         this, QStringLiteral("Cheats"), QStringLiteral("Would you like to save the current cheat?"),
         QMessageBox::Yes | QMessageBox::No | QMessageBox::Cancel, QMessageBox::Cancel);
 
@@ -92,25 +92,25 @@ bool CheatDialog::SaveCheat(int row) {
     }
 
     // Check if the cheat lines are valid
-    auto code_lines = ui->textCode->toPlainText().split("\n", QString::SkipEmptyParts);
+    const QStringList code_lines = ui->textCode->toPlainText().split("\n", QString::SkipEmptyParts);
     for (int i = 0; i < code_lines.size(); ++i) {
         Cheats::GatewayCheat::CheatLine cheat_line(code_lines[i].toStdString());
-        if (cheat_line.valid)
+        if (cheat_line.valid) {
             continue;
+        }
 
-        auto answer =
-            QMessageBox::warning(this, QStringLiteral("Save Cheat"),
+        if (QMessageBox::warning(this, QStringLiteral("Save Cheat"),
                                  QStringLiteral("Cheat code line %1 is not valid.\nWould you like "
                                                 "to ignore the error and continue?")
                                      .arg(i + 1),
-                                 QMessageBox::Yes | QMessageBox::No, QMessageBox::No);
-        if (answer == QMessageBox::No)
+                                 QMessageBox::Yes | QMessageBox::No,
+                                 QMessageBox::No) == QMessageBox::No)
             return false;
     }
 
-    auto cheat = std::make_shared<Cheats::GatewayCheat>(ui->lineName->text().toStdString(),
-                                                        ui->textCode->toPlainText().toStdString(),
-                                                        ui->textNotes->toPlainText().toStdString());
+    std::shared_ptr<Cheats::GatewayCheat> cheat = std::make_shared<Cheats::GatewayCheat>(
+        ui->lineName->text().toStdString(), ui->textCode->toPlainText().toStdString(),
+        ui->textNotes->toPlainText().toStdString());
 
     if (newly_created) {
         Core::System::GetInstance().CheatEngine().AddCheat(cheat);
@@ -158,7 +158,7 @@ void CheatDialog::OnRowSelected(int row, int column) {
             ui->tableCheats->setRowCount(ui->tableCheats->rowCount() - 1);
         }
 
-        const auto& current_cheat = cheats[row];
+        const std::shared_ptr<Cheats::CheatBase>& current_cheat = cheats[row];
         ui->lineName->setText(QString::fromStdString(current_cheat->GetName()));
         ui->textNotes->setPlainText(QString::fromStdString(current_cheat->GetComments()));
         ui->textCode->setPlainText(QString::fromStdString(current_cheat->GetCode()));
@@ -178,7 +178,7 @@ void CheatDialog::OnRowSelected(int row, int column) {
 
 void CheatDialog::OnCheckChanged(int state) {
     const QCheckBox* checkbox = qobject_cast<QCheckBox*>(sender());
-    int row = static_cast<int>(checkbox->property("row").toInt());
+    const int row = static_cast<int>(checkbox->property("row").toInt());
     cheats[row]->SetEnabled(state);
     Core::System::GetInstance().CheatEngine().SaveCheatFile();
 }
@@ -212,7 +212,7 @@ void CheatDialog::OnDeleteCheat() {
         }
         ui->tableCheats->setCurrentCell(last_row, last_col);
 
-        const auto& current_cheat = cheats[last_row];
+        const std::shared_ptr<Cheats::CheatBase>& current_cheat = cheats[last_row];
         ui->lineName->setText(QString::fromStdString(current_cheat->GetName()));
         ui->textNotes->setPlainText(QString::fromStdString(current_cheat->GetComments()));
         ui->textCode->setPlainText(QString::fromStdString(current_cheat->GetCode()));

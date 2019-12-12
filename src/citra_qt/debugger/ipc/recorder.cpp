@@ -90,7 +90,7 @@ void IpcRecorderWidget::OnEntryUpdated(IPCDebugger::RequestRecord record) {
         (record.status == IPCDebugger::RequestStatus::Handled &&
          record.translated_reply_cmdbuf[1] != RESULT_SUCCESS.raw)) { // Unimplemented / Error
 
-        auto* item = ui->main->invisibleRootItem()->child(row_id);
+        QTreeWidgetItem* item = ui->main->invisibleRootItem()->child(row_id);
         for (int column = 0; column < item->columnCount(); ++column) {
             item->setBackgroundColor(column, QColor::fromRgb(255, 0, 0));
         }
@@ -104,7 +104,7 @@ void IpcRecorderWidget::SetEnabled(bool enabled) {
         return;
     }
 
-    auto& ipc_recorder = Core::System::GetInstance().Kernel().GetIPCRecorder();
+    IPCDebugger::Recorder& ipc_recorder = Core::System::GetInstance().Kernel().GetIPCRecorder();
     ipc_recorder.SetEnabled(enabled);
 
     if (enabled) {
@@ -124,7 +124,7 @@ void IpcRecorderWidget::Clear() {
 
 QString IpcRecorderWidget::GetServiceName(const IPCDebugger::RequestRecord& record) const {
     if (Core::System::GetInstance().IsPoweredOn() && record.client_port.id != -1) {
-        const auto service_name =
+        const std::string service_name =
             Core::System::GetInstance().ServiceManager().GetServiceNameByPortId(
                 static_cast<u32>(record.client_port.id));
 
@@ -153,7 +153,7 @@ QString IpcRecorderWidget::GetFunctionName(const IPCDebugger::RequestRecord& rec
 }
 
 void IpcRecorderWidget::ApplyFilter(int index) {
-    auto* item = ui->main->invisibleRootItem()->child(index);
+    QTreeWidgetItem* item = ui->main->invisibleRootItem()->child(index);
     const QString filter = ui->filter->text();
     if (filter.isEmpty()) {
         item->setHidden(false);

@@ -88,7 +88,7 @@ struct FramebufferRegs {
         DecrementWrap = 7,
     };
 
-    struct {
+    struct OutputMerger {
         union {
             BitField<0, 2, FragmentOperationMode> fragment_operation_mode;
             // If false, logic blending is used
@@ -283,7 +283,7 @@ struct FramebufferRegs {
 
     INSERT_PADDING_WORDS(0x10); // Gas related registers
 
-    union {
+    union Shadow {
         BitField<0, 16, u32> constant; // float1.5.10
         BitField<16, 16, u32> linear;  // float1.5.10
     } shadow;

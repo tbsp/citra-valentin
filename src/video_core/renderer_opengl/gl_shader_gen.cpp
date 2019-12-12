@@ -111,7 +111,7 @@ out gl_PerVertex {
 PicaFSConfig PicaFSConfig::BuildFromRegs(const Pica::Regs& regs) {
     PicaFSConfig res;
 
-    auto& state = res.state;
+    OpenGL::PicaFSConfigState& state = res.state;
 
     state.scissor_test_mode = regs.rasterizer.scissor_test.mode;
 
@@ -128,10 +128,10 @@ PicaFSConfig PicaFSConfig::BuildFromRegs(const Pica::Regs& regs) {
     // Copy relevant tev stages fields.
     // We don't sync const_color here because of the high variance, it is a
     // shader uniform instead.
-    const auto& tev_stages = regs.texturing.GetTevStages();
+    const Pica::TexturingRegs::TevStages& tev_stages = regs.texturing.GetTevStages();
     DEBUG_ASSERT(state.tev_stages.size() == tev_stages.size());
     for (std::size_t i = 0; i < tev_stages.size(); i++) {
-        const auto& tev_stage = tev_stages[i];
+        const Pica::TexturingRegs::TevStageConfig& tev_stage = tev_stages[i];
         state.tev_stages[i].sources_raw = tev_stage.sources_raw;
         state.tev_stages[i].modifiers_raw = tev_stage.modifiers_raw;
         state.tev_stages[i].ops_raw = tev_stage.ops_raw;
@@ -152,7 +152,7 @@ PicaFSConfig PicaFSConfig::BuildFromRegs(const Pica::Regs& regs) {
 
     for (unsigned light_index = 0; light_index < state.lighting.src_num; ++light_index) {
         unsigned num = regs.lighting.light_enable.GetNum(light_index);
-        const auto& light = regs.lighting.light[num];
+        const Pica::LightingRegs::LightSrc& light = regs.lighting.light[num];
         state.lighting.light[light_index].num = num;
         state.lighting.light[light_index].directional = light.config.directional != 0;
         state.lighting.light[light_index].two_sided_diffuse = light.config.two_sided_diffuse != 0;
@@ -271,7 +271,7 @@ void PicaGSConfigCommonRaw::Init(const Pica::Regs& regs) {
             regs.rasterizer.vs_output_attributes[attrib].map_z,
             regs.rasterizer.vs_output_attributes[attrib].map_w};
         for (u32 comp = 0; comp < 4; ++comp) {
-            const auto semantic = semantics[comp];
+            const Pica::RasterizerRegs::VSOutputAttributes::Semantic semantic = semantics[comp];
             if (static_cast<std::size_t>(semantic) < 24) {
                 semantic_maps[static_cast<std::size_t>(semantic)] = {attrib, comp};
             } else if (semantic != VSOutputAttributes::INVALID) {
@@ -294,7 +294,7 @@ static bool IsPassThroughTevStage(const TevStageConfig& stage) {
 }
 
 static std::string SampleTexture(const PicaFSConfig& config, unsigned texture_unit) {
-    const auto& state = config.state;
+    const OpenGL::PicaFSConfigState& state = config.state;
     switch (texture_unit) {
     case 0:
         // Only unit 0 respects the texturing type
@@ -605,7 +605,7 @@ static void AppendAlphaTestCondition(std::string& out, FramebufferRegs::CompareF
 
 /// Writes the code to emulate the specified TEV stage
 static void WriteTevStage(std::string& out, const PicaFSConfig& config, unsigned index) {
-    const auto stage =
+    const Pica::TexturingRegs::TevStageConfig stage =
         static_cast<const TexturingRegs::TevStageConfig>(config.state.tev_stages[index]);
     if (!IsPassThroughTevStage(stage)) {
         std::string index_name = std::to_string(index);
@@ -663,7 +663,7 @@ static void WriteTevStage(std::string& out, const PicaFSConfig& config, unsigned
 
 /// Writes the code to emulate fragment lighting
 static void WriteLighting(std::string& out, const PicaFSConfig& config) {
-    const auto& lighting = config.state.lighting;
+    const OpenGL::PicaFSConfigState::Lighting& lighting = config.state.lighting;
 
     // Define lighting globals
     out += "vec4 diffuse_sum = vec4(0.0, 0.0, 0.0, 1.0);\n"
@@ -677,7 +677,7 @@ static void WriteLighting(std::string& out, const PicaFSConfig& config) {
            "float geo_factor = 1.0;\n";
 
     // Compute fragment normals and tangents
-    auto Perturbation = [&]() {
+    auto Perturbation = [&] {
         return "2.0 * (" + SampleTexture(config, lighting.bump_selector) + ").rgb - 1.0";
     };
     if (lighting.bump_mode == LightingRegs::LightingBumpMode::NormalMap) {
@@ -789,14 +789,15 @@ static void WriteLighting(std::string& out, const PicaFSConfig& config) {
 
     // Write the code to emulate each enabled light
     for (unsigned light_index = 0; light_index < lighting.src_num; ++light_index) {
-        const auto& light_config = lighting.light[light_index];
+        const PicaFSConfigState::Lighting::Light& light_config = lighting.light[light_index];
         std::string light_src = "light_src[" + std::to_string(light_config.num) + "]";
 
         // Compute light vector (directional or positional)
-        if (light_config.directional)
+        if (light_config.directional) {
             out += "light_vector = normalize(" + light_src + ".position);\n";
-        else
+        } else {
             out += "light_vector = normalize(" + light_src + ".position + view);\n";
+        }
 
         out += "spot_dir = " + light_src + ".spot_direction;\n";
         out += "half_vector = normalize(view) + light_vector;\n";
@@ -829,7 +830,8 @@ static void WriteLighting(std::string& out, const PicaFSConfig& config) {
             std::string index = "clamp(" + light_src + ".dist_atten_scale * length(-view - " +
                                 light_src + ".position) + " + light_src +
                                 ".dist_atten_bias, 0.0, 1.0)";
-            auto sampler = LightingRegs::DistanceAttenuationSampler(light_config.num);
+            Pica::LightingRegs::LightingSampler sampler =
+                LightingRegs::DistanceAttenuationSampler(light_config.num);
             dist_atten = "LookupLightingLUTUnsigned(" +
                          std::to_string(static_cast<unsigned>(sampler)) + "," + index + ")";
         }
@@ -1231,7 +1233,7 @@ float ProcTexNoiseCoef(vec2 x) {
 }
 
 std::string GenerateFragmentShader(const PicaFSConfig& config, bool separable_shader) {
-    const auto& state = config.state;
+    const OpenGL::PicaFSConfigState& state = config.state;
 
     std::string out = R"(#version 330 core
 
@@ -1639,12 +1641,13 @@ std::optional<std::string> GenerateVertexShader(const Pica::Shader::ShaderSetup&
         return "";
     };
 
-    auto program_source_opt = ShaderDecompiler::DecompileProgram(
+    std::optional<std::string> program_source_opt = ShaderDecompiler::DecompileProgram(
         setup.program_code, setup.swizzle_data, config.state.main_offset, get_input_reg,
         get_output_reg, config.state.sanitize_mul);
 
-    if (!program_source_opt)
+    if (!program_source_opt) {
         return {};
+    }
 
     std::string& program_source = *program_source_opt;
 
@@ -1655,7 +1658,7 @@ layout (std140) uniform vs_config {
 };
 
 )";
-    // input attributes declaration
+    // Input attributes declaration
     for (std::size_t i = 0; i < used_regs.size(); ++i) {
         if (used_regs[i]) {
             out += "layout(location = " + std::to_string(i) + ") in vec4 vs_in_reg" +
@@ -1664,7 +1667,7 @@ layout (std140) uniform vs_config {
     }
     out += "\n";
 
-    // output attributes declaration
+    // Output attributes declaration
     for (u32 i = 0; i < config.state.num_outputs; ++i) {
         out += (separable_shader ? "layout(location = " + std::to_string(i) + ")" : std::string{}) +
                " out vec4 vs_out_attr" + std::to_string(i) + ";\n";

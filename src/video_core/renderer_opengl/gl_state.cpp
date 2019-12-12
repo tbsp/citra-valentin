@@ -49,7 +49,7 @@ OpenGLState::OpenGLState() {
 
     logic_op = GL_COPY;
 
-    for (auto& texture_unit : texture_units) {
+    for (TextureUnit& texture_unit : texture_units) {
         texture_unit.texture_2d = 0;
         texture_unit.sampler = 0;
     }
@@ -339,7 +339,7 @@ void OpenGLState::Apply() const {
 }
 
 OpenGLState& OpenGLState::ResetTexture(GLuint handle) {
-    for (auto& unit : texture_units) {
+    for (TextureUnit& unit : texture_units) {
         if (unit.texture_2d == handle) {
             unit.texture_2d = 0;
         }
@@ -378,7 +378,7 @@ OpenGLState& OpenGLState::ResetTexture(GLuint handle) {
 }
 
 OpenGLState& OpenGLState::ResetSampler(GLuint handle) {
-    for (auto& unit : texture_units) {
+    for (TextureUnit& unit : texture_units) {
         if (unit.sampler == handle) {
             unit.sampler = 0;
         }

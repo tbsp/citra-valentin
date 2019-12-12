@@ -300,7 +300,7 @@ void EmuWindow_SDL2::PollEvents() {
 
     const u32 current_time = SDL_GetTicks();
     if (current_time > last_time + 2000) {
-        const auto results = Core::System::GetInstance().GetAndResetPerfStats();
+        const Core::PerfStats::Results results = Core::System::GetInstance().GetAndResetPerfStats();
         const std::string title =
             game.empty() ? fmt::format("Citra Valentin {} | FPS: {:.0f} ({:.0f}%)",
                                        Version::citra_valentin.to_string(), results.game_fps,

@@ -68,7 +68,7 @@ public:
         if (role != Qt::DisplayRole) {
             return LobbyItem::data(role);
         }
-        auto description = data(DescriptionRole).toString();
+        QString description = data(DescriptionRole).toString();
         description.prepend(QStringLiteral("Description: "));
         return description;
     }
@@ -97,11 +97,11 @@ public:
 
     QVariant data(int role) const override {
         if (role == Qt::DecorationRole) {
-            auto val = data(GameIconRole);
-            if (val.isValid()) {
-                val = val.value<QPixmap>().scaled(16, 16, Qt::KeepAspectRatio);
+            QVariant variant = data(GameIconRole);
+            if (variant.isValid()) {
+                variant = variant.value<QPixmap>().scaled(16, 16, Qt::KeepAspectRatio);
             }
-            return val;
+            return variant;
         } else if (role != Qt::DisplayRole) {
             return LobbyItem::data(role);
         }
@@ -191,13 +191,13 @@ public:
         if (role != Qt::DisplayRole) {
             return LobbyItem::data(role);
         }
-        auto members = data(MemberListRole).toList();
+        QVariantList members = data(MemberListRole).toList();
         return QStringLiteral("%1 / %2").arg(QString::number(members.size()),
                                              data(MaxPlayerRole).toString());
     }
 
     bool operator<(const QStandardItem& other) const override {
-        // sort by rooms that have the most players
+        // Sort by rooms that have the most players
         int left_members = data(MemberListRole).toList().size();
         int right_members = other.data(MemberListRole).toList().size();
         return left_members < right_members;
@@ -220,18 +220,19 @@ public:
         if (role != Qt::DisplayRole) {
             return LobbyItem::data(role);
         }
-        auto members = data(MemberListRole).toList();
+        QVariantList members = data(MemberListRole).toList();
         QString out;
         bool first = true;
-        for (const auto& member : members) {
+        for (const QVariant& member : members) {
             if (!first) {
                 out.append(QStringLiteral("\n"));
             }
-            const auto& m = member.value<LobbyMember>();
-            if (m.GetGameName().isEmpty()) {
-                out += QStringLiteral("%1 is not playing a game").arg(m.GetName());
+            const LobbyMember& lobby_member = member.value<LobbyMember>();
+            if (lobby_member.GetGameName().isEmpty()) {
+                out += QStringLiteral("%1 is not playing a game").arg(lobby_member.GetName());
             } else {
-                out += QStringLiteral("%1 is playing %2").arg(m.GetName(), m.GetGameName());
+                out += QStringLiteral("%1 is playing %2")
+                           .arg(lobby_member.GetName(), lobby_member.GetGameName());
             }
             first = false;
         }

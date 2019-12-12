@@ -13,14 +13,14 @@ namespace Service::GSP {
 static std::weak_ptr<GSP_GPU> gsp_gpu;
 
 void SignalInterrupt(InterruptId interrupt_id) {
-    auto gpu = gsp_gpu.lock();
+    std::shared_ptr<Service::GSP::GSP_GPU> gpu = gsp_gpu.lock();
     ASSERT(gpu != nullptr);
     return gpu->SignalInterrupt(interrupt_id);
 }
 
 void InstallInterfaces(Core::System& system) {
-    auto& service_manager = system.ServiceManager();
-    auto gpu = std::make_shared<GSP_GPU>(system);
+    Service::SM::ServiceManager& service_manager = system.ServiceManager();
+    std::shared_ptr<Service::GSP::GSP_GPU> gpu = std::make_shared<GSP_GPU>(system);
     gpu->InstallAsService(service_manager);
     gsp_gpu = gpu;
 

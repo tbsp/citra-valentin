@@ -25,7 +25,7 @@ int BreakPointModel::rowCount(const QModelIndex& parent) const {
 }
 
 QVariant BreakPointModel::data(const QModelIndex& index, int role) const {
-    const auto event = static_cast<Pica::DebugContext::Event>(index.row());
+    const Pica::DebugContext::Event event = static_cast<Pica::DebugContext::Event>(index.row());
 
     switch (role) {
     case Qt::DisplayRole: {
@@ -49,7 +49,7 @@ QVariant BreakPointModel::data(const QModelIndex& index, int role) const {
     }
 
     case Role_IsEnabled: {
-        auto context = context_weak.lock();
+        std::shared_ptr<Pica::DebugContext> context = context_weak.lock();
         return context && context->breakpoints[(int)event].enabled;
     }
 
@@ -70,16 +70,18 @@ Qt::ItemFlags BreakPointModel::flags(const QModelIndex& index) const {
 }
 
 bool BreakPointModel::setData(const QModelIndex& index, const QVariant& value, int role) {
-    const auto event = static_cast<Pica::DebugContext::Event>(index.row());
+    const Pica::DebugContext::Event event = static_cast<Pica::DebugContext::Event>(index.row());
 
     switch (role) {
     case Qt::CheckStateRole: {
-        if (index.column() != 0)
+        if (index.column() != 0) {
             return false;
+        }
 
-        auto context = context_weak.lock();
-        if (!context)
+        std::shared_ptr<Pica::DebugContext> context = context_weak.lock();
+        if (!context) {
             return false;
+        }
 
         context->breakpoints[(int)event].enabled = value == Qt::Checked;
         QModelIndex changed_index = createIndex(index.row(), 0);
@@ -92,9 +94,10 @@ bool BreakPointModel::setData(const QModelIndex& index, const QVariant& value, i
 }
 
 void BreakPointModel::OnBreakPointHit(Pica::DebugContext::Event event) {
-    auto context = context_weak.lock();
-    if (!context)
+    std::shared_ptr<Pica::DebugContext> context = context_weak.lock();
+    if (!context) {
         return;
+    }
 
     active_breakpoint = context->active_breakpoint;
     at_breakpoint = context->at_breakpoint;
@@ -103,9 +106,10 @@ void BreakPointModel::OnBreakPointHit(Pica::DebugContext::Event event) {
 }
 
 void BreakPointModel::OnResumed() {
-    auto context = context_weak.lock();
-    if (!context)
+    std::shared_ptr<Pica::DebugContext> context = context_weak.lock();
+    if (!context) {
         return;
+    }
 
     at_breakpoint = context->at_breakpoint;
     emit dataChanged(createIndex(static_cast<int>(active_breakpoint), 0),
@@ -176,9 +180,9 @@ GraphicsBreakpointsWidget::GraphicsBreakpointsWidget(
             });
 
     QWidget* main_widget = new QWidget;
-    auto main_layout = new QVBoxLayout;
+    QVBoxLayout* main_layout = new QVBoxLayout;
     {
-        auto sub_layout = new QHBoxLayout;
+        QHBoxLayout* sub_layout = new QHBoxLayout;
         sub_layout->addWidget(status_text);
         sub_layout->addWidget(resume_button);
         main_layout->addLayout(sub_layout);
@@ -210,8 +214,9 @@ void GraphicsBreakpointsWidget::OnResumed() {
 }
 
 void GraphicsBreakpointsWidget::OnResumeRequested() {
-    if (auto context = context_weak.lock())
+    if (std::shared_ptr<Pica::DebugContext> context = context_weak.lock()) {
         context->Resume();
+    }
 }
 
 void GraphicsBreakpointsWidget::OnItemDoubleClicked(const QModelIndex& index) {

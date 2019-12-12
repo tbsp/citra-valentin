@@ -77,13 +77,15 @@ private:
     /// Adds and analyzes a new subroutine if it is not added yet.
     const Subroutine& AddSubroutine(u32 begin, u32 end) {
         auto iter = subroutines.find(Subroutine{begin, end});
-        if (iter != subroutines.end())
+        if (iter != subroutines.end()) {
             return *iter;
+        }
 
         Subroutine subroutine{begin, end};
         subroutine.exit_method = Scan(begin, end, subroutine.labels);
-        if (subroutine.exit_method == ExitMethod::Undetermined)
+        if (subroutine.exit_method == ExitMethod::Undetermined) {
             throw DecompileFail("Recursive function detected");
+        }
         return *subroutines.insert(std::move(subroutine)).first;
     }
 
@@ -126,8 +128,9 @@ private:
         auto [iter, inserted] =
             exit_method_map.emplace(std::make_pair(begin, end), ExitMethod::Undetermined);
         ExitMethod& exit_method = iter->second;
-        if (!inserted)
+        if (!inserted) {
             return exit_method;
+        }
 
         for (u32 offset = begin; offset != end && offset != PROGRAM_END; ++offset) {
             const Instruction instr = {program_code[offset]};
@@ -143,46 +146,51 @@ private:
                 return exit_method = ParallelExit(no_jmp, jmp);
             }
             case OpCode::Id::CALL: {
-                auto& call = AddSubroutine(instr.flow_control.dest_offset,
-                                           instr.flow_control.dest_offset +
-                                               instr.flow_control.num_instructions);
-                if (call.exit_method == ExitMethod::AlwaysEnd)
+                const OpenGL::ShaderDecompiler::Subroutine& call = AddSubroutine(
+                    instr.flow_control.dest_offset,
+                    instr.flow_control.dest_offset + instr.flow_control.num_instructions);
+                if (call.exit_method == ExitMethod::AlwaysEnd) {
                     return exit_method = ExitMethod::AlwaysEnd;
+                }
                 ExitMethod after_call = Scan(offset + 1, end, labels);
                 return exit_method = SeriesExit(call.exit_method, after_call);
             }
             case OpCode::Id::LOOP: {
-                auto& loop = AddSubroutine(offset + 1, instr.flow_control.dest_offset + 1);
-                if (loop.exit_method == ExitMethod::AlwaysEnd)
+                const OpenGL::ShaderDecompiler::Subroutine& loop =
+                    AddSubroutine(offset + 1, instr.flow_control.dest_offset + 1);
+                if (loop.exit_method == ExitMethod::AlwaysEnd) {
                     return exit_method = ExitMethod::AlwaysEnd;
+                }
                 ExitMethod after_loop = Scan(instr.flow_control.dest_offset + 1, end, labels);
                 return exit_method = SeriesExit(loop.exit_method, after_loop);
             }
             case OpCode::Id::CALLC:
             case OpCode::Id::CALLU: {
-                auto& call = AddSubroutine(instr.flow_control.dest_offset,
-                                           instr.flow_control.dest_offset +
-                                               instr.flow_control.num_instructions);
+                const OpenGL::ShaderDecompiler::Subroutine& call = AddSubroutine(
+                    instr.flow_control.dest_offset,
+                    instr.flow_control.dest_offset + instr.flow_control.num_instructions);
                 ExitMethod after_call = Scan(offset + 1, end, labels);
                 return exit_method = SeriesExit(
                            ParallelExit(call.exit_method, ExitMethod::AlwaysReturn), after_call);
             }
             case OpCode::Id::IFU:
             case OpCode::Id::IFC: {
-                auto& if_sub = AddSubroutine(offset + 1, instr.flow_control.dest_offset);
+                const OpenGL::ShaderDecompiler::Subroutine& if_sub =
+                    AddSubroutine(offset + 1, instr.flow_control.dest_offset);
                 ExitMethod else_method;
                 if (instr.flow_control.num_instructions != 0) {
-                    auto& else_sub = AddSubroutine(instr.flow_control.dest_offset,
-                                                   instr.flow_control.dest_offset +
-                                                       instr.flow_control.num_instructions);
+                    const OpenGL::ShaderDecompiler::Subroutine& else_sub = AddSubroutine(
+                        instr.flow_control.dest_offset,
+                        instr.flow_control.dest_offset + instr.flow_control.num_instructions);
                     else_method = else_sub.exit_method;
                 } else {
                     else_method = ExitMethod::AlwaysReturn;
                 }
 
                 ExitMethod both = ParallelExit(if_sub.exit_method, else_method);
-                if (both == ExitMethod::AlwaysEnd)
+                if (both == ExitMethod::AlwaysEnd) {
                     return exit_method = ExitMethod::AlwaysEnd;
+                }
                 ExitMethod after_call =
                     Scan(instr.flow_control.dest_offset + instr.flow_control.num_instructions, end,
                          labels);
@@ -659,9 +667,9 @@ private:
                 shader.AddLine(condition.empty() ? "{" : "if (" + condition + ") {");
                 ++shader.scope;
 
-                auto& call_sub = GetSubroutine(instr.flow_control.dest_offset,
-                                               instr.flow_control.dest_offset +
-                                                   instr.flow_control.num_instructions);
+                const OpenGL::ShaderDecompiler::Subroutine& call_sub = GetSubroutine(
+                    instr.flow_control.dest_offset,
+                    instr.flow_control.dest_offset + instr.flow_control.num_instructions);
 
                 CallSubroutine(call_sub);
                 if (instr.opcode.Value() == OpCode::Id::CALL &&
@@ -695,7 +703,8 @@ private:
                 shader.AddLine("if (" + condition + ") {");
                 ++shader.scope;
 
-                auto& if_sub = GetSubroutine(if_offset, else_offset);
+                const OpenGL::ShaderDecompiler::Subroutine& if_sub =
+                    GetSubroutine(if_offset, else_offset);
                 CallSubroutine(if_sub);
                 offset = else_offset - 1;
 
@@ -704,7 +713,8 @@ private:
                     shader.AddLine("} else {");
                     ++shader.scope;
 
-                    auto& else_sub = GetSubroutine(else_offset, endif_offset);
+                    const OpenGL::ShaderDecompiler::Subroutine& else_sub =
+                        GetSubroutine(else_offset, endif_offset);
                     CallSubroutine(else_sub);
                     offset = endif_offset - 1;
 
@@ -731,7 +741,8 @@ private:
                                int_uniform + ".z), ++" + loop_var + ") {");
                 ++shader.scope;
 
-                auto& loop_sub = GetSubroutine(offset + 1, instr.flow_control.dest_offset + 1);
+                const OpenGL::ShaderDecompiler::Subroutine& loop_sub =
+                    GetSubroutine(offset + 1, instr.flow_control.dest_offset + 1);
                 CallSubroutine(loop_sub);
                 offset = instr.flow_control.dest_offset;
 
@@ -799,7 +810,7 @@ private:
         shader.AddLine("");
 
         // Add declarations for all subroutines
-        for (const auto& subroutine : subroutines) {
+        for (const OpenGL::ShaderDecompiler::Subroutine& subroutine : subroutines) {
             shader.AddLine("bool " + subroutine.GetName() + "();");
         }
         shader.AddLine("");
@@ -812,7 +823,7 @@ private:
         shader.AddLine("}\n");
 
         // Add definitions for all subroutines
-        for (const auto& subroutine : subroutines) {
+        for (const OpenGL::ShaderDecompiler::Subroutine& subroutine : subroutines) {
             std::set<u32> labels = subroutine.labels;
 
             shader.AddLine("bool " + subroutine.GetName() + "() {");
@@ -830,14 +841,14 @@ private:
 
                 shader.AddLine("switch (jmp_to) {");
 
-                for (auto label : labels) {
+                for (const u32 label : labels) {
                     shader.AddLine("case " + std::to_string(label) + "u: {");
                     ++shader.scope;
 
                     auto next_it = labels.lower_bound(label + 1);
-                    u32 next_label = next_it == labels.end() ? subroutine.end : *next_it;
+                    const u32 next_label = next_it == labels.end() ? subroutine.end : *next_it;
 
-                    u32 compile_end = CompileRange(label, next_label);
+                    const u32 compile_end = CompileRange(label, next_label);
                     if (compile_end > next_label && compile_end != PROGRAM_END) {
                         // This happens only when there is a label inside a IF/LOOP block
                         shader.AddLine("{ jmp_to = " + std::to_string(compile_end) + "u; break; }");
@@ -895,7 +906,8 @@ std::optional<std::string> DecompileProgram(const Pica::Shader::ProgramCode& pro
                                             const RegGetter& outputreg_getter, bool sanitize_mul) {
 
     try {
-        auto subroutines = ControlFlowAnalyzer(program_code, main_offset).MoveSubroutines();
+        std::set<OpenGL::ShaderDecompiler::Subroutine> subroutines =
+            ControlFlowAnalyzer(program_code, main_offset).MoveSubroutines();
         GLSLGenerator generator(subroutines, program_code, swizzle_data, main_offset,
                                 inputreg_getter, outputreg_getter, sanitize_mul);
         return generator.MoveShaderCode();

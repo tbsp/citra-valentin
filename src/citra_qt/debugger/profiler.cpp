@@ -65,7 +65,7 @@ void QtProfiler::Update() {
         return;
     }
 
-    for (auto& scope_data : current) {
+    for (std::pair<const std::string, QtProfiler::ScopeData>& scope_data : current) {
         if (scope_data.second.row == -1) {
             const int row = ui->table->rowCount();
             ui->table->insertRow(row);

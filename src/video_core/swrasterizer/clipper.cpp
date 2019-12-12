@@ -61,7 +61,7 @@ static void InitScreenCoordinates(Vertex& vtx) {
         float24 offset_z;
     } viewport;
 
-    const auto& regs = g_state.regs;
+    const Pica::Regs& regs = g_state.regs;
     viewport.halfsize_x = float24::FromRaw(regs.rasterizer.viewport_size_x);
     viewport.halfsize_y = float24::FromRaw(regs.rasterizer.viewport_size_y);
     viewport.offset_x = float24::FromFloat32(static_cast<float>(regs.rasterizer.viewport_corner.x));
@@ -96,8 +96,9 @@ void ProcessTriangle(const OutputVertex& v0, const OutputVertex& v1, const Outpu
     static_vector<Vertex, MAX_VERTICES> buffer_b;
 
     auto FlipQuaternionIfOpposite = [](auto& a, const auto& b) {
-        if (Common::Dot(a, b) < float24::Zero())
+        if (Common::Dot(a, b) < float24::Zero()) {
             a = a * float24::FromFloat32(-1.0f);
+        }
     };
 
     // Flip the quaternions if they are opposite to prevent interpolating them over the wrong
@@ -133,7 +134,7 @@ void ProcessTriangle(const OutputVertex& v0, const OutputVertex& v1, const Outpu
 
         const Vertex* reference_vertex = &input_list->back();
 
-        for (const auto& vertex : *input_list) {
+        for (const Pica::Rasterizer::Vertex& vertex : *input_list) {
             // NOTE: This algorithm changes vertex order in some cases!
             if (edge.IsInside(vertex)) {
                 if (edge.IsOutSide(*reference_vertex)) {
@@ -148,12 +149,13 @@ void ProcessTriangle(const OutputVertex& v0, const OutputVertex& v1, const Outpu
         }
     };
 
-    for (auto edge : clipping_edges) {
+    for (Pica::Clipper::ClippingEdge edge : clipping_edges) {
         Clip(edge);
 
         // Need to have at least a full triangle to continue...
-        if (output_list->size() < 3)
+        if (output_list->size() < 3) {
             return;
+        }
     }
 
     if (g_state.regs.rasterizer.clip_enable) {

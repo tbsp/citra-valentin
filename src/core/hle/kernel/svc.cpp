@@ -214,7 +214,7 @@ ResultCode SVC::ControlMemory(u32* out_addr, u32 addr0, u32 addr1, u32 size, u32
     }
     VMAPermission vma_permissions = (VMAPermission)permissions;
 
-    auto& process = *kernel.GetCurrentProcess();
+    Kernel::Process& process = *kernel.GetCurrentProcess();
 
     switch (operation & MEMOP_OPERATION_MASK) {
     case MEMOP_FREE: {
@@ -280,8 +280,9 @@ void SVC::ExitProcess() {
     current_process->status = ProcessStatus::Exited;
 
     // Stop all the process threads that are currently waiting for objects.
-    auto& thread_list = kernel.GetThreadManager().GetThreadList();
-    for (auto& thread : thread_list) {
+    const std::vector<std::shared_ptr<Kernel::Thread>>& thread_list =
+        kernel.GetThreadManager().GetThreadList();
+    for (const std::shared_ptr<Kernel::Thread>& thread : thread_list) {
         if (thread->owner_process != current_process.get())
             continue;
 
@@ -366,7 +367,7 @@ ResultCode SVC::ConnectToPort(Handle* out_handle, VAddr port_name_address) {
         return ERR_NOT_FOUND;
     }
 
-    auto client_port = it->second;
+    std::shared_ptr<Kernel::ClientPort> client_port = it->second;
 
     std::shared_ptr<ClientSession> client_session;
     CASCADE_RESULT(client_session, client_port->Connect());
@@ -388,7 +389,8 @@ ResultCode SVC::SendSyncRequest(Handle handle) {
 
     system.PrepareReschedule();
 
-    auto thread = SharedFrom(kernel.GetThreadManager().GetCurrentThread());
+    std::shared_ptr<Kernel::Thread> thread =
+        SharedFrom(kernel.GetThreadManager().GetCurrentThread());
 
     if (kernel.GetIPCRecorder().IsEnabled()) {
         kernel.GetIPCRecorder().RegisterRequest(session, thread);
@@ -405,7 +407,8 @@ ResultCode SVC::CloseHandle(Handle handle) {
 
 /// Wait for a handle to synchronize, timeout after the specified nanoseconds
 ResultCode SVC::WaitSynchronization1(Handle handle, s64 nano_seconds) {
-    auto object = kernel.GetCurrentProcess()->handle_table.Get<WaitObject>(handle);
+    std::shared_ptr<Kernel::WaitObject> object =
+        kernel.GetCurrentProcess()->handle_table.Get<WaitObject>(handle);
     Thread* thread = kernel.GetThreadManager().GetCurrentThread();
 
     if (object == nullptr)
@@ -476,9 +479,11 @@ ResultCode SVC::WaitSynchronizationN(s32* out, VAddr handles_address, s32 handle
 
     for (int i = 0; i < handle_count; ++i) {
         Handle handle = memory.Read32(handles_address + i * sizeof(Handle));
-        auto object = kernel.GetCurrentProcess()->handle_table.Get<WaitObject>(handle);
-        if (object == nullptr)
+        std::shared_ptr<Kernel::WaitObject> object =
+            kernel.GetCurrentProcess()->handle_table.Get<WaitObject>(handle);
+        if (object == nullptr) {
             return ERR_INVALID_HANDLE;
+        }
         objects[i] = object;
     }
 
@@ -488,8 +493,9 @@ ResultCode SVC::WaitSynchronizationN(s32* out, VAddr handles_address, s32 handle
                         [thread](const ObjectPtr& object) { return !object->ShouldWait(thread); });
         if (all_available) {
             // We can acquire all objects right now, do so.
-            for (auto& object : objects)
+            for (std::shared_ptr<Kernel::WaitObject>& object : objects) {
                 object->Acquire(thread);
+            }
             // Note: In this case, the `out` parameter is not set,
             // and retains whatever value it had before.
             return RESULT_SUCCESS;
@@ -506,7 +512,7 @@ ResultCode SVC::WaitSynchronizationN(s32* out, VAddr handles_address, s32 handle
         thread->status = ThreadStatus::WaitSynchAll;
 
         // Add the thread to each of the objects' waiting threads.
-        for (auto& object : objects) {
+        for (std::shared_ptr<Kernel::WaitObject>& object : objects) {
             object->AddWaitingThread(SharedFrom(thread));
         }
 
@@ -539,9 +545,9 @@ ResultCode SVC::WaitSynchronizationN(s32* out, VAddr handles_address, s32 handle
         return RESULT_TIMEOUT;
     } else {
         // Find the first object that is acquirable in the provided list of objects
-        auto itr = std::find_if(objects.begin(), objects.end(), [thread](const ObjectPtr& object) {
-            return !object->ShouldWait(thread);
-        });
+        std::vector<std::shared_ptr<Kernel::WaitObject>>::iterator itr =
+            std::find_if(objects.begin(), objects.end(),
+                         [thread](const ObjectPtr& object) { return !object->ShouldWait(thread); });
 
         if (itr != objects.end()) {
             // We found a ready object, acquire it and set the result value
@@ -646,9 +652,11 @@ ResultCode SVC::ReplyAndReceive(s32* index, VAddr handles_address, s32 handle_co
 
     for (int i = 0; i < handle_count; ++i) {
         Handle handle = memory.Read32(handles_address + i * sizeof(Handle));
-        auto object = current_process->handle_table.Get<WaitObject>(handle);
-        if (object == nullptr)
+        std::shared_ptr<Kernel::WaitObject> object =
+            current_process->handle_table.Get<WaitObject>(handle);
+        if (object == nullptr) {
             return ERR_INVALID_HANDLE;
+        }
         objects[i] = object;
     }
 
@@ -658,9 +666,11 @@ ResultCode SVC::ReplyAndReceive(s32* index, VAddr handles_address, s32 handle_co
     u32 cmd_buff_header = memory.Read32(thread->GetCommandBufferAddress());
     IPC::Header header{cmd_buff_header};
     if (reply_target != 0 && header.command_id != 0xFFFF) {
-        auto session = current_process->handle_table.Get<ServerSession>(reply_target);
-        if (session == nullptr)
+        std::shared_ptr<Kernel::ServerSession> session =
+            current_process->handle_table.Get<ServerSession>(reply_target);
+        if (session == nullptr) {
             return ERR_INVALID_HANDLE;
+        }
 
         auto request_thread = std::move(session->currently_handling);
 
@@ -700,9 +710,9 @@ ResultCode SVC::ReplyAndReceive(s32* index, VAddr handles_address, s32 handle_co
     }
 
     // Find the first object that is acquirable in the provided list of objects
-    auto itr = std::find_if(objects.begin(), objects.end(), [thread](const ObjectPtr& object) {
-        return !object->ShouldWait(thread);
-    });
+    std::vector<std::shared_ptr<Kernel::WaitObject>>::iterator itr =
+        std::find_if(objects.begin(), objects.end(),
+                     [thread](const ObjectPtr& object) { return !object->ShouldWait(thread); });
 
     if (itr != objects.end()) {
         // We found a ready object, acquire it and set the result value
@@ -710,10 +720,11 @@ ResultCode SVC::ReplyAndReceive(s32* index, VAddr handles_address, s32 handle_co
         object->Acquire(thread);
         *index = static_cast<s32>(std::distance(objects.begin(), itr));
 
-        if (object->GetHandleType() != HandleType::ServerSession)
+        if (object->GetHandleType() != HandleType::ServerSession) {
             return RESULT_SUCCESS;
+        }
 
-        auto server_session = static_cast<ServerSession*>(object);
+        Kernel::ServerSession* server_session = static_cast<ServerSession*>(object);
         return ReceiveIPCRequest(kernel, memory, SharedFrom(server_session), SharedFrom(thread));
     }
 
@@ -739,7 +750,8 @@ ResultCode SVC::ReplyAndReceive(s32* index, VAddr handles_address, s32 handle_co
         ResultCode result = RESULT_SUCCESS;
 
         if (object->GetHandleType() == HandleType::ServerSession) {
-            auto server_session = DynamicObjectCast<ServerSession>(object);
+            std::shared_ptr<Kernel::ServerSession> server_session =
+                DynamicObjectCast<ServerSession>(object);
             result = ReceiveIPCRequest(kernel, memory, server_session, thread);
         }
 
@@ -772,10 +784,11 @@ ResultCode SVC::ArbitrateAddress(Handle handle, u32 address, u32 type, u32 value
 
     std::shared_ptr<AddressArbiter> arbiter =
         kernel.GetCurrentProcess()->handle_table.Get<AddressArbiter>(handle);
-    if (arbiter == nullptr)
+    if (arbiter == nullptr) {
         return ERR_INVALID_HANDLE;
+    }
 
-    auto res =
+    const ResultCode res =
         arbiter->ArbitrateAddress(SharedFrom(kernel.GetThreadManager().GetCurrentThread()),
                                   static_cast<ArbitrationType>(type), address, value, nanoseconds);
 
@@ -968,8 +981,9 @@ ResultCode SVC::SetThreadPriority(Handle handle, u32 priority) {
     thread->UpdatePriority();
 
     // Update the mutexes that this thread is waiting for
-    for (auto& mutex : thread->pending_mutexes)
+    for (std::shared_ptr<Kernel::Mutex>& mutex : thread->pending_mutexes) {
         mutex->UpdatePriority();
+    }
 
     system.PrepareReschedule();
     return RESULT_SUCCESS;
@@ -1073,16 +1087,19 @@ ResultCode SVC::QueryProcessMemory(MemoryInfo* memory_info, PageInfo* page_info,
                                    Handle process_handle, u32 addr) {
     std::shared_ptr<Process> process =
         kernel.GetCurrentProcess()->handle_table.Get<Process>(process_handle);
-    if (process == nullptr)
+    if (process == nullptr) {
         return ERR_INVALID_HANDLE;
+    }
 
-    auto vma = process->vm_manager.FindVMA(addr);
+    std::map<VAddr, Kernel::VirtualMemoryArea>::const_iterator vma =
+        process->vm_manager.FindVMA(addr);
 
-    if (vma == process->vm_manager.vma_map.end())
+    if (vma == process->vm_manager.vma_map.end()) {
         return ERR_INVALID_ADDRESS;
+    }
 
-    auto permissions = vma->second.permissions;
-    auto state = vma->second.meminfo_state;
+    const Kernel::VMAPermission permissions = vma->second.permissions;
+    const Kernel::MemoryState state = vma->second.meminfo_state;
 
     // Query(Process)Memory merges vma with neighbours when they share the same state and
     // permissions, regardless of their physical mapping.
@@ -1095,7 +1112,8 @@ ResultCode SVC::QueryProcessMemory(MemoryInfo* memory_info, PageInfo* page_info,
 
     auto lower = std::find_if(rvma, process->vm_manager.vma_map.crend(), mismatch);
     --lower;
-    auto upper = std::find_if(vma, process->vm_manager.vma_map.cend(), mismatch);
+    std::map<VAddr, Kernel::VirtualMemoryArea>::const_iterator upper =
+        std::find_if(vma, process->vm_manager.vma_map.cend(), mismatch);
     --upper;
 
     memory_info->base_address = lower->second.base;

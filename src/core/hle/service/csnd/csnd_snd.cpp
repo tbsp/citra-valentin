@@ -306,7 +306,7 @@ void CSND_SND::ExecuteCommands(Kernel::HLERequestContext& ctx) {
             break;
         case CommandId::ConfigureChannel: {
             auto& configure = command.configure_channel;
-            auto& channel = channels[configure.channel];
+            Service::CSND::Channel& channel = channels[configure.channel];
             channel.linear_interpolation = configure.linear_interpolation != 0;
             channel.loop_mode = static_cast<LoopMode>(configure.loop_mode.Value());
             channel.encoding = static_cast<Encoding>(configure.encoding.Value());
@@ -319,13 +319,13 @@ void CSND_SND::ExecuteCommands(Kernel::HLERequestContext& ctx) {
             channel.block2_address = configure.block2_address;
             channel.block1_size = channel.block2_size = configure.size;
             if (configure.enable_playback) {
-                // TODO: startthe sound
+                // TODO: start the sound
             }
             break;
         }
         case CommandId::ConfigurePsg: {
             auto& configure = command.configure_psg;
-            auto& channel = channels[configure.channel];
+            Service::CSND::Channel& channel = channels[configure.channel];
             channel.encoding = Encoding::Psg;
             channel.psg_duty = configure.duty;
             channel.sample_rate = configure.sample_rate;
@@ -334,20 +334,20 @@ void CSND_SND::ExecuteCommands(Kernel::HLERequestContext& ctx) {
             channel.left_capture_volume = configure.left_capture_volume;
             channel.right_capture_volume = configure.right_capture_volume;
             if (configure.enable_playback) {
-                // TODO: startthe sound
+                // TODO: start the sound
             }
             break;
         }
         case CommandId::ConfigurePsgNoise: {
             auto& configure = command.configure_psg_noise;
-            auto& channel = channels[configure.channel];
+            Service::CSND::Channel& channel = channels[configure.channel];
             channel.encoding = Encoding::Psg;
             channel.left_channel_volume = configure.left_channel_volume;
             channel.right_channel_volume = configure.right_channel_volume;
             channel.left_capture_volume = configure.left_capture_volume;
             channel.right_capture_volume = configure.right_capture_volume;
             if (configure.enable_playback) {
-                // TODO: startthe sound
+                // TODO: start the sound
             }
             break;
         }
@@ -357,8 +357,9 @@ void CSND_SND::ExecuteCommands(Kernel::HLERequestContext& ctx) {
 
             u32 output_index = 0;
             for (u32 i = 0; i < ChannelCount; ++i) {
-                if ((acquired_channel_mask & (1 << i)) == 0)
+                if ((acquired_channel_mask & (1 << i)) == 0) {
                     continue;
+                }
                 ChannelState state;
                 state.active = false;
                 state.adpcm_predictor = channels[i].block1_adpcm_state.predictor;
@@ -371,8 +372,9 @@ void CSND_SND::ExecuteCommands(Kernel::HLERequestContext& ctx) {
             }
 
             for (u32 i = 0; i < MaxCaptureUnits; ++i) {
-                if (!capture_units[i])
+                if (!capture_units[i]) {
                     continue;
+                }
                 CaptureState state;
                 state.active = false;
                 state.zero = 0;
@@ -458,7 +460,7 @@ void CSND_SND::FlushDataCache(Kernel::HLERequestContext& ctx) {
     IPC::RequestParser rp(ctx, 0x9, 2, 2);
     const VAddr address = rp.Pop<u32>();
     const u32 size = rp.Pop<u32>();
-    const auto process = rp.PopObject<Kernel::Process>();
+    const std::shared_ptr<Kernel::Process> process = rp.PopObject<Kernel::Process>();
 
     IPC::RequestBuilder rb = rp.MakeBuilder(1, 0);
     rb.Push(RESULT_SUCCESS);
@@ -471,7 +473,7 @@ void CSND_SND::StoreDataCache(Kernel::HLERequestContext& ctx) {
     IPC::RequestParser rp(ctx, 0xA, 2, 2);
     const VAddr address = rp.Pop<u32>();
     const u32 size = rp.Pop<u32>();
-    const auto process = rp.PopObject<Kernel::Process>();
+    const std::shared_ptr<Kernel::Process> process = rp.PopObject<Kernel::Process>();
 
     IPC::RequestBuilder rb = rp.MakeBuilder(1, 0);
     rb.Push(RESULT_SUCCESS);
@@ -484,7 +486,7 @@ void CSND_SND::InvalidateDataCache(Kernel::HLERequestContext& ctx) {
     IPC::RequestParser rp(ctx, 0xB, 2, 2);
     const VAddr address = rp.Pop<u32>();
     const u32 size = rp.Pop<u32>();
-    const auto process = rp.PopObject<Kernel::Process>();
+    const std::shared_ptr<Kernel::Process> process = rp.PopObject<Kernel::Process>();
 
     IPC::RequestBuilder rb = rp.MakeBuilder(1, 0);
     rb.Push(RESULT_SUCCESS);
@@ -524,7 +526,7 @@ CSND_SND::CSND_SND(Core::System& system) : ServiceFramework("csnd:SND", 4), syst
 };
 
 void InstallInterfaces(Core::System& system) {
-    auto& service_manager = system.ServiceManager();
+    Service::SM::ServiceManager& service_manager = system.ServiceManager();
     std::make_shared<CSND_SND>(system)->InstallAsService(service_manager);
 }
 

@@ -18,11 +18,9 @@
 namespace Kernel {
 
 std::shared_ptr<CodeSet> KernelSystem::CreateCodeSet(std::string name, u64 program_id) {
-    auto codeset{std::make_shared<CodeSet>(*this)};
-
+    std::shared_ptr<Kernel::CodeSet> codeset = std::make_shared<CodeSet>(*this);
     codeset->name = std::move(name);
     codeset->program_id = program_id;
-
     return codeset;
 }
 
@@ -30,14 +28,12 @@ CodeSet::CodeSet(KernelSystem& kernel) : Object(kernel) {}
 CodeSet::~CodeSet() {}
 
 std::shared_ptr<Process> KernelSystem::CreateProcess(std::shared_ptr<CodeSet> code_set) {
-    auto process{std::make_shared<Process>(*this)};
-
+    std::shared_ptr<Kernel::Process> process = std::make_shared<Process>(*this);
     process->codeset = std::move(code_set);
     process->flags.raw = 0;
     process->flags.memory_region.Assign(MemoryRegion::APPLICATION);
     process->status = ProcessStatus::Created;
     process->process_id = ++next_process_id;
-
     process_list.push_back(process);
     return process;
 }
@@ -135,7 +131,7 @@ void Process::Run(s32 main_thread_priority, u32 stack_size) {
 
     // Map special address mappings
     kernel.MapSharedPages(vm_manager);
-    for (const auto& mapping : address_mappings) {
+    for (const Kernel::AddressMapping& mapping : address_mappings) {
         kernel.HandleSpecialMapping(vm_manager, mapping);
     }
 
@@ -170,7 +166,7 @@ ResultVal<VAddr> Process::HeapAllocate(VAddr target, u32 size, VMAPermission per
         }
     }
 
-    auto vma = vm_manager.FindVMA(target);
+    std::map<VAddr, Kernel::VirtualMemoryArea>::const_iterator vma = vm_manager.FindVMA(target);
     if (vma->second.type != VMAType::Free || vma->second.base + vma->second.size < target + size) {
         LOG_ERROR(Kernel, "Trying to allocate already allocated memory");
         return ERR_INVALID_ADDRESS_STATE;
@@ -190,9 +186,10 @@ ResultVal<VAddr> Process::HeapAllocate(VAddr target, u32 size, VMAPermission per
                   interval.upper());
         std::fill(kernel.memory.GetFCRAMPointer(interval.lower()),
                   kernel.memory.GetFCRAMPointer(interval.upper()), 0);
-        auto vma = vm_manager.MapBackingMemory(interval_target,
-                                               kernel.memory.GetFCRAMPointer(interval.lower()),
-                                               interval_size, memory_state);
+        ResultVal<std::map<VAddr, Kernel::VirtualMemoryArea>::const_iterator> vma =
+            vm_manager.MapBackingMemory(interval_target,
+                                        kernel.memory.GetFCRAMPointer(interval.lower()),
+                                        interval_size, memory_state);
         ASSERT(vma.Succeeded());
         vm_manager.Reprotect(vma.Unwrap(), perms);
         interval_target += interval_size;
@@ -235,7 +232,7 @@ ResultVal<VAddr> Process::LinearAllocate(VAddr target, u32 size, VMAPermission p
     LOG_DEBUG(Kernel, "Allocate linear heap target={:08X}, size={:08X}", target, size);
     u32 physical_offset;
     if (target == 0) {
-        auto offset = memory_region->LinearAllocate(size);
+        std::optional<u32> offset = memory_region->LinearAllocate(size);
         if (!offset) {
             LOG_ERROR(Kernel, "Not enough space");
             return ERR_OUT_OF_HEAP_MEMORY;
@@ -266,7 +263,8 @@ ResultVal<VAddr> Process::LinearAllocate(VAddr target, u32 size, VMAPermission p
     u8* backing_memory = kernel.memory.GetFCRAMPointer(physical_offset);
 
     std::fill(backing_memory, backing_memory + size, 0);
-    auto vma = vm_manager.MapBackingMemory(target, backing_memory, size, MemoryState::Continuous);
+    ResultVal<std::map<VAddr, Kernel::VirtualMemoryArea>::const_iterator> vma =
+        vm_manager.MapBackingMemory(target, backing_memory, size, MemoryState::Continuous);
     ASSERT(vma.Succeeded());
     vm_manager.Reprotect(vma.Unwrap(), perms);
 
@@ -316,7 +314,7 @@ ResultCode Process::Map(VAddr target, VAddr source, u32 size, VMAPermission perm
 
     // TODO(wwylele): check target address range. Is it also restricted to heap region?
 
-    auto vma = vm_manager.FindVMA(target);
+    std::map<VAddr, Kernel::VirtualMemoryArea>::const_iterator vma = vm_manager.FindVMA(target);
     if (vma->second.type != VMAType::Free || vma->second.base + vma->second.size < target + size) {
         LOG_ERROR(Kernel, "Trying to map to already allocated memory");
         return ERR_INVALID_ADDRESS_STATE;
@@ -350,7 +348,7 @@ ResultCode Process::Map(VAddr target, VAddr source, u32 size, VMAPermission perm
     CASCADE_RESULT(auto backing_blocks, vm_manager.GetBackingBlocksForRange(source, size));
     VAddr interval_target = target;
     for (const auto [backing_memory, block_size] : backing_blocks) {
-        auto target_vma =
+        ResultVal<std::map<VAddr, Kernel::VirtualMemoryArea>::const_iterator> target_vma =
             vm_manager.MapBackingMemory(interval_target, backing_memory, block_size, target_state);
         ASSERT(target_vma.Succeeded());
         vm_manager.Reprotect(target_vma.Unwrap(), perms);
@@ -417,13 +415,12 @@ Kernel::Process::~Process() {
 }
 
 std::shared_ptr<Process> KernelSystem::GetProcessById(u32 process_id) const {
-    auto itr = std::find_if(
+    std::vector<std::shared_ptr<Kernel::Process>>::const_iterator itr = std::find_if(
         process_list.begin(), process_list.end(),
         [&](const std::shared_ptr<Process>& process) { return process->process_id == process_id; });
-
-    if (itr == process_list.end())
+    if (itr == process_list.end()) {
         return nullptr;
-
+    }
     return *itr;
 }
 } // namespace Kernel

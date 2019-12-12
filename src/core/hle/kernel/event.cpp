@@ -16,12 +16,10 @@ Event::Event(KernelSystem& kernel) : WaitObject(kernel) {}
 Event::~Event() {}
 
 std::shared_ptr<Event> KernelSystem::CreateEvent(ResetType reset_type, std::string name) {
-    auto evt{std::make_shared<Event>(*this)};
-
+    std::shared_ptr<Kernel::Event> evt = std::make_shared<Event>(*this);
     evt->signaled = false;
     evt->reset_type = reset_type;
     evt->name = std::move(name);
-
     return evt;
 }
 
@@ -32,8 +30,9 @@ bool Event::ShouldWait(const Thread* thread) const {
 void Event::Acquire(Thread* thread) {
     ASSERT_MSG(!ShouldWait(thread), "object unavailable!");
 
-    if (reset_type == ResetType::OneShot)
+    if (reset_type == ResetType::OneShot) {
         signaled = false;
+    }
 }
 
 void Event::Signal() {

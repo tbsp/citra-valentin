@@ -191,8 +191,9 @@ Loader::ResultStatus NCCHContainer::Load() {
         }
 
         // Verify we are loading the correct file type...
-        if (Loader::MakeMagic('N', 'C', 'C', 'H') != ncch_header.magic)
+        if (Loader::MakeMagic('N', 'C', 'C', 'H') != ncch_header.magic) {
             return Loader::ResultStatus::ErrorInvalidFormat;
+        }
 
         has_header = true;
         bool failed_to_decrypt = false;
@@ -215,7 +216,7 @@ Loader::ResultStatus NCCHContainer::Load() {
                 if (!ncch_header.seed_crypto) {
                     key_y_secondary = key_y_primary;
                 } else {
-                    auto opt{FileSys::GetSeed(ncch_header.program_id)};
+                    std::optional<Seed::Data> opt = FileSys::GetSeed(ncch_header.program_id);
                     if (!opt.has_value()) {
                         LOG_ERROR(Service_FS, "Seed for program {:016X} not found",
                                   ncch_header.program_id);
@@ -225,9 +226,8 @@ Loader::ResultStatus NCCHContainer::Load() {
                         std::array<u8, 32> input;
                         std::memcpy(input.data(), key_y_primary.data(), key_y_primary.size());
                         std::memcpy(input.data() + key_y_primary.size(), seed.data(), seed.size());
-                        CryptoPP::SHA256 sha;
                         std::array<u8, CryptoPP::SHA256::DIGESTSIZE> hash;
-                        sha.CalculateDigest(hash.data(), input.data(), input.size());
+                        CryptoPP::SHA256().CalculateDigest(hash.data(), input.data(), input.size());
                         std::memcpy(key_y_secondary.data(), hash.data(), key_y_secondary.size());
                     }
                 }
@@ -494,7 +494,7 @@ Loader::ResultStatus NCCHContainer::LoadSectionExeFS(const char* name, std::vect
     LOG_DEBUG(Service_FS, "{} sections:", kMaxSections);
     // Iterate through the ExeFs archive until we find a section with the specified name...
     for (unsigned section_number = 0; section_number < kMaxSections; section_number++) {
-        const auto& section = exefs_header.section[section_number];
+        const ExeFs_SectionHeader& section = exefs_header.section[section_number];
 
         // Load the specified section...
         if (strcmp(section.name, name) == 0) {
@@ -574,22 +574,23 @@ Loader::ResultStatus NCCHContainer::LoadOverrideExeFSSection(const char* name,
     std::string override_name;
 
     // Map our section name to the extracted equivalent
-    if (!strcmp(name, ".code"))
+    if (!strcmp(name, ".code")) {
         override_name = "code.bin";
-    else if (!strcmp(name, "icon"))
+    } else if (!strcmp(name, "icon")) {
         override_name = "icon.bin";
-    else if (!strcmp(name, "banner"))
+    } else if (!strcmp(name, "banner")) {
         override_name = "banner.bnr";
-    else if (!strcmp(name, "logo"))
+    } else if (!strcmp(name, "logo")) {
         override_name = "logo.bcma.lz";
-    else
+    } else {
         return Loader::ResultStatus::Error;
+    }
 
     std::string section_override = filepath + ".exefsdir/" + override_name;
     FileUtil::IOFile section_file(section_override, "rb");
 
     if (section_file.IsOpen()) {
-        auto section_size = section_file.GetSize();
+        const u64 section_size = section_file.GetSize();
         buffer.resize(section_size);
 
         section_file.Seek(0, SEEK_SET);

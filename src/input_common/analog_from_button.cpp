@@ -20,14 +20,18 @@ public:
         constexpr float SQRT_HALF = 0.707106781f;
         int x = 0, y = 0;
 
-        if (right->GetStatus())
+        if (right->GetStatus()) {
             ++x;
-        if (left->GetStatus())
+        }
+        if (left->GetStatus()) {
             --x;
-        if (up->GetStatus())
+        }
+        if (up->GetStatus()) {
             ++y;
-        if (down->GetStatus())
+        }
+        if (down->GetStatus()) {
             --y;
+        }
 
         float coef = modifier->GetStatus() ? modifier_scale : 1.0f;
         return std::make_tuple(x * coef * (y == 0 ? 1.0f : SQRT_HALF),
@@ -45,12 +49,17 @@ private:
 
 std::unique_ptr<Input::AnalogDevice> AnalogFromButton::Create(const Common::ParamPackage& params) {
     const std::string null_engine = Common::ParamPackage{{"engine", "null"}}.Serialize();
-    auto up = Input::CreateDevice<Input::ButtonDevice>(params.Get("up", null_engine));
-    auto down = Input::CreateDevice<Input::ButtonDevice>(params.Get("down", null_engine));
-    auto left = Input::CreateDevice<Input::ButtonDevice>(params.Get("left", null_engine));
-    auto right = Input::CreateDevice<Input::ButtonDevice>(params.Get("right", null_engine));
-    auto modifier = Input::CreateDevice<Input::ButtonDevice>(params.Get("modifier", null_engine));
-    auto modifier_scale = params.Get("modifier_scale", 0.5f);
+    std::unique_ptr<Input::ButtonDevice> up =
+        Input::CreateDevice<Input::ButtonDevice>(params.Get("up", null_engine));
+    std::unique_ptr<Input::ButtonDevice> down =
+        Input::CreateDevice<Input::ButtonDevice>(params.Get("down", null_engine));
+    std::unique_ptr<Input::ButtonDevice> left =
+        Input::CreateDevice<Input::ButtonDevice>(params.Get("left", null_engine));
+    std::unique_ptr<Input::ButtonDevice> right =
+        Input::CreateDevice<Input::ButtonDevice>(params.Get("right", null_engine));
+    std::unique_ptr<Input::ButtonDevice> modifier =
+        Input::CreateDevice<Input::ButtonDevice>(params.Get("modifier", null_engine));
+    const float modifier_scale = params.Get("modifier_scale", 0.5f);
     return std::make_unique<Analog>(std::move(up), std::move(down), std::move(left),
                                     std::move(right), std::move(modifier), modifier_scale);
 }

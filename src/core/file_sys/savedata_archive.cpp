@@ -56,7 +56,7 @@ ResultVal<std::unique_ptr<FileBackend>> SaveDataArchive::OpenFile(const Path& pa
         return ERROR_UNSUPPORTED_OPEN_FLAGS;
     }
 
-    const auto full_path = path_parser.BuildHostPath(mount_point);
+    const std::string full_path = path_parser.BuildHostPath(mount_point);
 
     switch (path_parser.GetHostStatus(mount_point)) {
     case PathParser::InvalidMountPoint:
@@ -102,7 +102,7 @@ ResultCode SaveDataArchive::DeleteFile(const Path& path) const {
         return ERROR_INVALID_PATH;
     }
 
-    const auto full_path = path_parser.BuildHostPath(mount_point);
+    const std::string full_path = path_parser.BuildHostPath(mount_point);
 
     switch (path_parser.GetHostStatus(mount_point)) {
     case PathParser::InvalidMountPoint:
@@ -144,8 +144,8 @@ ResultCode SaveDataArchive::RenameFile(const Path& src_path, const Path& dest_pa
         return ERROR_INVALID_PATH;
     }
 
-    const auto src_path_full = path_parser_src.BuildHostPath(mount_point);
-    const auto dest_path_full = path_parser_dest.BuildHostPath(mount_point);
+    const std::string src_path_full = path_parser_src.BuildHostPath(mount_point);
+    const std::string dest_path_full = path_parser_dest.BuildHostPath(mount_point);
 
     if (FileUtil::Rename(src_path_full, dest_path_full)) {
         return RESULT_SUCCESS;
@@ -170,7 +170,7 @@ static ResultCode DeleteDirectoryHelper(const Path& path, const std::string& mou
     if (path_parser.IsRootDirectory())
         return ERROR_DIRECTORY_NOT_EMPTY;
 
-    const auto full_path = path_parser.BuildHostPath(mount_point);
+    const std::string full_path = path_parser.BuildHostPath(mount_point);
 
     switch (path_parser.GetHostStatus(mount_point)) {
     case PathParser::InvalidMountPoint:
@@ -213,7 +213,7 @@ ResultCode SaveDataArchive::CreateFile(const FileSys::Path& path, u64 size) cons
         return ERROR_INVALID_PATH;
     }
 
-    const auto full_path = path_parser.BuildHostPath(mount_point);
+    const std::string full_path = path_parser.BuildHostPath(mount_point);
 
     switch (path_parser.GetHostStatus(mount_point)) {
     case PathParser::InvalidMountPoint:
@@ -258,7 +258,7 @@ ResultCode SaveDataArchive::CreateDirectory(const Path& path) const {
         return ERROR_INVALID_PATH;
     }
 
-    const auto full_path = path_parser.BuildHostPath(mount_point);
+    const std::string full_path = path_parser.BuildHostPath(mount_point);
 
     switch (path_parser.GetHostStatus(mount_point)) {
     case PathParser::InvalidMountPoint:
@@ -303,8 +303,8 @@ ResultCode SaveDataArchive::RenameDirectory(const Path& src_path, const Path& de
         return ERROR_INVALID_PATH;
     }
 
-    const auto src_path_full = path_parser_src.BuildHostPath(mount_point);
-    const auto dest_path_full = path_parser_dest.BuildHostPath(mount_point);
+    const std::string src_path_full = path_parser_src.BuildHostPath(mount_point);
+    const std::string dest_path_full = path_parser_dest.BuildHostPath(mount_point);
 
     if (FileUtil::Rename(src_path_full, dest_path_full)) {
         return RESULT_SUCCESS;
@@ -325,7 +325,7 @@ ResultVal<std::unique_ptr<DirectoryBackend>> SaveDataArchive::OpenDirectory(
         return ERROR_INVALID_PATH;
     }
 
-    const auto full_path = path_parser.BuildHostPath(mount_point);
+    const std::string full_path = path_parser.BuildHostPath(mount_point);
 
     switch (path_parser.GetHostStatus(mount_point)) {
     case PathParser::InvalidMountPoint:

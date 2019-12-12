@@ -65,7 +65,7 @@ std::vector<u8> GenerateAssocResponseFrame(AssocStatus status, u16 association_i
     std::vector<u8> data(sizeof(frame));
     std::memcpy(data.data(), &frame, sizeof(frame));
 
-    auto ssid_tag = GenerateSSIDTag(network_id);
+    std::vector<u8> ssid_tag = GenerateSSIDTag(network_id);
     data.insert(data.end(), ssid_tag.begin(), ssid_tag.end());
 
     // TODO(Subv): Add the SupportedRates tag.

@@ -16,7 +16,7 @@ PathParser::PathParser(const Path& path) {
         return;
     }
 
-    auto path_string = path.AsString();
+    const std::string path_string = path.AsString();
     if (path_string.size() == 0 || path_string[0] != '/') {
         is_valid = false;
         return;
@@ -34,14 +34,14 @@ PathParser::PathParser(const Path& path) {
 
     Common::SplitString(path_string, '/', path_sequence);
 
-    auto begin = path_sequence.begin();
-    auto end = path_sequence.end();
+    std::vector<std::string>::iterator begin = path_sequence.begin();
+    std::vector<std::string>::iterator end = path_sequence.end();
     end = std::remove_if(begin, end, [](std::string& str) { return str == "" || str == "."; });
     path_sequence = std::vector<std::string>(begin, end);
 
-    // checks if the path is out of bounds.
+    // Checks if the path is out of bounds.
     int level = 0;
-    for (auto& node : path_sequence) {
+    for (const std::string& node : path_sequence) {
         if (node == "..") {
             --level;
             if (level < 0) {
@@ -58,16 +58,19 @@ PathParser::PathParser(const Path& path) {
 }
 
 PathParser::HostStatus PathParser::GetHostStatus(const std::string& mount_point) const {
-    auto path = mount_point;
-    if (!FileUtil::IsDirectory(path))
+    std::string path = mount_point;
+    if (!FileUtil::IsDirectory(path)) {
         return InvalidMountPoint;
+    }
     if (path_sequence.empty()) {
         return DirectoryFound;
     }
 
-    for (auto iter = path_sequence.begin(); iter != path_sequence.end() - 1; iter++) {
-        if (path.back() != '/')
+    for (std::vector<std::string>::const_iterator iter = path_sequence.begin();
+         iter != path_sequence.end() - 1; iter++) {
+        if (path.back() != '/') {
             path += '/';
+        }
         path += *iter;
 
         if (!FileUtil::Exists(path))
@@ -78,18 +81,21 @@ PathParser::HostStatus PathParser::GetHostStatus(const std::string& mount_point)
     }
 
     path += "/" + path_sequence.back();
-    if (!FileUtil::Exists(path))
+    if (!FileUtil::Exists(path)) {
         return NotFound;
-    if (FileUtil::IsDirectory(path))
+    }
+    if (FileUtil::IsDirectory(path)) {
         return DirectoryFound;
+    }
     return FileFound;
 }
 
 std::string PathParser::BuildHostPath(const std::string& mount_point) const {
     std::string path = mount_point;
-    for (auto& node : path_sequence) {
-        if (path.back() != '/')
+    for (const std::string& node : path_sequence) {
+        if (path.back() != '/') {
             path += '/';
+        }
         path += node;
     }
     return path;

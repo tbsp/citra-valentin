@@ -64,7 +64,8 @@ void AnnounceMultiplayerSession::Stop() {
 AnnounceMultiplayerSession::CallbackHandle AnnounceMultiplayerSession::BindErrorCallback(
     std::function<void(const Common::WebResult&)> function) {
     std::lock_guard lock(callback_mutex);
-    auto handle = std::make_shared<std::function<void(const Common::WebResult&)>>(function);
+    std::shared_ptr<std::function<void(const Common::WebResult&)>> handle =
+        std::make_shared<std::function<void(const Common::WebResult&)>>(function);
     error_callbacks.insert(handle);
     return handle;
 }
@@ -80,13 +81,13 @@ AnnounceMultiplayerSession::~AnnounceMultiplayerSession() {
 
 void AnnounceMultiplayerSession::UpdateBackendData(std::shared_ptr<Network::Room> room) {
     Network::RoomInformation room_information = room->GetRoomInformation();
-    const std::vector<Network::Room::Member> memberlist = room->GetRoomMemberList();
+    const std::vector<Network::Room::Member> members = room->GetRoomMemberList();
     backend->SetRoomInformation(
         room_information.name, room_information.description, room_information.port,
         room_information.member_slots, Version::network, room->HasPassword(),
         room_information.preferred_game, room_information.preferred_game_id);
     backend->ClearPlayers();
-    for (const auto& member : memberlist) {
+    for (const auto& member : members) {
         backend->AddPlayer(member.username, member.nickname, member.avatar_url, member.mac_address,
                            member.game_info.id, member.game_info.name);
     }
@@ -96,7 +97,7 @@ void AnnounceMultiplayerSession::AnnounceMultiplayerLoop() {
     // Invokes all current bound error callbacks.
     const auto ErrorCallback = [this](Common::WebResult result) {
         std::lock_guard<std::mutex> lock(callback_mutex);
-        for (auto callback : error_callbacks) {
+        for (Core::AnnounceMultiplayerSession::CallbackHandle callback : error_callbacks) {
             (*callback)(result);
         }
     };
@@ -109,7 +110,8 @@ void AnnounceMultiplayerSession::AnnounceMultiplayerLoop() {
         }
     }
 
-    auto update_time = std::chrono::steady_clock::now();
+    std::chrono::time_point<std::chrono::steady_clock> update_time =
+        std::chrono::steady_clock::now();
     std::future<Common::WebResult> future;
     while (!shutdown_event.WaitUntil(update_time)) {
         update_time += announce_time_interval;

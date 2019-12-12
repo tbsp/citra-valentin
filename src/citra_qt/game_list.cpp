@@ -178,11 +178,12 @@ static bool ContainsAllWords(const QString& haystack, const QString& userinput) 
 
 // Syncs the expanded state of Game Directories with settings to persist across sessions
 void GameList::onItemExpanded(const QModelIndex& item) {
-    const auto type = item.data(GameListItem::TypeRole).value<GameListItemType>();
+    const GameListItemType type = item.data(GameListItem::TypeRole).value<GameListItemType>();
     if (type == GameListItemType::CustomDir || type == GameListItemType::InstalledDir ||
-        type == GameListItemType::SystemDir)
+        type == GameListItemType::SystemDir) {
         item.data(GameListDir::GameDirRole).value<UISettings::GameDir*>()->expanded =
             tree_view->isExpanded(item);
+    }
 }
 
 // Event in order to filter the gamelist after editing the searchfield
@@ -360,7 +361,7 @@ void GameList::AddEntry(const QList<QStandardItem*>& entry_items, GameListDir* p
 }
 
 void GameList::ValidateEntry(const QModelIndex& item) {
-    const auto selected = item.sibling(item.row(), 0);
+    const QModelIndex selected = item.sibling(item.row(), 0);
 
     switch (selected.data(GameListItem::TypeRole).value<GameListItemType>()) {
     case GameListItemType::Game: {
@@ -386,7 +387,7 @@ void GameList::ValidateEntry(const QModelIndex& item) {
 bool GameList::isEmpty() const {
     for (int i = 0; i < item_model->rowCount(); i++) {
         const QStandardItem* child = item_model->invisibleRootItem()->child(i);
-        const auto type = static_cast<GameListItemType>(child->type());
+        const GameListItemType type = static_cast<GameListItemType>(child->type());
         if (!child->hasChildren() &&
             (type == GameListItemType::InstalledDir || type == GameListItemType::SystemDir)) {
             item_model->invisibleRootItem()->removeRow(child->row());
@@ -402,7 +403,7 @@ void GameList::DonePopulating(QStringList watch_list) {
     item_model->invisibleRootItem()->appendRow(new GameListAddDir());
 
     // Clear out the old directories to watch for changes and add the new ones
-    auto watch_dirs = watcher->directories();
+    const QStringList watch_dirs = watcher->directories();
     if (!watch_dirs.isEmpty()) {
         watcher->removePaths(watch_dirs);
     }
@@ -411,7 +412,7 @@ void GameList::DonePopulating(QStringList watch_list) {
     // Also artificially caps the watcher to a certain number of directories
     constexpr int LIMIT_WATCH_DIRECTORIES = 5000;
     constexpr int SLICE_SIZE = 25;
-    int len = std::min(watch_list.length(), LIMIT_WATCH_DIRECTORIES);
+    const int len = std::min(watch_list.length(), LIMIT_WATCH_DIRECTORIES);
     for (int i = 0; i < len; i += SLICE_SIZE) {
         watcher->addPaths(watch_list.mid(i, i + SLICE_SIZE));
         QCoreApplication::processEvents();
@@ -431,12 +432,12 @@ void GameList::DonePopulating(QStringList watch_list) {
 }
 
 void GameList::PopupContextMenu(const QPoint& menu_location) {
-    QModelIndex item = tree_view->indexAt(menu_location);
+    const QModelIndex item = tree_view->indexAt(menu_location);
     if (!item.isValid()) {
         return;
     }
 
-    const auto selected = item.sibling(item.row(), 0);
+    const QModelIndex selected = item.sibling(item.row(), 0);
     QMenu context_menu;
     switch (selected.data(GameListItem::TypeRole).value<GameListItemType>()) {
     case GameListItemType::Game:
@@ -517,7 +518,7 @@ void GameList::AddGamePopup(QMenu& context_menu, const QString& path, u64 progra
         open_extdata_location->setVisible(false);
     }
 
-    auto media_type = Service::AM::GetTitleMediaType(program_id);
+    const Service::FS::MediaType media_type = Service::AM::GetTitleMediaType(program_id);
     open_application_location->setVisible(path.toStdString() ==
                                           Service::AM::GetTitleContentPath(media_type, program_id));
     open_update_location->setVisible(
@@ -655,7 +656,7 @@ void GameList::SaveInterfaceLayout() {
 }
 
 void GameList::LoadInterfaceLayout() {
-    auto header = tree_view->header();
+    QHeaderView* header = tree_view->header();
     if (!header->restoreState(UISettings::values.gamelist_header_state)) {
         // We are using the name column to display icons and titles
         // so make it as large as possible as default.

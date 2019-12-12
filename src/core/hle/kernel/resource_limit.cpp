@@ -13,8 +13,7 @@ ResourceLimit::ResourceLimit(KernelSystem& kernel) : Object(kernel) {}
 ResourceLimit::~ResourceLimit() {}
 
 std::shared_ptr<ResourceLimit> ResourceLimit::Create(KernelSystem& kernel, std::string name) {
-    auto resource_limit{std::make_shared<ResourceLimit>(kernel)};
-
+    std::shared_ptr<Kernel::ResourceLimit> resource_limit = std::make_shared<ResourceLimit>(kernel);
     resource_limit->name = std::move(name);
     return resource_limit;
 }

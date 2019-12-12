@@ -9,7 +9,7 @@
 namespace Service::MVD {
 
 void InstallInterfaces(Core::System& system) {
-    auto& service_manager = system.ServiceManager();
+    Service::SM::ServiceManager& service_manager = system.ServiceManager();
     std::make_shared<MVD_STD>()->InstallAsService(service_manager);
 }
 

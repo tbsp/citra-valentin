@@ -89,22 +89,25 @@ AppletManager::AppletSlotData* AppletManager::GetAppletSlotData(AppletId id) {
 
     if (id == AppletId::Application) {
         auto* slot = GetSlot(AppletSlot::Application);
-        if (slot->applet_id != AppletId::None)
+        if (slot->applet_id != AppletId::None) {
             return slot;
+        }
 
         return nullptr;
     }
 
     if (id == AppletId::AnySystemApplet) {
         auto* system_slot = GetSlot(AppletSlot::SystemApplet);
-        if (system_slot->applet_id != AppletId::None)
+        if (system_slot->applet_id != AppletId::None) {
             return system_slot;
+        }
 
         // The Home Menu is also a system applet, but it lives in its own slot to be able to run
         // concurrently with other system applets.
         auto* home_slot = GetSlot(AppletSlot::HomeMenu);
-        if (home_slot->applet_id != AppletId::None)
+        if (home_slot->applet_id != AppletId::None) {
             return home_slot;
+        }
 
         return nullptr;
     }
@@ -135,8 +138,9 @@ AppletManager::AppletSlotData* AppletManager::GetAppletSlotData(AppletId id) {
     }
 
     for (auto& slot : applet_slots) {
-        if (slot.applet_id == id)
+        if (slot.applet_id == id) {
             return &slot;
+        }
     }
 
     return nullptr;
@@ -214,7 +218,7 @@ ResultVal<MessageParameter> AppletManager::GlanceParameter(AppletId app_id) {
 }
 
 ResultVal<MessageParameter> AppletManager::ReceiveParameter(AppletId app_id) {
-    auto result = GlanceParameter(app_id);
+    ResultVal<Service::APT::MessageParameter> result = GlanceParameter(app_id);
     if (result.Succeeded()) {
         // Clear the parameter
         next_parameter = {};
@@ -324,16 +328,16 @@ ResultCode AppletManager::PrepareToStartLibraryApplet(AppletId applet_id) {
                           ErrorSummary::InvalidState, ErrorLevel::Status);
     }
 
-    auto cfg = Service::CFG::GetModule(system);
+    std::shared_ptr<Service::CFG::Module> cfg = Service::CFG::GetModule(system);
     u32 region_value = cfg->GetRegionValue();
-    auto process =
+    std::shared_ptr<Kernel::Process> process =
         NS::LaunchTitle(FS::MediaType::NAND, GetTitleIdForApplet(applet_id, region_value));
     if (process) {
         return RESULT_SUCCESS;
     }
 
     // If we weren't able to load the native applet title, try to fallback to an HLE implementation.
-    auto applet = HLE::Applets::Applet::Get(applet_id);
+    std::shared_ptr<HLE::Applets::Applet> applet = HLE::Applets::Applet::Get(applet_id);
     if (applet) {
         LOG_WARNING(Service_APT, "applet has already been started id={:08X}",
                     static_cast<u32>(applet_id));
@@ -351,16 +355,16 @@ ResultCode AppletManager::PreloadLibraryApplet(AppletId applet_id) {
                           ErrorSummary::InvalidState, ErrorLevel::Status);
     }
 
-    auto cfg = Service::CFG::GetModule(system);
+    std::shared_ptr<Service::CFG::Module> cfg = Service::CFG::GetModule(system);
     u32 region_value = cfg->GetRegionValue();
-    auto process =
+    std::shared_ptr<Kernel::Process> process =
         NS::LaunchTitle(FS::MediaType::NAND, GetTitleIdForApplet(applet_id, region_value));
     if (process) {
         return RESULT_SUCCESS;
     }
 
     // If we weren't able to load the native applet title, try to fallback to an HLE implementation.
-    auto applet = HLE::Applets::Applet::Get(applet_id);
+    std::shared_ptr<HLE::Applets::Applet> applet = HLE::Applets::Applet::Get(applet_id);
     if (applet) {
         LOG_WARNING(Service_APT, "applet has already been started id={:08X}",
                     static_cast<u32>(applet_id));
@@ -447,7 +451,7 @@ ResultVal<AppletManager::AppletInfo> AppletManager::GetAppletInfo(AppletId app_i
 
     if (slot == nullptr || !slot->registered) {
         // See if there's an HLE applet and try to use it before erroring out.
-        auto hle_applet = HLE::Applets::Applet::Get(app_id);
+        std::shared_ptr<HLE::Applets::Applet> hle_applet = HLE::Applets::Applet::Get(app_id);
         if (hle_applet == nullptr) {
             return ResultCode(ErrorDescription::NotFound, ErrorModule::Applet,
                               ErrorSummary::NotFound, ErrorLevel::Status);
@@ -465,7 +469,7 @@ ResultVal<AppletManager::AppletInfo> AppletManager::GetAppletInfo(AppletId app_i
                           ErrorLevel::Status);
     }
 
-    auto cfg = Service::CFG::GetModule(system);
+    std::shared_ptr<Service::CFG::Module> cfg = Service::CFG::GetModule(system);
     ASSERT_MSG(cfg, "CFG Module missing!");
     u32 region_value = cfg->GetRegionValue();
     return MakeResult<AppletInfo>({GetTitleIdForApplet(app_id, region_value),
@@ -530,7 +534,7 @@ ResultCode AppletManager::DoApplicationJump() {
     }
 
     // Launch the title directly.
-    auto process =
+    std::shared_ptr<Kernel::Process> process =
         NS::LaunchTitle(app_jump_parameters.next_media_type, app_jump_parameters.next_title_id);
     if (!process) {
         LOG_CRITICAL(Service_APT, "Failed to launch title during application jump, exiting.");
@@ -552,11 +556,11 @@ void AppletManager::EnsureHomeMenuLoaded() {
         return;
     }
 
-    auto cfg = Service::CFG::GetModule(system);
+    std::shared_ptr<Service::CFG::Module> cfg = Service::CFG::GetModule(system);
     ASSERT_MSG(cfg, "CFG Module missing!");
     u32 region_value = cfg->GetRegionValue();
     u64 menu_title_id = GetTitleIdForApplet(AppletId::HomeMenu, region_value);
-    auto process = NS::LaunchTitle(FS::MediaType::NAND, menu_title_id);
+    std::shared_ptr<Kernel::Process> process = NS::LaunchTitle(FS::MediaType::NAND, menu_title_id);
     if (!process) {
         LOG_WARNING(Service_APT,
                     "The Home Menu failed to launch, application jumping will not work.");

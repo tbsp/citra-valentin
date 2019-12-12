@@ -58,7 +58,7 @@ void KernelSystem::MemoryInit(u32 mem_type) {
     ASSERT(base == Memory::FCRAM_SIZE);
 
     config_mem_handler = std::make_unique<ConfigMem::Handler>();
-    auto& config_mem = config_mem_handler->GetConfigMem();
+    ConfigMem::ConfigMemDef& config_mem = config_mem_handler->GetConfigMem();
     config_mem.app_mem_type = mem_type;
     // app_mem_malloc does not always match the configured size for memory_region[0]: in case the
     // n3DS type override is in effect it reports the size the game expects, not the real one.
@@ -107,8 +107,8 @@ void KernelSystem::HandleSpecialMapping(VMManager& address_space, const AddressM
         return;
     }
 
-    auto area =
-        std::find_if(std::begin(memory_areas), std::end(memory_areas), [&](const auto& area) {
+    const MemoryArea* area =
+        std::find_if(std::begin(memory_areas), std::end(memory_areas), [&](const MemoryArea& area) {
             return mapping.address >= area.vaddr_base &&
                    mapping_limit <= area.vaddr_base + area.size;
         });
@@ -132,7 +132,7 @@ void KernelSystem::HandleSpecialMapping(VMManager& address_space, const AddressM
     // TODO(yuriks): This flag seems to have some other effect, but it's unknown what
     MemoryState memory_state = mapping.unk_flag ? MemoryState::Static : MemoryState::IO;
 
-    auto vma =
+    std::map<VAddr, Kernel::VirtualMemoryArea>::const_iterator vma =
         address_space.MapBackingMemory(mapping.address, target_pointer, mapping.size, memory_state)
             .Unwrap();
     address_space.Reprotect(vma,
@@ -140,7 +140,7 @@ void KernelSystem::HandleSpecialMapping(VMManager& address_space, const AddressM
 }
 
 void KernelSystem::MapSharedPages(VMManager& address_space) {
-    auto cfg_mem_vma =
+    std::map<VAddr, Kernel::VirtualMemoryArea>::const_iterator cfg_mem_vma =
         address_space
             .MapBackingMemory(Memory::CONFIG_MEMORY_VADDR,
                               reinterpret_cast<u8*>(&config_mem_handler->GetConfigMem()),
@@ -148,7 +148,7 @@ void KernelSystem::MapSharedPages(VMManager& address_space) {
             .Unwrap();
     address_space.Reprotect(cfg_mem_vma, VMAPermission::Read);
 
-    auto shared_page_vma =
+    std::map<VAddr, Kernel::VirtualMemoryArea>::const_iterator shared_page_vma =
         address_space
             .MapBackingMemory(Memory::SHARED_PAGE_VADDR,
                               reinterpret_cast<u8*>(&shared_page_handler->GetSharedPage()),

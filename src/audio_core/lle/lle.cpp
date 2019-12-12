@@ -193,12 +193,12 @@ struct DspLle::Impl final {
     }
 
     const u8* GetDspDataPointer(u32 baddr) const {
-        auto& memory = teakra.GetDspMemory();
+        const auto& memory = teakra.GetDspMemory();
         return &memory[DspDataOffset + baddr];
     }
 
     PipeStatus GetPipeStatus(u8 pipe_index, PipeDirection direction) const {
-        u8 slot_index = PipeIndexToSlotIndex(pipe_index, direction);
+        const u8 slot_index = PipeIndexToSlotIndex(pipe_index, direction);
         PipeStatus pipe_status;
         std::memcpy(&pipe_status,
                     GetDspDataPointer(pipe_base_waddr * 2 + slot_index * sizeof(PipeStatus)),
@@ -208,10 +208,9 @@ struct DspLle::Impl final {
     }
 
     void UpdatePipeStatus(const PipeStatus& pipe_status) {
-        u8 slot_index = pipe_status.slot_index;
         u8* status_address =
-            GetDspDataPointer(pipe_base_waddr * 2 + slot_index * sizeof(PipeStatus));
-        if (slot_index % 2 == 0) {
+            GetDspDataPointer(pipe_base_waddr * 2 + pipe_status.slot_index * sizeof(PipeStatus));
+        if (pipe_status.slot_index % 2 == 0) {
             std::memcpy(status_address + 4, &pipe_status.read_bptr, sizeof(u16));
         } else {
             std::memcpy(status_address + 6, &pipe_status.write_bptr, sizeof(u16));
@@ -226,10 +225,11 @@ struct DspLle::Impl final {
         while (bsize != 0) {
             ASSERT_MSG(!pipe_status.IsFull(), "Pipe is Full");
             u16 write_bend;
-            if (pipe_status.IsWrapped())
+            if (pipe_status.IsWrapped()) {
                 write_bend = pipe_status.read_bptr & PipeStatus::PtrMask;
-            else
+            } else {
                 write_bend = pipe_status.bsize;
+            }
             u16 write_bbegin = pipe_status.write_bptr & PipeStatus::PtrMask;
             ASSERT_MSG(write_bend > write_bbegin,
                        "Pipe is in inconsistent state: end {:04X} <= begin {:04X}, size {:04X}",
@@ -287,8 +287,9 @@ struct DspLle::Impl final {
         }
         if (need_update) {
             UpdatePipeStatus(pipe_status);
-            while (!teakra.SendDataIsEmpty(2))
+            while (!teakra.SendDataIsEmpty(2)) {
                 RunTeakraSlice();
+            }
             teakra.SendData(2, pipe_status.slot_index);
         }
         return data;
@@ -310,11 +311,11 @@ struct DspLle::Impl final {
 
         teakra.Reset();
 
-        Dsp1 dsp(buffer);
+        const Dsp1 dsp(buffer);
         auto& dsp_memory = teakra.GetDspMemory();
         u8* program = dsp_memory.data();
         u8* data = dsp_memory.data() + DspDataOffset;
-        for (const auto& segment : dsp.segments) {
+        for (const AudioCore::Dsp1::Segment& segment : dsp.segments) {
             if (segment.memory_type == SegmentType::ProgramA ||
                 segment.memory_type == SegmentType::ProgramB) {
                 std::memcpy(program + segment.target * 2, segment.data.data(), segment.data.size());
@@ -335,15 +336,17 @@ struct DspLle::Impl final {
         if (dsp.recv_data_on_start) {
             for (u8 i = 0; i < 3; ++i) {
                 do {
-                    while (!teakra.RecvDataIsReady(i))
+                    while (!teakra.RecvDataIsReady(i)) {
                         RunTeakraSlice();
+                    }
                 } while (teakra.RecvData(i) != 1);
             }
         }
 
         // Get pipe base address
-        while (!teakra.RecvDataIsReady(2))
+        while (!teakra.RecvDataIsReady(2)) {
             RunTeakraSlice();
+        }
         pipe_base_waddr = teakra.RecvData(2);
 
         loaded = true;
@@ -359,14 +362,16 @@ struct DspLle::Impl final {
 
         // Send finalization signal via command/reply register 2
         constexpr u16 FinalizeSignal = 0x8000;
-        while (!teakra.SendDataIsEmpty(2))
+        while (!teakra.SendDataIsEmpty(2)) {
             RunTeakraSlice();
+        }
 
         teakra.SendData(2, FinalizeSignal);
 
         // Wait for completion
-        while (!teakra.RecvDataIsReady(2))
+        while (!teakra.RecvDataIsReady(2)) {
             RunTeakraSlice();
+        }
 
         teakra.RecvData(2); // discard the value
 
@@ -407,32 +412,35 @@ std::array<u8, Memory::DSP_RAM_SIZE>& DspLle::GetDspMemory() {
 }
 
 void DspLle::SetServiceToInterrupt(std::weak_ptr<Service::DSP::DSP_DSP> dsp) {
-    impl->teakra.SetRecvDataHandler(0, [this, dsp]() {
-        if (!impl->loaded)
+    impl->teakra.SetRecvDataHandler(0, [this, dsp] {
+        if (!impl->loaded) {
             return;
+        }
 
         std::lock_guard lock(HLE::g_hle_lock);
-        if (auto locked = dsp.lock()) {
-            locked->SignalInterrupt(Service::DSP::DSP_DSP::InterruptType::Zero,
-                                    static_cast<DspPipe>(0));
+        if (std::shared_ptr<Service::DSP::DSP_DSP> service = dsp.lock()) {
+            service->SignalInterrupt(Service::DSP::DSP_DSP::InterruptType::Zero,
+                                     static_cast<DspPipe>(0));
         }
     });
     impl->teakra.SetRecvDataHandler(1, [this, dsp]() {
-        if (!impl->loaded)
+        if (!impl->loaded) {
             return;
+        }
 
         std::lock_guard lock(HLE::g_hle_lock);
-        if (auto locked = dsp.lock()) {
-            locked->SignalInterrupt(Service::DSP::DSP_DSP::InterruptType::One,
-                                    static_cast<DspPipe>(0));
+        if (std::shared_ptr<Service::DSP::DSP_DSP> service = dsp.lock()) {
+            service->SignalInterrupt(Service::DSP::DSP_DSP::InterruptType::One,
+                                     static_cast<DspPipe>(0));
         }
     });
 
     auto ProcessPipeEvent = [this, dsp](bool event_from_data) {
-        if (!impl->loaded)
+        if (!impl->loaded) {
             return;
+        }
 
-        auto& teakra = impl->teakra;
+        Teakra::Teakra& teakra = impl->teakra;
         if (event_from_data) {
             impl->data_signaled = true;
         } else {
@@ -453,9 +461,9 @@ void DspLle::SetServiceToInterrupt(std::weak_ptr<Service::DSP::DSP_DSP> dsp) {
                 impl->ReadPipe(pipe, impl->GetPipeReadableSize(pipe));
             } else {
                 std::lock_guard lock(HLE::g_hle_lock);
-                if (auto locked = dsp.lock()) {
-                    locked->SignalInterrupt(Service::DSP::DSP_DSP::InterruptType::Pipe,
-                                            static_cast<DspPipe>(pipe));
+                if (std::shared_ptr<Service::DSP::DSP_DSP> service = dsp.lock()) {
+                    service->SignalInterrupt(Service::DSP::DSP_DSP::InterruptType::Pipe,
+                                             static_cast<DspPipe>(pipe));
                 }
             }
         }
@@ -485,6 +493,7 @@ DspLle::DspLle(Memory::MemorySystem& memory, bool multithread)
     impl->teakra.SetAHBMCallback(ahbm);
     impl->teakra.SetAudioCallback([this](std::array<s16, 2> sample) { OutputSample(sample); });
 }
+
 DspLle::~DspLle() = default;
 
 } // namespace AudioCore

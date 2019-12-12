@@ -46,7 +46,7 @@ struct Client::Impl {
                                      "Credentials needed"};
         }
 
-        auto result = GenericRequest(method, path, data, accept, jwt);
+        Common::WebResult result = GenericRequest(method, path, data, accept, jwt);
         if (result.result_string == "401") {
             // Try again with new JWT
             UpdateJWT();
@@ -67,7 +67,7 @@ struct Client::Impl {
                                      const std::string& jwt = "", const std::string& username = "",
                                      const std::string& token = "") {
         if (cli == nullptr) {
-            auto parsedUrl = LUrlParser::clParseURL::ParseURL(host);
+            LUrlParser::clParseURL parsedUrl = LUrlParser::clParseURL::ParseURL(host);
             int port;
             if (parsedUrl.m_Scheme == "http") {
                 if (!parsedUrl.GetPort(&port)) {
@@ -129,7 +129,7 @@ struct Client::Impl {
                                      std::to_string(response.status)};
         }
 
-        auto content_type = response.headers.find("content-type");
+        const auto content_type = response.headers.find("content-type");
 
         if (content_type == response.headers.end()) {
             LOG_ERROR(WebService, "{} to {} returned no content", method, host + path);
@@ -141,6 +141,7 @@ struct Client::Impl {
                       content_type->second);
             return Common::WebResult{Common::WebResult::Code::WrongContent, "Wrong content"};
         }
+
         return Common::WebResult{Common::WebResult::Code::Success, "", response.body};
     }
 
@@ -150,7 +151,8 @@ struct Client::Impl {
             return;
         }
 
-        auto result = GenericRequest("POST", "/jwt/internal", "", "text/html", "", username, token);
+        Common::WebResult result =
+            GenericRequest("POST", "/jwt/internal", "", "text/html", "", username, token);
         if (result.result_code != Common::WebResult::Code::Success) {
             LOG_ERROR(WebService, "UpdateJWT failed");
         } else {

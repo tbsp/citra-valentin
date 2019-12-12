@@ -21,7 +21,7 @@ ResultVal<std::shared_ptr<ServerSession>> ServerPort::Accept() {
         return ERR_NO_PENDING_SESSIONS;
     }
 
-    auto session = std::move(pending_sessions.back());
+    std::shared_ptr<Kernel::ServerSession> session = std::move(pending_sessions.back());
     pending_sessions.pop_back();
     return MakeResult(std::move(session));
 }
@@ -36,8 +36,8 @@ void ServerPort::Acquire(Thread* thread) {
 }
 
 KernelSystem::PortPair KernelSystem::CreatePortPair(u32 max_sessions, std::string name) {
-    auto server_port{std::make_shared<ServerPort>(*this)};
-    auto client_port{std::make_shared<ClientPort>(*this)};
+    std::shared_ptr<Kernel::ServerPort> server_port = std::make_shared<ServerPort>(*this);
+    std::shared_ptr<Kernel::ClientPort> client_port = std::make_shared<ClientPort>(*this);
 
     server_port->name = name + "_Server";
     client_port->name = name + "_Client";

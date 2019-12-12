@@ -15,11 +15,11 @@
 
 namespace Ui {
 class ChatRoom;
-}
+} // namespace Ui
 
 namespace Core {
 class AnnounceMultiplayerSession;
-}
+} // namespace Core
 
 class ConnectionError;
 class ComboBoxProxyModel;
@@ -31,7 +31,7 @@ class ChatRoom : public QWidget {
 
 public:
     explicit ChatRoom(QWidget* parent);
-    void SetPlayerList(const Network::RoomMember::MemberList& member_list);
+    void SetPlayerList(const Network::RoomMember::MemberList& members);
     void Clear();
     void AppendStatusMessage(const QString& msg);
     ~ChatRoom();
@@ -61,7 +61,7 @@ private:
     void SendModerationRequest(Network::RoomMessageTypes type, const std::string& nickname);
 
     bool has_mod_perms = false;
-    QStandardItemModel* player_list;
+    QStandardItemModel* members;
     std::unique_ptr<Ui::ChatRoom> ui;
     std::unordered_set<std::string> block_list;
     std::unordered_map<std::string, QPixmap> icon_cache;

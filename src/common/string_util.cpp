@@ -161,7 +161,7 @@ std::u16string UTF8ToUTF16(const std::string& input) {
 
 #ifdef _WIN32
 static std::wstring CPToUTF16(u32 code_page, const std::string& input) {
-    const auto size =
+    const int size =
         MultiByteToWideChar(code_page, 0, input.data(), static_cast<int>(input.size()), nullptr, 0);
 
     if (size == 0) {
@@ -179,8 +179,8 @@ static std::wstring CPToUTF16(u32 code_page, const std::string& input) {
 }
 
 std::string UTF16ToUTF8(const std::wstring& input) {
-    const auto size = WideCharToMultiByte(CP_UTF8, 0, input.data(), static_cast<int>(input.size()),
-                                          nullptr, 0, nullptr, nullptr);
+    const int size = WideCharToMultiByte(CP_UTF8, 0, input.data(), static_cast<int>(input.size()),
+                                         nullptr, 0, nullptr, nullptr);
     if (size == 0) {
         return "";
     }

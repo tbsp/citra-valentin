@@ -195,8 +195,8 @@ Common::Vec4<u8> ProcTex(float u, float v, TexturingRegs regs, State::ProcTex st
     case ProcTexFilter::LinearMipmapNearest: {
         const int index_int = static_cast<int>(index);
         const float frac = index - index_int;
-        const auto color_value = state.color_table[index_int].ToVector().Cast<float>();
-        const auto color_diff = state.color_diff_table[index_int].ToVector().Cast<float>();
+        const Common::Vec4f color_value = state.color_table[index_int].ToVector().Cast<float>();
+        const Common::Vec4f color_diff = state.color_diff_table[index_int].ToVector().Cast<float>();
         final_color = (color_value + frac * color_diff).Cast<u8>();
         break;
     }

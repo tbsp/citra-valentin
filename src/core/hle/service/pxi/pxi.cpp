@@ -9,7 +9,7 @@
 namespace Service::PXI {
 
 void InstallInterfaces(Core::System& system) {
-    auto& service_manager = system.ServiceManager();
+    Service::SM::ServiceManager& service_manager = system.ServiceManager();
     std::make_shared<DEV>()->InstallAsService(service_manager);
 }
 

@@ -163,45 +163,59 @@ const CPUCaps& GetCPUCaps() {
 }
 
 std::string GetCPUCapsString() {
-    auto caps = GetCPUCaps();
+    Common::CPUCaps caps = GetCPUCaps();
 
     std::string sum(caps.cpu_string);
     sum += " (";
     sum += caps.brand_string;
     sum += ")";
 
-    if (caps.sse)
+    if (caps.sse) {
         sum += ", SSE";
+    }
     if (caps.sse2) {
         sum += ", SSE2";
-        if (!caps.flush_to_zero)
+        if (!caps.flush_to_zero) {
             sum += " (without DAZ)";
+        }
     }
 
-    if (caps.sse3)
+    if (caps.sse3) {
         sum += ", SSE3";
-    if (caps.ssse3)
+    }
+    if (caps.ssse3) {
         sum += ", SSSE3";
-    if (caps.sse4_1)
+    }
+    if (caps.sse4_1) {
         sum += ", SSE4.1";
-    if (caps.sse4_2)
+    }
+    if (caps.sse4_2) {
         sum += ", SSE4.2";
-    if (caps.avx)
+    }
+    if (caps.avx) {
         sum += ", AVX";
-    if (caps.avx2)
+    }
+    if (caps.avx2) {
         sum += ", AVX2";
-    if (caps.bmi1)
+    }
+    if (caps.bmi1) {
         sum += ", BMI1";
-    if (caps.bmi2)
+    }
+    if (caps.bmi2) {
         sum += ", BMI2";
-    if (caps.fma)
+    }
+    if (caps.fma) {
         sum += ", FMA";
-    if (caps.aes)
+    }
+    if (caps.aes) {
         sum += ", AES";
-    if (caps.movbe)
+    }
+    if (caps.movbe) {
         sum += ", MOVBE";
-    if (caps.long_mode)
+    }
+    if (caps.long_mode) {
         sum += ", 64-bit support";
+    }
 
     return sum;
 }

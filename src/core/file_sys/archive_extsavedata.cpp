@@ -119,7 +119,7 @@ public:
             return ERROR_UNSUPPORTED_OPEN_FLAGS;
         }
 
-        const auto full_path = path_parser.BuildHostPath(mount_point);
+        const std::string full_path = path_parser.BuildHostPath(mount_point);
 
         switch (path_parser.GetHostStatus(mount_point)) {
         case PathParser::InvalidMountPoint:
@@ -252,7 +252,7 @@ ResultVal<std::unique_ptr<ArchiveBackend>> ArchiveFactory_ExtSaveData::Open(cons
 ResultCode ArchiveFactory_ExtSaveData::Format(const Path& path,
                                               const FileSys::ArchiveFormatInfo& format_info,
                                               u64 program_id) {
-    auto corrected_path = GetCorrectedPath(path);
+    const FileSys::Path corrected_path = GetCorrectedPath(path);
 
     // These folders are always created with the ExtSaveData
     std::string user_path = GetExtSaveDataPath(mount_point, corrected_path) + "user/";

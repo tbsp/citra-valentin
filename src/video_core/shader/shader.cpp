@@ -49,7 +49,8 @@ OutputVertex OutputVertex::FromAttributeBuffer(const RasterizerRegs& regs,
 
     unsigned int num_attributes = regs.vs_output_total & 7;
     for (std::size_t attrib = 0; attrib < num_attributes; ++attrib) {
-        const auto output_register_map = regs.vs_output_attributes[attrib];
+        const Pica::RasterizerRegs::VSOutputAttributes& output_register_map =
+            regs.vs_output_attributes[attrib];
         vertex_slots_overflow[output_register_map.map_x] = input.attr[attrib][0];
         vertex_slots_overflow[output_register_map.map_y] = input.attr[attrib][1];
         vertex_slots_overflow[output_register_map.map_z] = input.attr[attrib][2];

@@ -29,7 +29,7 @@ TEST_CASE("ARM_DynCom (vfp): vadd", "[arm_dyncom]") {
 #include "vfp_vadd_f32.inc"
     }};
 
-    for (const auto& test_case : test_cases) {
+    for (const ArmTests::VfpTestCase& test_case : test_cases) {
         dyncom.SetPC(0);
         dyncom.SetVFPSystemReg(VFP_FPSCR, test_case.initial_fpscr);
         dyncom.SetVFPReg(4, test_case.a);

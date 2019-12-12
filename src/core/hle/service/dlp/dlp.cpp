@@ -11,7 +11,7 @@
 namespace Service::DLP {
 
 void InstallInterfaces(Core::System& system) {
-    auto& service_manager = system.ServiceManager();
+    Service::SM::ServiceManager& service_manager = system.ServiceManager();
     std::make_shared<DLP_CLNT>()->InstallAsService(service_manager);
     std::make_shared<DLP_FKCL>()->InstallAsService(service_manager);
     std::make_shared<DLP_SRVR>()->InstallAsService(service_manager);

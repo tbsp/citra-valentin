@@ -87,14 +87,17 @@ static QString GetQStringLongTitleFromSMDH(const Loader::SMDH& smdh,
  * @return QString region
  */
 static QString GetRegionFromSMDH(const Loader::SMDH& smdh) {
-    using GameRegion = Loader::SMDH::GameRegion;
-    static const std::map<GameRegion, const char*> regions_map = {
-        {GameRegion::Japan, "Japan"},   {GameRegion::NorthAmerica, "North America"},
-        {GameRegion::Europe, "Europe"}, {GameRegion::Australia, "Australia"},
-        {GameRegion::China, "China"},   {GameRegion::Korea, "Korea"},
-        {GameRegion::Taiwan, "Taiwan"}};
+    static const std::map<Loader::SMDH::GameRegion, const char*> regions_map = {
+        {Loader::SMDH::GameRegion::Japan, "Japan"},
+        {Loader::SMDH::GameRegion::NorthAmerica, "North America"},
+        {Loader::SMDH::GameRegion::Europe, "Europe"},
+        {Loader::SMDH::GameRegion::Australia, "Australia"},
+        {Loader::SMDH::GameRegion::China, "China"},
+        {Loader::SMDH::GameRegion::Korea, "Korea"},
+        {Loader::SMDH::GameRegion::Taiwan, "Taiwan"},
+    };
 
-    std::vector<GameRegion> regions = smdh.GetRegions();
+    std::vector<Loader::SMDH::GameRegion> regions = smdh.GetRegions();
 
     if (regions.empty()) {
         return QStringLiteral("Invalid region");
@@ -213,7 +216,7 @@ public:
                 return row1.toLower();
 
             QString row2;
-            auto row_2_id = UISettings::values.game_list_row_2;
+            UISettings::GameListText row_2_id = UISettings::values.game_list_row_2;
             if (row_2_id != UISettings::GameListText::NoText) {
                 if (!row1.isEmpty()) {
                     row2 = UISettings::values.game_list_single_line_mode

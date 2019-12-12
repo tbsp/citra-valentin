@@ -36,9 +36,10 @@ public:
 
         // Check for user pings
         QString cur_nickname, cur_username;
-        if (auto room = Network::GetRoomMember().lock()) {
-            cur_nickname = QString::fromStdString(room->GetNickname());
-            cur_username = QString::fromStdString(room->GetUsername());
+        if (const std::shared_ptr<Network::RoomMember> room_member =
+                Network::GetRoomMember().lock()) {
+            cur_nickname = QString::fromStdString(room_member->GetNickname());
+            cur_username = QString::fromStdString(room_member->GetUsername());
         }
 
         // Handle pings at the beginning and end of message
@@ -58,7 +59,7 @@ public:
 
     /// Format the message using the players color
     QString GetPlayerChatMessage(u16 player) const {
-        auto color = player_color[player % 16];
+        const char* color = player_color[player % 16];
         QString name;
         if (username.isEmpty() || username == nickname) {
             name = nickname;
@@ -154,15 +155,15 @@ public:
 ChatRoom::ChatRoom(QWidget* parent) : QWidget(parent), ui(std::make_unique<Ui::ChatRoom>()) {
     ui->setupUi(this);
 
-    // set the item_model for player_view
+    // Set the item_model for member_view
 
-    player_list = new QStandardItemModel(ui->player_view);
-    ui->player_view->setModel(player_list);
-    ui->player_view->setContextMenuPolicy(Qt::CustomContextMenu);
+    members = new QStandardItemModel(ui->member_view);
+    ui->member_view->setModel(members);
+    ui->member_view->setContextMenuPolicy(Qt::CustomContextMenu);
 
     // Set a header to make it look better though there is only one column
-    player_list->insertColumns(0, 1);
-    player_list->setHeaderData(0, Qt::Horizontal, QStringLiteral("Members"));
+    members->insertColumns(0, 1);
+    members->setHeaderData(0, Qt::Horizontal, QStringLiteral("Members"));
 
     ui->chat_history->document()->setMaximumBlockCount(max_chat_lines);
 
@@ -183,11 +184,11 @@ ChatRoom::ChatRoom(QWidget* parent) : QWidget(parent), ui(std::make_unique<Ui::C
         connect(this, &ChatRoom::ChatReceived, this, &ChatRoom::OnChatReceive);
         connect(this, &ChatRoom::StatusMessageReceived, this, &ChatRoom::OnStatusMessageReceive);
     } else {
-        // TODO (jroweboy) network was not initialized?
+        // TODO: do something if network was not initialized
     }
 
     // Connect all the widgets to the appropriate events
-    connect(ui->player_view, &QTreeView::customContextMenuRequested, this,
+    connect(ui->member_view, &QTreeView::customContextMenuRequested, this,
             &ChatRoom::PopupContextMenu);
     connect(ui->chat_message, &QLineEdit::returnPressed, this, &ChatRoom::OnSendChat);
     connect(ui->chat_message, &QLineEdit::textChanged, this, &ChatRoom::OnChatTextChanged);
@@ -214,17 +215,18 @@ void ChatRoom::AppendChatMessage(const QString& msg) {
 }
 
 void ChatRoom::SendModerationRequest(Network::RoomMessageTypes type, const std::string& nickname) {
-    if (auto room = Network::GetRoomMember().lock()) {
-        auto members = room->GetMemberInformation();
-        auto it = std::find_if(members.begin(), members.end(),
-                               [&nickname](const Network::RoomMember::MemberInformation& member) {
-                                   return member.nickname == nickname;
-                               });
+    if (std::shared_ptr<Network::RoomMember> room_member = Network::GetRoomMember().lock()) {
+        const Network::RoomMember::MemberList members = room_member->GetMemberInformation();
+        std::vector<Network::RoomMember::MemberInformation>::const_iterator it =
+            std::find_if(members.begin(), members.end(),
+                         [&nickname](const Network::RoomMember::MemberInformation& member) {
+                             return member.nickname == nickname;
+                         });
         if (it == members.end()) {
             NetworkMessage::ShowError(NetworkMessage::NO_SUCH_USER);
             return;
         }
-        room->SendModerationRequest(type, nickname);
+        room_member->SendModerationRequest(type, nickname);
     }
 }
 
@@ -253,14 +255,14 @@ void ChatRoom::OnChatReceive(const Network::ChatEntry& chat) {
     if (!ValidateMessage(chat.message)) {
         return;
     }
-    if (auto room = Network::GetRoomMember().lock()) {
+    if (const std::shared_ptr<Network::RoomMember> room_member = Network::GetRoomMember().lock()) {
         // Get the id of the player
-        auto members = room->GetMemberInformation();
-        auto it = std::find_if(members.begin(), members.end(),
-                               [&chat](const Network::RoomMember::MemberInformation& member) {
-                                   return member.nickname == chat.nickname &&
-                                          member.username == chat.username;
-                               });
+        const Network::RoomMember::MemberList& members = room_member->GetMemberInformation();
+        std::vector<Network::RoomMember::MemberInformation>::const_iterator it = std::find_if(
+            members.begin(), members.end(),
+            [&chat](const Network::RoomMember::MemberInformation& member) {
+                return member.nickname == chat.nickname && member.username == chat.username;
+            });
         if (it == members.end()) {
             LOG_INFO(Network, "Chat message received from unknown player. Ignoring it.");
             return;
@@ -270,7 +272,7 @@ void ChatRoom::OnChatReceive(const Network::ChatEntry& chat) {
                      chat.nickname);
             return;
         }
-        auto player = std::distance(members.begin(), it);
+        std::ptrdiff_t player = std::distance(members.begin(), it);
         ChatMessage m(chat);
         if (m.ContainsPing()) {
             emit UserPinged();
@@ -311,39 +313,40 @@ void ChatRoom::OnStatusMessageReceive(const Network::StatusMessageEntry& status_
 }
 
 void ChatRoom::OnSendChat() {
-    if (auto room = Network::GetRoomMember().lock()) {
-        if (room->GetState() != Network::RoomMember::State::Joined &&
-            room->GetState() != Network::RoomMember::State::Moderator) {
+    if (std::shared_ptr<Network::RoomMember> room_member = Network::GetRoomMember().lock()) {
+        if (room_member->GetState() != Network::RoomMember::State::Joined &&
+            room_member->GetState() != Network::RoomMember::State::Moderator) {
             return;
         }
-        auto message = ui->chat_message->text().toStdString();
+        const std::string message = ui->chat_message->text().toStdString();
         if (!ValidateMessage(message)) {
             return;
         }
-        const std::string nick = room->GetNickname();
-        const std::string username = room->GetUsername();
-        Network::ChatEntry chat{nick, username, message};
+        const std::string nick = room_member->GetNickname();
+        const std::string username = room_member->GetUsername();
+        const Network::ChatEntry chat{nick, username, message};
 
-        auto members = room->GetMemberInformation();
-        auto it = std::find_if(members.begin(), members.end(),
-                               [&chat](const Network::RoomMember::MemberInformation& member) {
-                                   return member.nickname == chat.nickname &&
-                                          member.username == chat.username;
-                               });
+        std::vector<Network::RoomMember::MemberInformation> members =
+            room_member->GetMemberInformation();
+        std::vector<Network::RoomMember::MemberInformation>::iterator it = std::find_if(
+            members.begin(), members.end(),
+            [&chat](const Network::RoomMember::MemberInformation& member) {
+                return member.nickname == chat.nickname && member.username == chat.username;
+            });
         if (it == members.end()) {
             LOG_INFO(Network, "Cannot find self in the player list when sending a message.");
         }
-        auto player = std::distance(members.begin(), it);
-        ChatMessage m(chat);
-        room->SendChatMessage(message);
+        const std::ptrdiff_t player = std::distance(members.begin(), it);
+        const ChatMessage m(chat);
+        room_member->SendChatMessage(message);
         AppendChatMessage(m.GetPlayerChatMessage(player));
         ui->chat_message->clear();
     }
 }
 
 void ChatRoom::UpdateIconDisplay() {
-    for (int row = 0; row < player_list->invisibleRootItem()->rowCount(); ++row) {
-        QStandardItem* item = player_list->invisibleRootItem()->child(row);
+    for (int row = 0; row < members->invisibleRootItem()->rowCount(); ++row) {
+        QStandardItem* item = members->invisibleRootItem()->child(row);
         const std::string avatar_url =
             item->data(PlayerListItem::AvatarUrlRole).toString().toStdString();
         if (icon_cache.count(avatar_url)) {
@@ -354,10 +357,10 @@ void ChatRoom::UpdateIconDisplay() {
     }
 }
 
-void ChatRoom::SetPlayerList(const Network::RoomMember::MemberList& member_list) {
+void ChatRoom::SetPlayerList(const Network::RoomMember::MemberList& members) {
     // TODO(B3N30): Remember which row is selected
-    player_list->removeRows(0, player_list->rowCount());
-    for (const auto& member : member_list) {
+    this->members->removeRows(0, this->members->rowCount());
+    for (const Network::RoomMember::MemberInformation& member : members) {
         if (member.nickname.empty()) {
             continue;
         }
@@ -370,13 +373,13 @@ void ChatRoom::SetPlayerList(const Network::RoomMember::MemberList& member_list)
             QFuture<std::string> future = QtConcurrent::run([url] {
                 WebService::Client client(
                     QStringLiteral("%1://%2").arg(url.scheme(), url.host()).toStdString(), "", "");
-                auto result = client.GetImage(url.path().toStdString(), true);
+                const Common::WebResult result = client.GetImage(url.path().toStdString(), true);
                 if (result.returned_data.empty()) {
                     LOG_ERROR(WebService, "Failed to get avatar");
                 }
                 return result.returned_data;
             });
-            auto* future_watcher = new QFutureWatcher<std::string>(this);
+            QFutureWatcher<std::string>* future_watcher = new QFutureWatcher<std::string>(this);
             connect(future_watcher, &QFutureWatcher<std::string>::finished, this,
                     [this, future_watcher, avatar_url = member.avatar_url] {
                         const std::string result = future_watcher->result();
@@ -385,7 +388,7 @@ void ChatRoom::SetPlayerList(const Network::RoomMember::MemberList& member_list)
                         }
                         QPixmap pixmap;
                         if (!pixmap.loadFromData(reinterpret_cast<const u8*>(result.data()),
-                                                 result.size())) {
+                                                 static_cast<uint>(result.size()))) {
                             return;
                         }
                         icon_cache[avatar_url] =
@@ -396,7 +399,7 @@ void ChatRoom::SetPlayerList(const Network::RoomMember::MemberList& member_list)
             future_watcher->setFuture(future);
         }
 
-        player_list->invisibleRootItem()->appendRow(name_item);
+        this->members->invisibleRootItem()->appendRow(name_item);
     }
     UpdateIconDisplay();
     // TODO(B3N30): Restore row selection
@@ -410,17 +413,17 @@ void ChatRoom::OnChatTextChanged() {
 }
 
 void ChatRoom::PopupContextMenu(const QPoint& menu_location) {
-    QModelIndex item = ui->player_view->indexAt(menu_location);
+    QModelIndex item = ui->member_view->indexAt(menu_location);
     if (!item.isValid()) {
         return;
     }
 
     std::string nickname =
-        player_list->item(item.row())->data(PlayerListItem::NicknameRole).toString().toStdString();
+        members->item(item.row())->data(PlayerListItem::NicknameRole).toString().toStdString();
 
     QMenu context_menu;
 
-    QString username = player_list->item(item.row())->data(PlayerListItem::UsernameRole).toString();
+    QString username = members->item(item.row())->data(PlayerListItem::UsernameRole).toString();
     if (!username.isEmpty()) {
         QAction* view_profile_action = context_menu.addAction(QStringLiteral("View Profile"));
         connect(view_profile_action, &QAction::triggered, [username] {
@@ -430,60 +433,55 @@ void ChatRoom::PopupContextMenu(const QPoint& menu_location) {
     }
 
     std::string cur_nickname;
-    if (auto room = Network::GetRoomMember().lock()) {
-        cur_nickname = room->GetNickname();
+    if (const std::shared_ptr<Network::RoomMember> room_member = Network::GetRoomMember().lock()) {
+        cur_nickname = room_member->GetNickname();
     }
 
     if (nickname != cur_nickname) { // You can't block yourself
-        QAction* block_action = context_menu.addAction(QStringLiteral("Block Player"));
-
+        QAction* block_action =
+            context_menu.addAction(QStringLiteral("Block Player"), [this, nickname] {
+                if (block_list.count(nickname)) {
+                    block_list.erase(nickname);
+                } else if (QMessageBox::question(
+                               this, QStringLiteral("Block Player"),
+                               QStringLiteral(
+                                   "When you block a player, you will no longer receive chat "
+                                   "messages from "
+                                   "them.<br><br>Are you sure you would like to block %1?")
+                                   .arg(QString::fromStdString(nickname)),
+                               QMessageBox::Yes | QMessageBox::No) == QMessageBox::Yes) {
+                    block_list.emplace(nickname);
+                }
+            });
         block_action->setCheckable(true);
         block_action->setChecked(block_list.count(nickname) > 0);
-
-        connect(block_action, &QAction::triggered, [this, nickname] {
-            if (block_list.count(nickname)) {
-                block_list.erase(nickname);
-            } else {
-                QMessageBox::StandardButton result = QMessageBox::question(
-                    this, QStringLiteral("Block Player"),
-                    QStringLiteral(
-                        "When you block a player, you will no longer receive chat messages from "
-                        "them.<br><br>Are you sure you would like to block %1?")
-                        .arg(QString::fromStdString(nickname)),
-                    QMessageBox::Yes | QMessageBox::No);
-                if (result == QMessageBox::Yes)
-                    block_list.emplace(nickname);
-            }
-        });
     }
 
     if (has_mod_perms && nickname != cur_nickname) { // You can't kick or ban yourself
         context_menu.addSeparator();
 
-        QAction* kick_action = context_menu.addAction(QStringLiteral("Kick"));
-        QAction* ban_action = context_menu.addAction(QStringLiteral("Ban"));
-
-        connect(kick_action, &QAction::triggered, [this, nickname] {
-            QMessageBox::StandardButton result = QMessageBox::question(
-                this, QStringLiteral("Kick Player"),
-                QStringLiteral("Are you sure you would like to <b>kick</b> %1?")
-                    .arg(QString::fromStdString(nickname)),
-                QMessageBox::Yes | QMessageBox::No);
-            if (result == QMessageBox::Yes)
+        context_menu.addAction(QStringLiteral("Kick"), [this, nickname] {
+            if (QMessageBox::question(
+                    this, QStringLiteral("Kick Player"),
+                    QStringLiteral("Are you sure you would like to <b>kick</b> %1?")
+                        .arg(QString::fromStdString(nickname)),
+                    QMessageBox::Yes | QMessageBox::No) == QMessageBox::Yes) {
                 SendModerationRequest(Network::IdModKick, nickname);
+            }
         });
-        connect(ban_action, &QAction::triggered, [this, nickname] {
-            QMessageBox::StandardButton result = QMessageBox::question(
-                this, QStringLiteral("Ban Player"),
-                QStringLiteral(
-                    "Are you sure you would like to <b>kick and ban</b> %1?\n\nThis would "
-                    "ban both their forum username and their IP address.")
-                    .arg(QString::fromStdString(nickname)),
-                QMessageBox::Yes | QMessageBox::No);
-            if (result == QMessageBox::Yes)
+
+        context_menu.addAction(QStringLiteral("Ban"), [this, nickname] {
+            if (QMessageBox::question(
+                    this, QStringLiteral("Ban Player"),
+                    QStringLiteral(
+                        "Are you sure you would like to <b>kick and ban</b> %1?\n\nThis would "
+                        "ban both their forum username and their IP address.")
+                        .arg(QString::fromStdString(nickname)),
+                    QMessageBox::Yes | QMessageBox::No) == QMessageBox::Yes) {
                 SendModerationRequest(Network::IdModBan, nickname);
+            }
         });
     }
 
-    context_menu.exec(ui->player_view->viewport()->mapToGlobal(menu_location));
+    context_menu.exec(ui->member_view->viewport()->mapToGlobal(menu_location));
 }

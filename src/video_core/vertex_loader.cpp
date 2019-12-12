@@ -20,7 +20,7 @@ namespace Pica {
 void VertexLoader::Setup(const PipelineRegs& regs) {
     ASSERT_MSG(!is_setup, "VertexLoader is not intended to be setup more than once.");
 
-    const auto& attribute_config = regs.vertex_attributes;
+    const PipelineRegs::VertexAttributes& attribute_config = regs.vertex_attributes;
     num_total_attributes = attribute_config.GetNumTotalAttributes();
 
     boost::fill(vertex_attribute_sources, 0xdeadbeef);
@@ -31,7 +31,8 @@ void VertexLoader::Setup(const PipelineRegs& regs) {
 
     // Setup attribute data from loaders
     for (int loader = 0; loader < 12; ++loader) {
-        const auto& loader_config = attribute_config.attribute_loaders[loader];
+        const PipelineRegs::VertexAttributes::AttributeLoaders& loader_config =
+            attribute_config.attribute_loaders[loader];
 
         u32 offset = 0;
 

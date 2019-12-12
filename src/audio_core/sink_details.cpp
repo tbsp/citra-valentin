@@ -75,7 +75,7 @@ std::vector<const char*> GetSinkIDs() {
     std::vector<const char*> sink_ids(std::size(sink_details));
 
     std::transform(std::begin(sink_details), std::end(sink_details), std::begin(sink_ids),
-                   [](const auto& sink) { return sink.id; });
+                   [](const SinkDetails& sink) { return sink.id; });
 
     return sink_ids;
 }

@@ -77,9 +77,9 @@ static void RunInterpreter(const ShaderSetup& setup, UnitState& state, DebugData
         }
     };
 
-    const auto& uniforms = setup.uniforms;
-    const auto& swizzle_data = setup.swizzle_data;
-    const auto& program_code = setup.program_code;
+    const Pica::Shader::Uniforms& uniforms = setup.uniforms;
+    const Pica::Shader::SwizzleData& swizzle_data = setup.swizzle_data;
+    const Pica::Shader::ProgramCode& program_code = setup.program_code;
 
     // Placeholder for invalid inputs
     static float24 dummy_vec4_float24[4];
@@ -88,7 +88,7 @@ static void RunInterpreter(const ShaderSetup& setup, UnitState& state, DebugData
     bool exit_loop = false;
     while (!exit_loop) {
         if (!call_stack.empty()) {
-            auto& top = call_stack.back();
+            Pica::Shader::CallStackElement& top = call_stack.back();
             if (program_counter == top.final_address) {
                 state.address_registers[2] += top.loop_increment;
 
@@ -374,8 +374,10 @@ static void RunInterpreter(const ShaderSetup& setup, UnitState& state, DebugData
                 for (int i = 0; i < 2; ++i) {
                     // TODO: Can you restrict to one compare via dest masking?
 
-                    auto compare_op = instr.common.compare_op;
-                    auto op = (i == 0) ? compare_op.x.Value() : compare_op.y.Value();
+                    nihstro::Instruction::Common::CompareOpType compare_op =
+                        instr.common.compare_op;
+                    nihstro::Instruction::Common::CompareOpType::Op op =
+                        (i == 0) ? compare_op.x.Value() : compare_op.y.Value();
 
                     switch (op) {
                     case Instruction::Common::CompareOpType::Equal:

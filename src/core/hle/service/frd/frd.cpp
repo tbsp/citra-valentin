@@ -151,8 +151,8 @@ Module::Module() = default;
 Module::~Module() = default;
 
 void InstallInterfaces(Core::System& system) {
-    auto& service_manager = system.ServiceManager();
-    auto frd = std::make_shared<Module>();
+    Service::SM::ServiceManager& service_manager = system.ServiceManager();
+    std::shared_ptr<Service::FRD::Module> frd = std::make_shared<Module>();
     std::make_shared<FRD_U>(frd)->InstallAsService(service_manager);
     std::make_shared<FRD_A>(frd)->InstallAsService(service_manager);
 }

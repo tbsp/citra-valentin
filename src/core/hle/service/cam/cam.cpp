@@ -75,7 +75,7 @@ void Module::PortConfig::Clear() {
 void Module::CompletionEventCallBack(u64 port_id, s64) {
     PortConfig& port = ports[port_id];
     const CameraConfig& camera = cameras[port.camera_id];
-    const auto buffer = port.capture_result.get();
+    const std::vector<u16> buffer = port.capture_result.get();
 
     if (port.is_trimming) {
         u32 trim_width;
@@ -336,7 +336,7 @@ void Module::Interface::SetReceiving(Kernel::HLERequestContext& ctx) {
     const PortSet port_select(rp.Pop<u8>());
     const u32 image_size = rp.Pop<u32>();
     const u16 trans_unit = rp.Pop<u16>();
-    auto process = rp.PopObject<Kernel::Process>();
+    std::shared_ptr<Kernel::Process> process = rp.PopObject<Kernel::Process>();
 
     IPC::RequestBuilder rb = rp.MakeBuilder(1, 2);
     if (port_select.IsSingle()) {
@@ -1054,16 +1054,17 @@ void Module::LoadCameraImplementation(CameraConfig& camera, int camera_id) {
 }
 
 std::shared_ptr<Module> GetModule(Core::System& system) {
-    auto cam = system.ServiceManager().GetService<Service::CAM::Module::Interface>("cam:u");
-    if (!cam)
+    std::shared_ptr<Service::CAM::Module::Interface> cam =
+        system.ServiceManager().GetService<Service::CAM::Module::Interface>("cam:u");
+    if (!cam) {
         return nullptr;
+    }
     return cam->GetModule();
 }
 
 void InstallInterfaces(Core::System& system) {
-    auto& service_manager = system.ServiceManager();
-    auto cam = std::make_shared<Module>(system);
-
+    Service::SM::ServiceManager& service_manager = system.ServiceManager();
+    std::shared_ptr<Service::CAM::Module> cam = std::make_shared<Module>(system);
     std::make_shared<CAM_U>(cam)->InstallAsService(service_manager);
     std::make_shared<CAM_S>(cam)->InstallAsService(service_manager);
     std::make_shared<CAM_C>(cam)->InstallAsService(service_manager);

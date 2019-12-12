@@ -65,13 +65,13 @@ public:
     Frontend::Frame* previous_frame = nullptr;
 
     OGLTextureMailbox() {
-        for (auto& frame : swap_chain) {
+        for (Frontend::Frame& frame : swap_chain) {
             free_queue.push(&frame);
         }
     }
 
     ~OGLTextureMailbox() override {
-        // lock the mutex and clear out the present and free_queues and notify any people who are
+        // Lock the mutex and clear out the present and free_queues and notify any people who are
         // blocked to prevent deadlock on shutdown
         std::scoped_lock lock(swap_chain_lock);
         std::queue<Frontend::Frame*>().swap(free_queue);
@@ -125,14 +125,14 @@ public:
 
     Frontend::Frame* GetRenderFrame() override {
         std::unique_lock<std::mutex> lock(swap_chain_lock);
-        // wait for new entries in the free_queue
+        // Wait for new entries in the free_queue
         // we want to break at some point to prevent a softlock on close if the presentation thread
         // stops consuming buffers
         free_cv.wait_for(lock, std::chrono::milliseconds(100), [&] { return !free_queue.empty(); });
 
         // If theres no free frames, we will reuse the oldest render frame
         if (free_queue.empty()) {
-            auto frame = present_queue.back();
+            Frontend::Frame* frame = present_queue.back();
             present_queue.pop_back();
             return frame;
         }
@@ -164,11 +164,11 @@ public:
             free_cv.notify_one();
         }
 
-        // the newest entries are pushed to the front of the queue
+        // The newest entries are pushed to the front of the queue
         Frontend::Frame* frame = present_queue.front();
         present_queue.pop_front();
-        // remove all old entries from the present queue and move them back to the free_queue
-        for (auto f : present_queue) {
+        // Remove all old entries from the present queue and move them back to the free_queue
+        for (Frontend::Frame* f : present_queue) {
             free_queue.push(f);
         }
         free_cv.notify_one();
@@ -292,10 +292,9 @@ void RendererOpenGL::SwapBuffers() {
     PrepareRendertarget();
 
     RenderScreenshot();
-
     RenderVideoDumping();
 
-    const auto& layout = render_window.GetFramebufferLayout();
+    const Layout::FramebufferLayout& layout = render_window.GetFramebufferLayout();
 
     Frontend::Frame* frame;
     {
@@ -312,13 +311,13 @@ void RendererOpenGL::SwapBuffers() {
             glClientWaitSync(frame->present_fence, 0, GL_TIMEOUT_IGNORED);
         }
 
-        // delete the draw fence if the frame wasn't presented
+        // Delete the draw fence if the frame wasn't presented
         if (frame->render_fence) {
             glDeleteSync(frame->render_fence);
             frame->render_fence = 0;
         }
 
-        // wait for the presentation to be done
+        // Wait for the presentation to be done
         if (frame->present_fence) {
             glWaitSync(frame->present_fence, 0, GL_TIMEOUT_IGNORED);
             glDeleteSync(frame->present_fence);
@@ -399,8 +398,8 @@ void RendererOpenGL::RenderScreenshot() {
 
 void RendererOpenGL::PrepareRendertarget() {
     for (int i : {0, 1, 2}) {
-        int fb_id = i == 2 ? 1 : 0;
-        const auto& framebuffer = GPU::g_regs.framebuffer_config[fb_id];
+        const int fb_id = i == 2 ? 1 : 0;
+        const GPU::Regs::FramebufferConfig& framebuffer = GPU::g_regs.framebuffer_config[fb_id];
 
         // Main LCD (0): 0x1ED02204, Sub LCD (1): 0x1ED02A04
         u32 lcd_color_addr =
@@ -444,7 +443,9 @@ void RendererOpenGL::RenderVideoDumping() {
             InitVideoDumpingGLObjects();
         }
 
-        const auto& layout = Core::System::GetInstance().VideoDumper().GetLayout();
+        const Layout::FramebufferLayout& layout =
+            Core::System::GetInstance().VideoDumper().GetLayout();
+
         glBindFramebuffer(GL_READ_FRAMEBUFFER, frame_dumping_framebuffer.handle);
         glBindFramebuffer(GL_DRAW_FRAMEBUFFER, frame_dumping_framebuffer.handle);
         DrawScreens(layout);
@@ -576,7 +577,7 @@ void RendererOpenGL::InitOpenGLObjects() {
     glEnableVertexAttribArray(attrib_tex_coord);
 
     // Allocate textures for each screen
-    for (auto& screen_info : screen_infos) {
+    for (OpenGL::ScreenInfo& screen_info : screen_infos) {
         screen_info.texture.resource.Create();
 
         // Allocation of storage is deferred until the first frame, when we
@@ -719,7 +720,7 @@ void RendererOpenGL::ConfigureFramebufferTexture(TextureInfo& texture,
  */
 void RendererOpenGL::DrawSingleScreenRotated(const ScreenInfo& screen_info, float x, float y,
                                              float w, float h) {
-    const auto& texcoords = screen_info.display_texcoords;
+    const Common::Rectangle<float>& texcoords = screen_info.display_texcoords;
 
     const std::array<ScreenRectVertex, 4> vertices = {{
         ScreenRectVertex(x, y, texcoords.bottom, texcoords.left),
@@ -756,7 +757,7 @@ void RendererOpenGL::DrawSingleScreenRotated(const ScreenInfo& screen_info, floa
 void RendererOpenGL::DrawSingleScreenAnaglyphRotated(const ScreenInfo& screen_info_l,
                                                      const ScreenInfo& screen_info_r, float x,
                                                      float y, float w, float h) {
-    const auto& texcoords = screen_info_l.display_texcoords;
+    const Common::Rectangle<float>& texcoords = screen_info_l.display_texcoords;
 
     const std::array<ScreenRectVertex, 4> vertices = {{
         ScreenRectVertex(x, y, texcoords.bottom, texcoords.left),
@@ -809,9 +810,6 @@ void RendererOpenGL::DrawScreens(const Layout::FramebufferLayout& layout) {
         ReloadShader();
     }
 
-    const auto& top_screen = layout.top_screen;
-    const auto& bottom_screen = layout.bottom_screen;
-
     glViewport(0, 0, layout.width, layout.height);
     glClear(GL_COLOR_BUFFER_BIT);
 
@@ -831,50 +829,53 @@ void RendererOpenGL::DrawScreens(const Layout::FramebufferLayout& layout) {
     glUniform1i(uniform_layer, 0);
     if (layout.top_screen_enabled) {
         if (Settings::values.render_3d == Settings::StereoRenderOption::Off) {
-            DrawSingleScreenRotated(screen_infos[0], (float)top_screen.left, (float)top_screen.top,
-                                    (float)top_screen.GetWidth(), (float)top_screen.GetHeight());
+            DrawSingleScreenRotated(
+                screen_infos[0], (float)layout.top_screen.left, (float)layout.top_screen.top,
+                (float)layout.top_screen.GetWidth(), (float)layout.top_screen.GetHeight());
         } else if (Settings::values.render_3d == Settings::StereoRenderOption::SideBySide) {
-            DrawSingleScreenRotated(screen_infos[0], (float)top_screen.left / 2,
-                                    (float)top_screen.top, (float)top_screen.GetWidth() / 2,
-                                    (float)top_screen.GetHeight());
+            DrawSingleScreenRotated(
+                screen_infos[0], (float)layout.top_screen.left / 2, (float)layout.top_screen.top,
+                (float)layout.top_screen.GetWidth() / 2, (float)layout.top_screen.GetHeight());
             glUniform1i(uniform_layer, 1);
-            DrawSingleScreenRotated(screen_infos[1],
-                                    ((float)top_screen.left / 2) + ((float)layout.width / 2),
-                                    (float)top_screen.top, (float)top_screen.GetWidth() / 2,
-                                    (float)top_screen.GetHeight());
+            DrawSingleScreenRotated(
+                screen_infos[1], ((float)layout.top_screen.left / 2) + ((float)layout.width / 2),
+                (float)layout.top_screen.top, (float)layout.top_screen.GetWidth() / 2,
+                (float)layout.top_screen.GetHeight());
         } else if (Settings::values.render_3d == Settings::StereoRenderOption::Anaglyph) {
             DrawSingleScreenAnaglyphRotated(
-                screen_infos[0], screen_infos[1], (float)top_screen.left, (float)top_screen.top,
-                (float)top_screen.GetWidth(), (float)top_screen.GetHeight());
+                screen_infos[0], screen_infos[1], (float)layout.top_screen.left,
+                (float)layout.top_screen.top, (float)layout.top_screen.GetWidth(),
+                (float)layout.top_screen.GetHeight());
         }
     }
     glUniform1i(uniform_layer, 0);
     if (layout.bottom_screen_enabled) {
         if (Settings::values.render_3d == Settings::StereoRenderOption::Off) {
-            DrawSingleScreenRotated(screen_infos[2], (float)bottom_screen.left,
-                                    (float)bottom_screen.top, (float)bottom_screen.GetWidth(),
-                                    (float)bottom_screen.GetHeight());
+            DrawSingleScreenRotated(
+                screen_infos[2], (float)layout.bottom_screen.left, (float)layout.bottom_screen.top,
+                (float)layout.bottom_screen.GetWidth(), (float)layout.bottom_screen.GetHeight());
         } else if (Settings::values.render_3d == Settings::StereoRenderOption::SideBySide) {
-            DrawSingleScreenRotated(screen_infos[2], (float)bottom_screen.left / 2,
-                                    (float)bottom_screen.top, (float)bottom_screen.GetWidth() / 2,
-                                    (float)bottom_screen.GetHeight());
+            DrawSingleScreenRotated(screen_infos[2], (float)layout.bottom_screen.left / 2,
+                                    (float)layout.bottom_screen.top,
+                                    (float)layout.bottom_screen.GetWidth() / 2,
+                                    (float)layout.bottom_screen.GetHeight());
             glUniform1i(uniform_layer, 1);
-            DrawSingleScreenRotated(screen_infos[2],
-                                    ((float)bottom_screen.left / 2) + ((float)layout.width / 2),
-                                    (float)bottom_screen.top, (float)bottom_screen.GetWidth() / 2,
-                                    (float)bottom_screen.GetHeight());
+            DrawSingleScreenRotated(
+                screen_infos[2], ((float)layout.bottom_screen.left / 2) + ((float)layout.width / 2),
+                (float)layout.bottom_screen.top, (float)layout.bottom_screen.GetWidth() / 2,
+                (float)layout.bottom_screen.GetHeight());
         } else if (Settings::values.render_3d == Settings::StereoRenderOption::Anaglyph) {
-            DrawSingleScreenAnaglyphRotated(screen_infos[2], screen_infos[2],
-                                            (float)bottom_screen.left, (float)bottom_screen.top,
-                                            (float)bottom_screen.GetWidth(),
-                                            (float)bottom_screen.GetHeight());
+            DrawSingleScreenAnaglyphRotated(
+                screen_infos[2], screen_infos[2], (float)layout.bottom_screen.left,
+                (float)layout.bottom_screen.top, (float)layout.bottom_screen.GetWidth(),
+                (float)layout.bottom_screen.GetHeight());
         }
     }
 }
 
 void RendererOpenGL::TryPresent(int timeout_ms) {
-    const auto& layout = render_window.GetFramebufferLayout();
-    auto frame = render_window.mailbox->TryGetPresentFrame(timeout_ms);
+    const Layout::FramebufferLayout& layout = render_window.GetFramebufferLayout();
+    Frontend::Frame* frame = render_window.mailbox->TryGetPresentFrame(timeout_ms);
     if (!frame) {
         LOG_DEBUG(Render_OpenGL, "TryGetPresentFrame returned no frame to present");
         return;
@@ -919,7 +920,7 @@ void RendererOpenGL::CleanupVideoDumping() {
 }
 
 void RendererOpenGL::InitVideoDumpingGLObjects() {
-    const auto& layout = Core::System::GetInstance().VideoDumper().GetLayout();
+    const Layout::FramebufferLayout& layout = Core::System::GetInstance().VideoDumper().GetLayout();
 
     frame_dumping_framebuffer.Create();
     glGenRenderbuffers(1, &frame_dumping_renderbuffer);
@@ -930,7 +931,7 @@ void RendererOpenGL::InitVideoDumpingGLObjects() {
                               frame_dumping_renderbuffer);
     glBindFramebuffer(GL_DRAW_FRAMEBUFFER, 0);
 
-    for (auto& buffer : frame_dumping_pbos) {
+    for (OpenGL::OGLBuffer& buffer : frame_dumping_pbos) {
         buffer.Create();
         glBindBuffer(GL_PIXEL_PACK_BUFFER, buffer.handle);
         glBufferData(GL_PIXEL_PACK_BUFFER, layout.width * layout.height * 4, nullptr,
@@ -943,7 +944,7 @@ void RendererOpenGL::ReleaseVideoDumpingGLObjects() {
     frame_dumping_framebuffer.Release();
     glDeleteRenderbuffers(1, &frame_dumping_renderbuffer);
 
-    for (auto& buffer : frame_dumping_pbos) {
+    for (OpenGL::OGLBuffer& buffer : frame_dumping_pbos) {
         buffer.Release();
     }
 }

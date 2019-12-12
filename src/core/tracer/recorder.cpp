@@ -20,7 +20,7 @@ void Recorder::Finish(const std::string& filename) {
     header.header_size = sizeof(CTHeader);
 
     // Calculate file offsets
-    auto& initial = header.initial_state_offsets;
+    CTHeader::InitialStateOffsets& initial = header.initial_state_offsets;
 
     initial.gpu_registers_size = static_cast<u32>(initial_state.gpu_registers.size());
     initial.lcd_registers_size = static_cast<u32>(initial_state.lcd_registers.size());
@@ -37,7 +37,6 @@ void Recorder::Finish(const std::string& filename) {
     initial.gpu_registers = sizeof(header);
     initial.lcd_registers = initial.gpu_registers + initial.gpu_registers_size * sizeof(u32);
     initial.pica_registers = initial.lcd_registers + initial.lcd_registers_size * sizeof(u32);
-    ;
     initial.default_attributes = initial.pica_registers + initial.pica_registers_size * sizeof(u32);
     initial.vs_program_binary =
         initial.default_attributes + initial.default_attributes_size * sizeof(u32);
@@ -54,10 +53,10 @@ void Recorder::Finish(const std::string& filename) {
     header.stream_offset = initial.gs_float_uniforms + initial.gs_float_uniforms_size * sizeof(u32);
 
     // Iterate through stream elements, update relevant stream element data
-    for (auto& stream_element : stream) {
+    for (CiTrace::Recorder::StreamElement& stream_element : stream) {
         switch (stream_element.data.type) {
         case MemoryLoad: {
-            auto& file_offset = memory_regions[stream_element.hash];
+            u32& file_offset = memory_regions[stream_element.hash];
             if (!stream_element.uses_existing_data) {
                 file_offset = header.stream_offset;
             }
@@ -140,9 +139,10 @@ void Recorder::Finish(const std::string& filename) {
             throw "Failed to write geometry shader float uniforms";
 
         // Iterate through stream elements, write "extra data"
-        for (const auto& stream_element : stream) {
-            if (stream_element.extra_data.size() == 0)
+        for (const CiTrace::Recorder::StreamElement& stream_element : stream) {
+            if (stream_element.extra_data.size() == 0) {
                 continue;
+            }
 
             written =
                 file.WriteBytes(stream_element.extra_data.data(), stream_element.extra_data.size());
@@ -154,9 +154,10 @@ void Recorder::Finish(const std::string& filename) {
             throw "Unexpected end of extra data";
 
         // Write actual stream elements
-        for (const auto& stream_element : stream) {
-            if (1 != file.WriteObject(stream_element.data))
+        for (const CiTrace::Recorder::StreamElement& stream_element : stream) {
+            if (1 != file.WriteObject(stream_element.data)) {
                 throw "Failed to write stream element";
+            }
         }
     } catch (const char* str) {
         LOG_ERROR(HW_GPU, "Writing CiTrace file failed: {}", str);

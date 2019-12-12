@@ -52,9 +52,11 @@ public:
 
     void RemoveBackend(std::string_view backend_name) {
         std::lock_guard lock{writing_mutex};
-        const auto it =
+        const std::vector<std::unique_ptr<Log::Backend>>::iterator it =
             std::remove_if(backends.begin(), backends.end(),
-                           [&backend_name](const auto& i) { return backend_name == i->GetName(); });
+                           [&backend_name](const std::unique_ptr<Log::Backend>& backend) {
+                               return backend_name == backend->GetName();
+                           });
         backends.erase(it, backends.end());
     }
 
@@ -67,11 +69,14 @@ public:
     }
 
     Backend* GetBackend(std::string_view backend_name) {
-        const auto it =
+        const std::vector<std::unique_ptr<Log::Backend>>::iterator it =
             std::find_if(backends.begin(), backends.end(),
-                         [&backend_name](const auto& i) { return backend_name == i->GetName(); });
-        if (it == backends.end())
+                         [&backend_name](const std::unique_ptr<Log::Backend>& backend) {
+                             return backend_name == backend->GetName();
+                         });
+        if (it == backends.end()) {
             return nullptr;
+        }
         return it->get();
     }
 
@@ -79,9 +84,9 @@ private:
     Impl() {
         backend_thread = std::thread([&] {
             Entry entry;
-            auto write_logs = [&](Entry& e) {
+            auto write_logs = [&](const Entry& e) {
                 std::lock_guard lock{writing_mutex};
-                for (const auto& backend : backends) {
+                for (const std::unique_ptr<Log::Backend>& backend : backends) {
                     backend->Write(e);
                 }
             };
@@ -297,11 +302,11 @@ Backend* GetBackend(std::string_view backend_name) {
 void FmtLogMessageImpl(Class log_class, Level log_level, const char* filename,
                        unsigned int line_num, const char* function, const char* format,
                        const fmt::format_args& args) {
-    auto& instance = Impl::Instance();
-    const auto& filter = instance.GetGlobalFilter();
-    if (!filter.CheckMessage(log_class, log_level))
+    Log::Impl& instance = Impl::Instance();
+    const Log::Filter& filter = instance.GetGlobalFilter();
+    if (!filter.CheckMessage(log_class, log_level)) {
         return;
-
+    }
     instance.PushEntry(log_class, log_level, filename, line_num, function,
                        fmt::vformat(format, args));
 }

@@ -38,7 +38,7 @@ public:
     }
 
     void Tilt(int x, int y) {
-        auto mouse_move = Common::MakeVec(x, y) - mouse_origin;
+        Common::Vec2<int> mouse_move = Common::MakeVec(x, y) - mouse_origin;
         if (is_tilting) {
             std::lock_guard guard{tilt_mutex};
             if (mouse_move.x == 0 && mouse_move.y == 0) {
@@ -86,7 +86,8 @@ private:
     std::thread motion_emu_thread;
 
     void MotionEmuThread() {
-        auto update_time = std::chrono::steady_clock::now();
+        std::chrono::time_point<std::chrono::steady_clock> update_time =
+            std::chrono::steady_clock::now();
         Common::Quaternion<float> q = Common::MakeQuaternion(Common::Vec3<float>(), 0);
         Common::Quaternion<float> old_q;
 
@@ -102,13 +103,13 @@ private:
                     Common::MakeVec(-tilt_direction.y, 0.0f, tilt_direction.x), tilt_angle);
             }
 
-            auto inv_q = q.Inverse();
+            Common::Quaternion<float> inv_q = q.Inverse();
 
             // Set the gravity vector in world space
-            auto gravity = Common::MakeVec(0.0f, -1.0f, 0.0f);
+            Common::Vec3f gravity = Common::MakeVec(0.0f, -1.0f, 0.0f);
 
             // Find the angular rate vector in world space
-            auto angular_rate = ((q - old_q) * inv_q).xyz * 2;
+            Common::Vec3f angular_rate = ((q - old_q) * inv_q).xyz * 2;
             angular_rate *= 1000 / update_millisecond / Common::PI * 180;
 
             // Transform the two vectors from world space to 3DS space
@@ -144,7 +145,7 @@ std::unique_ptr<Input::MotionDevice> MotionEmu::Create(const Common::ParamPackag
     int update_period = params.Get("update_period", 100);
     float sensitivity = params.Get("sensitivity", 0.01f);
     float tilt_clamp = params.Get("tilt_clamp", 90.0f);
-    auto device_wrapper =
+    std::unique_ptr<MotionEmuDeviceWrapper> device_wrapper =
         std::make_unique<MotionEmuDeviceWrapper>(update_period, sensitivity, tilt_clamp);
     // Previously created device is disconnected here. Having two motion devices for 3DS is not
     // expected.
@@ -153,19 +154,19 @@ std::unique_ptr<Input::MotionDevice> MotionEmu::Create(const Common::ParamPackag
 }
 
 void MotionEmu::BeginTilt(int x, int y) {
-    if (auto ptr = current_device.lock()) {
+    if (std::shared_ptr<InputCommon::MotionEmuDevice> ptr = current_device.lock()) {
         ptr->BeginTilt(x, y);
     }
 }
 
 void MotionEmu::Tilt(int x, int y) {
-    if (auto ptr = current_device.lock()) {
+    if (std::shared_ptr<InputCommon::MotionEmuDevice> ptr = current_device.lock()) {
         ptr->Tilt(x, y);
     }
 }
 
 void MotionEmu::EndTilt() {
-    if (auto ptr = current_device.lock()) {
+    if (std::shared_ptr<InputCommon::MotionEmuDevice> ptr = current_device.lock()) {
         ptr->EndTilt();
     }
 }

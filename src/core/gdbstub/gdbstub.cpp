@@ -160,8 +160,9 @@ BreakpointMap breakpoints_write;
 } // Anonymous namespace
 
 static Kernel::Thread* FindThreadById(int id) {
-    const auto& threads = Core::System::GetInstance().Kernel().GetThreadManager().GetThreadList();
-    for (auto& thread : threads) {
+    const std::vector<std::shared_ptr<Kernel::Thread>>& threads =
+        Core::System::GetInstance().Kernel().GetThreadManager().GetThreadList();
+    for (const std::shared_ptr<Kernel::Thread>& thread : threads) {
         if (thread->GetThreadId() == static_cast<u32>(id)) {
             return thread.get();
         }
@@ -540,9 +541,9 @@ static void HandleQuery() {
         SendReply(target_xml);
     } else if (strncmp(query, "fThreadInfo", strlen("fThreadInfo")) == 0) {
         std::string val = "m";
-        const auto& threads =
+        const std::vector<std::shared_ptr<Kernel::Thread>>& threads =
             Core::System::GetInstance().Kernel().GetThreadManager().GetThreadList();
-        for (const auto& thread : threads) {
+        for (const std::shared_ptr<Kernel::Thread>& thread : threads) {
             val += fmt::format("{:x},", thread->GetThreadId());
         }
         val.pop_back();
@@ -553,9 +554,9 @@ static void HandleQuery() {
         std::string buffer;
         buffer += "l<?xml version=\"1.0\"?>";
         buffer += "<threads>";
-        const auto& threads =
+        const std::vector<std::shared_ptr<Kernel::Thread>>& threads =
             Core::System::GetInstance().Kernel().GetThreadManager().GetThreadList();
-        for (const auto& thread : threads) {
+        for (const std::shared_ptr<Kernel::Thread>& thread : threads) {
             buffer += fmt::format(R"*(<thread id="{:x}" name="Thread {:x}"></thread>)*",
                                   thread->GetThreadId(), thread->GetThreadId());
         }
@@ -821,8 +822,8 @@ static void WriteRegisters() {
 static void ReadMemory() {
     static u8 reply[GDB_BUFFER_SIZE - 4];
 
-    auto start_offset = command_buffer + 1;
-    auto addr_pos = std::find(start_offset, command_buffer + command_length, ',');
+    u8* start_offset = command_buffer + 1;
+    u8* addr_pos = std::find(start_offset, command_buffer + command_length, ',');
     VAddr addr = HexToInt(start_offset, static_cast<u32>(addr_pos - start_offset));
 
     start_offset = addr_pos + 1;
@@ -851,12 +852,12 @@ static void ReadMemory() {
 
 /// Modify location in memory with data received from the gdb client.
 static void WriteMemory() {
-    auto start_offset = command_buffer + 1;
-    auto addr_pos = std::find(start_offset, command_buffer + command_length, ',');
+    u8* start_offset = command_buffer + 1;
+    u8* addr_pos = std::find(start_offset, command_buffer + command_length, ',');
     VAddr addr = HexToInt(start_offset, static_cast<u32>(addr_pos - start_offset));
 
     start_offset = addr_pos + 1;
-    auto len_pos = std::find(start_offset, command_buffer + command_length, ':');
+    u8* len_pos = std::find(start_offset, command_buffer + command_length, ':');
     u32 len = HexToInt(start_offset, static_cast<u32>(len_pos - start_offset));
 
     if (!Memory::IsValidVirtualAddress(*Core::System::GetInstance().Kernel().GetCurrentProcess(),
@@ -963,8 +964,8 @@ static void AddBreakpoint() {
         return SendReply("E01");
     }
 
-    auto start_offset = command_buffer + 3;
-    auto addr_pos = std::find(start_offset, command_buffer + command_length, ',');
+    u8* start_offset = command_buffer + 3;
+    u8* addr_pos = std::find(start_offset, command_buffer + command_length, ',');
     VAddr addr = HexToInt(start_offset, static_cast<u32>(addr_pos - start_offset));
 
     start_offset = addr_pos + 1;
@@ -1012,8 +1013,8 @@ static void RemoveBreakpoint() {
         return SendReply("E01");
     }
 
-    auto start_offset = command_buffer + 3;
-    auto addr_pos = std::find(start_offset, command_buffer + command_length, ',');
+    u8* start_offset = command_buffer + 3;
+    u8* addr_pos = std::find(start_offset, command_buffer + command_length, ',');
     VAddr addr = HexToInt(start_offset, static_cast<u32>(addr_pos - start_offset));
 
     if (type == BreakpointType::Access) {

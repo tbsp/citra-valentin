@@ -401,7 +401,7 @@ inline void Write(u32 addr, const T data) {
     case GPU_REG_INDEX_WORKAROUND(memory_fill_config[0].trigger, 0x00004 + 0x3):
     case GPU_REG_INDEX_WORKAROUND(memory_fill_config[1].trigger, 0x00008 + 0x3): {
         const bool is_second_filler = (index != GPU_REG_INDEX(memory_fill_config[0].trigger));
-        auto& config = g_regs.memory_fill_config[is_second_filler];
+        GPU::Regs::MemoryFillConfig& config = g_regs.memory_fill_config[is_second_filler];
 
         if (config.trigger) {
             MemoryFill(config);
@@ -430,7 +430,7 @@ inline void Write(u32 addr, const T data) {
         Common::Profiler::Scope scope(Core::System::GetInstance().profiler, "GPU",
                                       "Display Transfer");
 
-        const auto& config = g_regs.display_transfer_config;
+        const GPU::Regs::DisplayTransferConfig& config = g_regs.display_transfer_config;
         if (config.trigger & 1) {
 
             if (Pica::g_debug_context)
@@ -465,7 +465,7 @@ inline void Write(u32 addr, const T data) {
 
     // Seems like writing to this register triggers processing
     case GPU_REG_INDEX(command_processor_config.trigger): {
-        const auto& config = g_regs.command_processor_config;
+        const GPU::Regs::CommandProcessorConfig& config = g_regs.command_processor_config;
         if (config.trigger & 1) {
             Common::Profiler::Scope scope(Core::System::GetInstance().profiler, "GPU",
                                           "Command Processor");
@@ -535,8 +535,8 @@ void Init(Memory::MemorySystem& memory) {
     g_memory = &memory;
     memset(&g_regs, 0, sizeof(g_regs));
 
-    auto& framebuffer_top = g_regs.framebuffer_config[0];
-    auto& framebuffer_sub = g_regs.framebuffer_config[1];
+    GPU::Regs::FramebufferConfig& framebuffer_top = g_regs.framebuffer_config[0];
+    GPU::Regs::FramebufferConfig& framebuffer_sub = g_regs.framebuffer_config[1];
 
     // Setup default framebuffer addresses (located in VRAM)
     // .. or at least these are the ones used by system applets.

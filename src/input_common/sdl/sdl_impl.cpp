@@ -160,26 +160,28 @@ std::shared_ptr<SDLJoystick> SDLState::GetSDLJoystickByGUID(const std::string& g
  * it to a SDLJoystick with the same guid and that port
  */
 std::shared_ptr<SDLJoystick> SDLState::GetSDLJoystickBySDLID(SDL_JoystickID sdl_id) {
-    auto sdl_joystick = SDL_JoystickFromInstanceID(sdl_id);
+    SDL_Joystick* sdl_joystick = SDL_JoystickFromInstanceID(sdl_id);
     const std::string guid = GetGUID(sdl_joystick);
 
     std::lock_guard lock{joystick_map_mutex};
     auto map_it = joystick_map.find(guid);
     if (map_it != joystick_map.end()) {
-        auto vec_it = std::find_if(map_it->second.begin(), map_it->second.end(),
-                                   [&sdl_joystick](const std::shared_ptr<SDLJoystick>& joystick) {
-                                       return sdl_joystick == joystick->GetSDLJoystick();
-                                   });
+        std::vector<std::shared_ptr<InputCommon::SDL::SDLJoystick>>::iterator vec_it =
+            std::find_if(map_it->second.begin(), map_it->second.end(),
+                         [&sdl_joystick](const std::shared_ptr<SDLJoystick>& joystick) {
+                             return sdl_joystick == joystick->GetSDLJoystick();
+                         });
         if (vec_it != map_it->second.end()) {
             // This is the common case: There is already an existing SDL_Joystick maped to a
             // SDLJoystick. return the SDLJoystick
             return *vec_it;
         }
         // Search for a SDLJoystick without a mapped SDL_Joystick...
-        auto nullptr_it = std::find_if(map_it->second.begin(), map_it->second.end(),
-                                       [](const std::shared_ptr<SDLJoystick>& joystick) {
-                                           return !joystick->GetSDLJoystick();
-                                       });
+        std::vector<std::shared_ptr<InputCommon::SDL::SDLJoystick>>::iterator nullptr_it =
+            std::find_if(map_it->second.begin(), map_it->second.end(),
+                         [](const std::shared_ptr<SDLJoystick>& joystick) {
+                             return !joystick->GetSDLJoystick();
+                         });
         if (nullptr_it != map_it->second.end()) {
             // ... and map it
             (*nullptr_it)->SetSDLJoystick(sdl_joystick);
@@ -211,8 +213,9 @@ void SDLState::InitJoystick(int joystick_index) {
         joystick_map[guid].emplace_back(std::move(joystick));
         return;
     }
-    auto& joystick_guid_list = joystick_map[guid];
-    const auto it = std::find_if(
+    std::vector<std::shared_ptr<InputCommon::SDL::SDLJoystick>>& joystick_guid_list =
+        joystick_map[guid];
+    const std::vector<std::shared_ptr<InputCommon::SDL::SDLJoystick>>::iterator it = std::find_if(
         joystick_guid_list.begin(), joystick_guid_list.end(),
         [](const std::shared_ptr<SDLJoystick>& joystick) { return !joystick->GetSDLJoystick(); });
     if (it != joystick_guid_list.end()) {
@@ -230,7 +233,8 @@ void SDLState::CloseJoystick(SDL_Joystick* sdl_joystick) {
     {
         std::lock_guard lock{joystick_map_mutex};
         // This call to guid is safe since the joystick is guaranteed to be in the map
-        auto& joystick_guid_list = joystick_map[guid];
+        std::vector<std::shared_ptr<InputCommon::SDL::SDLJoystick>>& joystick_guid_list =
+            joystick_map[guid];
         const std::vector<std::shared_ptr<InputCommon::SDL::SDLJoystick>>::iterator joystick_it =
             std::find_if(joystick_guid_list.begin(), joystick_guid_list.end(),
                          [&sdl_joystick](const std::shared_ptr<SDLJoystick>& joystick) {
@@ -238,7 +242,7 @@ void SDLState::CloseJoystick(SDL_Joystick* sdl_joystick) {
                          });
         joystick = *joystick_it;
     }
-    // Destruct SDL_Joystick outside the lock guard because SDL can internally call event calback
+    // Destruct SDL_Joystick outside the lock guard because SDL can internally call event callback
     // which locks the mutex again
     joystick->SetSDLJoystick(nullptr, [](SDL_Joystick*) {});
 }

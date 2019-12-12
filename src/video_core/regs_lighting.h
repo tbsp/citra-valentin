@@ -228,7 +228,7 @@ struct LightingRegs {
         return (config1.disable_shadow & (1 << index)) != 0;
     }
 
-    union {
+    union LutConfig {
         BitField<0, 8, u32> index; ///< Index at which to set data in the LUT
         BitField<8, 5, u32> type;  ///< Type of LUT for which to set data
     } lut_config;

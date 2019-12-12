@@ -13,8 +13,9 @@ HotkeyRegistry::~HotkeyRegistry() = default;
 
 void HotkeyRegistry::SaveHotkeys() {
     UISettings::values.shortcuts.clear();
-    for (const auto& group : hotkey_groups) {
-        for (const auto& hotkey : group.second) {
+    for (const std::pair<const QString, std::map<QString, HotkeyRegistry::Hotkey>>& group :
+         hotkey_groups) {
+        for (const std::pair<const QString, HotkeyRegistry::Hotkey>& hotkey : group.second) {
             UISettings::values.shortcuts.push_back(
                 {hotkey.first, group.first,
                  UISettings::ContextualShortcut(hotkey.second.keyseq.toString(),
@@ -26,35 +27,37 @@ void HotkeyRegistry::SaveHotkeys() {
 void HotkeyRegistry::LoadHotkeys() {
     // Make sure NOT to use a reference here because it would become invalid once we call
     // beginGroup()
-    for (auto shortcut : UISettings::values.shortcuts) {
-        Hotkey& hk = hotkey_groups[shortcut.group][shortcut.name];
+    for (UISettings::Shortcut shortcut : UISettings::values.shortcuts) {
+        Hotkey& hotkey = hotkey_groups[shortcut.group][shortcut.name];
         if (!shortcut.shortcut.first.isEmpty()) {
-            hk.keyseq = QKeySequence::fromString(shortcut.shortcut.first, QKeySequence::NativeText);
-            hk.context = static_cast<Qt::ShortcutContext>(shortcut.shortcut.second);
+            hotkey.keyseq =
+                QKeySequence::fromString(shortcut.shortcut.first, QKeySequence::NativeText);
+            hotkey.context = static_cast<Qt::ShortcutContext>(shortcut.shortcut.second);
         }
-        if (hk.shortcut) {
-            hk.shortcut->disconnect();
-            hk.shortcut->setKey(hk.keyseq);
+        if (hotkey.shortcut) {
+            hotkey.shortcut->disconnect();
+            hotkey.shortcut->setKey(hotkey.keyseq);
         }
     }
 }
 
 QShortcut* HotkeyRegistry::GetHotkey(const QString& group, const QString& action, QWidget* widget) {
-    Hotkey& hk = hotkey_groups[group][action];
+    Hotkey& hotkey = hotkey_groups[group][action];
 
-    if (!hk.shortcut)
-        hk.shortcut = new QShortcut(hk.keyseq, widget, nullptr, nullptr, hk.context);
+    if (!hotkey.shortcut) {
+        hotkey.shortcut = new QShortcut(hotkey.keyseq, widget, nullptr, nullptr, hotkey.context);
+    }
 
-    return hk.shortcut;
+    return hotkey.shortcut;
 }
 
 QKeySequence HotkeyRegistry::GetKeySequence(const QString& group, const QString& action) {
-    Hotkey& hk = hotkey_groups[group][action];
-    return hk.keyseq;
+    Hotkey& hotkey = hotkey_groups[group][action];
+    return hotkey.keyseq;
 }
 
 Qt::ShortcutContext HotkeyRegistry::GetShortcutContext(const QString& group,
                                                        const QString& action) {
-    Hotkey& hk = hotkey_groups[group][action];
-    return hk.context;
+    Hotkey& hotkey = hotkey_groups[group][action];
+    return hotkey.context;
 }

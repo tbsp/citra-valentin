@@ -15,10 +15,10 @@
 namespace Kernel {
 
 void ReleaseThreadMutexes(Thread* thread) {
-    for (auto& mtx : thread->held_mutexes) {
-        mtx->lock_count = 0;
-        mtx->holding_thread = nullptr;
-        mtx->WakeupAllWaitingThreads();
+    for (std::shared_ptr<Kernel::Mutex>& mutex : thread->held_mutexes) {
+        mutex->lock_count = 0;
+        mutex->holding_thread = nullptr;
+        mutex->WakeupAllWaitingThreads();
     }
     thread->held_mutexes.clear();
 }
@@ -27,16 +27,14 @@ Mutex::Mutex(KernelSystem& kernel) : WaitObject(kernel), kernel(kernel) {}
 Mutex::~Mutex() {}
 
 std::shared_ptr<Mutex> KernelSystem::CreateMutex(bool initial_locked, std::string name) {
-    auto mutex{std::make_shared<Mutex>(*this)};
-
+    std::shared_ptr<Kernel::Mutex> mutex = std::make_shared<Mutex>(*this);
     mutex->lock_count = 0;
     mutex->name = std::move(name);
     mutex->holding_thread = nullptr;
-
     // Acquire mutex with current thread if initialized as locked
-    if (initial_locked)
+    if (initial_locked) {
         mutex->Acquire(thread_manager->GetCurrentThread());
-
+    }
     return mutex;
 }
 
@@ -105,13 +103,15 @@ void Mutex::RemoveWaitingThread(Thread* thread) {
 }
 
 void Mutex::UpdatePriority() {
-    if (!holding_thread)
+    if (!holding_thread) {
         return;
+    }
 
     u32 best_priority = ThreadPrioLowest;
-    for (auto& waiter : GetWaitingThreads()) {
-        if (waiter->current_priority < best_priority)
+    for (const std::shared_ptr<Kernel::Thread>& waiter : GetWaitingThreads()) {
+        if (waiter->current_priority < best_priority) {
             best_priority = waiter->current_priority;
+        }
     }
 
     if (best_priority != priority) {

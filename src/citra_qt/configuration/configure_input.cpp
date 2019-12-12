@@ -124,7 +124,7 @@ ConfigureInput::ConfigureInput(QWidget* parent)
     ui->setupUi(this);
     setFocusPolicy(Qt::ClickFocus);
 
-    for (const auto& profile : Settings::values.input_profiles) {
+    for (const Settings::InputProfile& profile : Settings::values.input_profiles) {
         ui->profile->addItem(QString::fromStdString(profile.name));
     }
 
@@ -292,7 +292,7 @@ ConfigureInput::ConfigureInput(QWidget* parent)
 
     connect(poll_timer.get(), &QTimer::timeout, [this]() {
         Common::ParamPackage params;
-        for (auto& poller : device_pollers) {
+        for (std::unique_ptr<InputCommon::Polling::DevicePoller>& poller : device_pollers) {
             params = poller->GetNextInput();
             if (params.Has("engine")) {
                 SetPollingResult(params, false);
@@ -347,7 +347,7 @@ QList<QKeySequence> ConfigureInput::GetUsedKeyboardKeys() {
             continue;
         }
 
-        auto button_param = buttons_param[button];
+        const Common::ParamPackage& button_param = buttons_param[button];
         if (button_param.Get("engine", "") == "keyboard") {
             list << QKeySequence(button_param.Get("code", 0));
         }
@@ -468,7 +468,7 @@ void ConfigureInput::HandleClick(QPushButton* button,
     // Keyboard keys can only be used as button devices
     want_keyboard_keys = type == InputCommon::Polling::DeviceType::Button;
 
-    for (auto& poller : device_pollers) {
+    for (std::unique_ptr<InputCommon::Polling::DevicePoller>& poller : device_pollers) {
         poller->Start();
     }
 
@@ -483,7 +483,7 @@ void ConfigureInput::SetPollingResult(const Common::ParamPackage& params, bool a
     releaseMouse();
     timeout_timer->stop();
     poll_timer->stop();
-    for (auto& poller : device_pollers) {
+    for (std::unique_ptr<InputCommon::Polling::DevicePoller>& poller : device_pollers) {
         poller->Stop();
     }
 
@@ -542,10 +542,10 @@ void ConfigureInput::NewProfile() {
 }
 
 void ConfigureInput::DeleteProfile() {
-    const auto answer =
-        QMessageBox::question(this, QStringLiteral("Delete Profile"),
-                              QStringLiteral("Delete profile %1?").arg(ui->profile->currentText()));
-    if (answer != QMessageBox::Yes) {
+    if (QMessageBox::question(
+            this, QStringLiteral("Delete Profile"),
+            QStringLiteral("Delete profile %1?").arg(ui->profile->currentText())) !=
+        QMessageBox::Yes) {
         return;
     }
     const int index = ui->profile->currentIndex();

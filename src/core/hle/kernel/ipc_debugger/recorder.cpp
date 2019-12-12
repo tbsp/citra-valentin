@@ -76,7 +76,7 @@ void Recorder::SetRequestInfo(const std::shared_ptr<Kernel::Thread>& client_thre
         return;
     }
 
-    auto& record = *record_map[thread_id];
+    IPCDebugger::RequestRecord& record = *record_map[thread_id];
     record.status = RequestStatus::Handling;
     record.untranslated_request_cmdbuf = std::move(untranslated_cmdbuf);
     record.translated_request_cmdbuf = std::move(translated_cmdbuf);
@@ -90,7 +90,7 @@ void Recorder::SetRequestInfo(const std::shared_ptr<Kernel::Thread>& client_thre
 
     // Function name
     ASSERT_MSG(client_session_map.count(thread_id), "Client session is missing");
-    const auto& client_session = client_session_map[thread_id];
+    const std::shared_ptr<Kernel::ClientSession>& client_session = client_session_map[thread_id];
     if (client_session->parent->port &&
         client_session->parent->port->GetServerPort()->hle_handler) {
 
@@ -113,7 +113,7 @@ void Recorder::SetReplyInfo(const std::shared_ptr<Kernel::Thread>& client_thread
         return;
     }
 
-    auto& record = *record_map[thread_id];
+    IPCDebugger::RequestRecord& record = *record_map[thread_id];
     if (record.status != RequestStatus::HLEUnimplemented) {
         record.status = RequestStatus::Handled;
     }
@@ -133,7 +133,7 @@ void Recorder::SetHLEUnimplemented(const std::shared_ptr<Kernel::Thread>& client
         return;
     }
 
-    auto& record = *record_map[thread_id];
+    IPCDebugger::RequestRecord& record = *record_map[thread_id];
     record.status = RequestStatus::HLEUnimplemented;
 }
 
@@ -150,11 +150,9 @@ void Recorder::UnbindCallback(const CallbackHandle& handle) {
 }
 
 void Recorder::InvokeCallbacks(const RequestRecord& request) {
-    {
-        std::shared_lock lock(callback_mutex);
-        for (const auto& iter : callbacks) {
-            (*iter)(request);
-        }
+    std::shared_lock lock(callback_mutex);
+    for (const IPCDebugger::CallbackHandle& iter : callbacks) {
+        (*iter)(request);
     }
 }
 

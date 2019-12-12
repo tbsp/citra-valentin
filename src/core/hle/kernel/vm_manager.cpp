@@ -68,13 +68,16 @@ ResultVal<VAddr> VMManager::MapBackingMemoryToBase(VAddr base, u32 region_size, 
                                                    u32 size, MemoryState state) {
 
     // Find the first Free VMA.
-    VMAHandle vma_handle = std::find_if(vma_map.begin(), vma_map.end(), [&](const auto& vma) {
-        if (vma.second.type != VMAType::Free)
-            return false;
+    VMAHandle vma_handle =
+        std::find_if(vma_map.begin(), vma_map.end(),
+                     [&](const std::pair<VAddr, Kernel::VirtualMemoryArea>& vma) {
+                         if (vma.second.type != VMAType::Free) {
+                             return false;
+                         }
 
-        VAddr vma_end = vma.second.base + vma.second.size;
-        return vma_end > base && vma_end >= base + size;
-    });
+                         VAddr vma_end = vma.second.base + vma.second.size;
+                         return vma_end > base && vma_end >= base + size;
+                     });
 
     VAddr target = std::max(base, vma_handle->second.base);
 
@@ -85,10 +88,12 @@ ResultVal<VAddr> VMManager::MapBackingMemoryToBase(VAddr base, u32 region_size, 
                           ErrorSummary::OutOfResource, ErrorLevel::Permanent);
     }
 
-    auto result = MapBackingMemory(target, memory, size, state);
+    ResultVal<std::map<VAddr, Kernel::VirtualMemoryArea>::const_iterator> result =
+        MapBackingMemory(target, memory, size, state);
 
-    if (result.Failed())
+    if (result.Failed()) {
         return result.Code();
+    }
 
     return MakeResult<VAddr>(target);
 }
@@ -139,12 +144,12 @@ ResultCode VMManager::ChangeMemoryState(VAddr target, u32 size, MemoryState expe
     if (begin_vma == vma_map.end())
         return ERR_INVALID_ADDRESS;
 
-    for (auto i = begin_vma; i != i_end; ++i) {
-        auto& vma = i->second;
+    for (std::map<VAddr, Kernel::VirtualMemoryArea>::iterator i = begin_vma; i != i_end; ++i) {
+        Kernel::VirtualMemoryArea& vma = i->second;
         if (vma.meminfo_state != expected_state) {
             return ERR_INVALID_ADDRESS_STATE;
         }
-        u32 perms = static_cast<u32>(expected_perms);
+        const u32 perms = static_cast<u32>(expected_perms);
         if ((static_cast<u32>(vma.permissions) & perms) != perms) {
             return ERR_INVALID_ADDRESS_STATE;
         }
@@ -216,7 +221,7 @@ ResultCode VMManager::ReprotectRange(VAddr target, u32 size, VMAPermission new_p
 }
 
 void VMManager::LogLayout(Log::Level log_level) const {
-    for (const auto& p : vma_map) {
+    for (const std::pair<VAddr, Kernel::VirtualMemoryArea>& p : vma_map) {
         const VirtualMemoryArea& vma = p.second;
         LOG_GENERIC(::Log::Class::Kernel, log_level, "{:08X} - {:08X}  size: {:8X} {}{}{} {}",
                     vma.base, vma.base + vma.size, vma.size,
@@ -280,8 +285,9 @@ ResultVal<VMManager::VMAIter> VMManager::CarveVMARange(VAddr target, u32 size) {
 
     VMAIter begin_vma = StripIterConstness(FindVMA(target));
     const VMAIter i_end = vma_map.lower_bound(target_end);
-    if (std::any_of(begin_vma, i_end,
-                    [](const auto& entry) { return entry.second.type == VMAType::Free; })) {
+    if (std::any_of(begin_vma, i_end, [](const std::pair<VAddr, Kernel::VirtualMemoryArea>& entry) {
+            return entry.second.type == VMAType::Free;
+        })) {
         return ERR_INVALID_ADDRESS_STATE;
     }
 
@@ -364,7 +370,7 @@ ResultVal<std::vector<std::pair<u8*, u32>>> VMManager::GetBackingBlocksForRange(
     std::vector<std::pair<u8*, u32>> backing_blocks;
     VAddr interval_target = address;
     while (interval_target != address + size) {
-        auto vma = FindVMA(interval_target);
+        std::map<VAddr, Kernel::VirtualMemoryArea>::const_iterator vma = FindVMA(interval_target);
         if (vma->second.type != VMAType::BackingMemory) {
             LOG_ERROR(Kernel, "Trying to use already freed memory");
             return ERR_INVALID_ADDRESS_STATE;

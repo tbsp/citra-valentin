@@ -95,28 +95,28 @@ void Source::ParseConfig(SourceConfiguration::Configuration& config,
         config.adpcm_coefficients_dirty.Assign(0);
         std::transform(adpcm_coeffs, adpcm_coeffs + state.adpcm_coeffs.size(),
                        state.adpcm_coeffs.begin(),
-                       [](const auto& coeff) { return static_cast<s16>(coeff); });
+                       [](const s16_le& coeff) { return static_cast<s16>(coeff); });
         LOG_TRACE(Audio_DSP, "source_id={} adpcm update", source_id);
     }
 
     if (config.gain_0_dirty) {
         config.gain_0_dirty.Assign(0);
         std::transform(config.gain[0], config.gain[0] + state.gain[0].size(), state.gain[0].begin(),
-                       [](const auto& coeff) { return static_cast<float>(coeff); });
+                       [](const float_le& coeff) { return static_cast<float>(coeff); });
         LOG_TRACE(Audio_DSP, "source_id={} gain 0 update", source_id);
     }
 
     if (config.gain_1_dirty) {
         config.gain_1_dirty.Assign(0);
         std::transform(config.gain[1], config.gain[1] + state.gain[1].size(), state.gain[1].begin(),
-                       [](const auto& coeff) { return static_cast<float>(coeff); });
+                       [](const float_le& coeff) { return static_cast<float>(coeff); });
         LOG_TRACE(Audio_DSP, "source_id={} gain 1 update", source_id);
     }
 
     if (config.gain_2_dirty) {
         config.gain_2_dirty.Assign(0);
         std::transform(config.gain[2], config.gain[2] + state.gain[2].size(), state.gain[2].begin(),
-                       [](const auto& coeff) { return static_cast<float>(coeff); });
+                       [](const float_le& coeff) { return static_cast<float>(coeff); });
         LOG_TRACE(Audio_DSP, "source_id={} gain 2 update", source_id);
     }
 
@@ -200,23 +200,26 @@ void Source::ParseConfig(SourceConfiguration::Configuration& config,
         config.buffer_queue_dirty.Assign(0);
         for (std::size_t i = 0; i < 4; i++) {
             if (config.buffers_dirty & (1 << i)) {
-                const auto& b = config.buffers[i];
+                const AudioCore::HLE::SourceConfiguration::Configuration::Buffer& buffer =
+                    config.buffers[i];
+
                 state.input_queue.emplace(Buffer{
-                    b.physical_address,
-                    b.length,
-                    static_cast<u8>(b.adpcm_ps),
-                    {b.adpcm_yn[0], b.adpcm_yn[1]},
-                    b.adpcm_dirty != 0,
-                    b.is_looping != 0,
-                    b.buffer_id,
+                    buffer.physical_address,
+                    buffer.length,
+                    static_cast<u8>(buffer.adpcm_ps),
+                    {buffer.adpcm_yn[0], buffer.adpcm_yn[1]},
+                    buffer.adpcm_dirty != 0,
+                    buffer.is_looping != 0,
+                    buffer.buffer_id,
                     state.mono_or_stereo,
                     state.format,
                     true,
                     {}, // 0 in u32_dsp
                     false,
                 });
+
                 LOG_TRACE(Audio_DSP, "enqueuing queued {} addr={:#010x} len={} id={}", i,
-                          b.physical_address, b.length, b.buffer_id);
+                          buffer.physical_address, buffer.length, buffer.buffer_id);
             }
         }
         config.buffers_dirty = 0;
@@ -276,33 +279,35 @@ bool Source::DequeueBuffer() {
     ASSERT_MSG(state.current_buffer.empty(),
                "Shouldn't dequeue; we still have data in current_buffer");
 
-    if (state.input_queue.empty())
+    if (state.input_queue.empty()) {
         return false;
+    }
 
-    Buffer buf = state.input_queue.top();
+    Buffer buffer = state.input_queue.top();
     state.input_queue.pop();
 
-    if (buf.adpcm_dirty) {
-        state.adpcm_state.yn1 = buf.adpcm_yn[0];
-        state.adpcm_state.yn2 = buf.adpcm_yn[1];
+    if (buffer.adpcm_dirty) {
+        state.adpcm_state.yn1 = buffer.adpcm_yn[0];
+        state.adpcm_state.yn2 = buffer.adpcm_yn[1];
     }
 
     // This physical address masking occurs due to how the DSP DMA hardware is configured by the
     // firmware.
-    const u8* const memory = memory_system->GetPhysicalPointer(buf.physical_address & 0xFFFFFFFC);
+    const u8* const memory =
+        memory_system->GetPhysicalPointer(buffer.physical_address & 0xFFFFFFFC);
     if (memory) {
-        const unsigned num_channels = buf.mono_or_stereo == MonoOrStereo::Stereo ? 2 : 1;
-        switch (buf.format) {
+        const unsigned num_channels = buffer.mono_or_stereo == MonoOrStereo::Stereo ? 2 : 1;
+        switch (buffer.format) {
         case Format::PCM8:
-            state.current_buffer = Codec::DecodePCM8(num_channels, memory, buf.length);
+            state.current_buffer = Codec::DecodePCM8(num_channels, memory, buffer.length);
             break;
         case Format::PCM16:
-            state.current_buffer = Codec::DecodePCM16(num_channels, memory, buf.length);
+            state.current_buffer = Codec::DecodePCM16(num_channels, memory, buffer.length);
             break;
         case Format::ADPCM:
             DEBUG_ASSERT(num_channels == 1);
             state.current_buffer =
-                Codec::DecodeADPCM(memory, buf.length, state.adpcm_coeffs, state.adpcm_state);
+                Codec::DecodeADPCM(memory, buffer.length, state.adpcm_coeffs, state.adpcm_state);
             break;
         default:
             UNIMPLEMENTED();
@@ -311,41 +316,42 @@ bool Source::DequeueBuffer() {
     } else {
         LOG_WARNING(Audio_DSP,
                     "source_id={} buffer_id={} length={}: Invalid physical address {:#010x}",
-                    source_id, buf.buffer_id, buf.length, buf.physical_address);
+                    source_id, buffer.buffer_id, buffer.length, buffer.physical_address);
         state.current_buffer.clear();
         return true;
     }
 
-    // the first playthrough starts at play_position, loops start at the beginning of the buffer
-    state.current_sample_number = (!buf.has_played) ? buf.play_position : 0;
+    // The first playthrough starts at play_position, loops start at the beginning of the buffer
+    state.current_sample_number = (!buffer.has_played) ? buffer.play_position : 0;
     state.next_sample_number = state.current_sample_number;
-    state.current_buffer_id = buf.buffer_id;
-    state.buffer_update = buf.from_queue && !buf.has_played;
+    state.current_buffer_id = buffer.buffer_id;
+    state.buffer_update = buffer.from_queue && !buffer.has_played;
 
-    if (buf.is_looping) {
-        buf.has_played = true;
-        state.input_queue.push(buf);
+    if (buffer.is_looping) {
+        buffer.has_played = true;
+        state.input_queue.push(buffer);
     }
 
     LOG_TRACE(Audio_DSP, "source_id={} buffer_id={} from_queue={} current_buffer.size()={}",
-              source_id, buf.buffer_id, buf.from_queue, state.current_buffer.size());
+              source_id, buffer.buffer_id, buffer.from_queue, state.current_buffer.size());
     return true;
 }
 
 SourceStatus::Status Source::GetCurrentStatus() {
-    SourceStatus::Status ret;
+    SourceStatus::Status status;
 
     // Applications depend on the correct emulation of
     // current_buffer_id_dirty and current_buffer_id to synchronise
     // audio with video.
-    ret.is_enabled = state.enabled;
-    ret.current_buffer_id_dirty = state.buffer_update ? 1 : 0;
-    state.buffer_update = false;
-    ret.current_buffer_id = state.current_buffer_id;
-    ret.buffer_position = state.current_sample_number;
-    ret.sync = state.sync;
+    status.current_buffer_id_dirty = state.buffer_update ? 1 : 0;
+    status.current_buffer_id = state.current_buffer_id;
 
-    return ret;
+    status.buffer_position = state.current_sample_number;
+    status.sync = state.sync;
+    status.is_enabled = state.enabled;
+    state.buffer_update = false;
+
+    return status;
 }
 
 std::size_t Source::GetBiggestAdpcmSampleCount() const {

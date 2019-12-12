@@ -63,7 +63,7 @@ public:
             LOG_DEBUG(Service, "Can't find service: {}", service_name);
             return nullptr;
         }
-        auto port = service->second->GetServerPort();
+        std::shared_ptr<Kernel::ServerPort> port = service->second->GetServerPort();
         if (port == nullptr) {
             return nullptr;
         }

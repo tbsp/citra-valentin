@@ -74,9 +74,10 @@ void Timing::ScheduleEventThreadsafe(s64 cycles_into_future, const TimingEventTy
 }
 
 void Timing::UnscheduleEvent(const TimingEventType* event_type, u64 userdata) {
-    auto itr = std::remove_if(event_queue.begin(), event_queue.end(), [&](const Event& e) {
-        return e.type == event_type && e.userdata == userdata;
-    });
+    std::vector<Core::Timing::Event>::iterator itr =
+        std::remove_if(event_queue.begin(), event_queue.end(), [&](const Event& e) {
+            return e.type == event_type && e.userdata == userdata;
+        });
 
     // Removing random items breaks the invariant so we have to re-establish it.
     if (itr != event_queue.end()) {
@@ -86,8 +87,9 @@ void Timing::UnscheduleEvent(const TimingEventType* event_type, u64 userdata) {
 }
 
 void Timing::RemoveEvent(const TimingEventType* event_type) {
-    auto itr = std::remove_if(event_queue.begin(), event_queue.end(),
-                              [&](const Event& e) { return e.type == event_type; });
+    std::vector<Core::Timing::Event>::iterator itr =
+        std::remove_if(event_queue.begin(), event_queue.end(),
+                       [&](const Event& e) { return e.type == event_type; });
 
     // Removing random items breaks the invariant so we have to re-establish it.
     if (itr != event_queue.end()) {

@@ -11,7 +11,7 @@
 namespace Service::NIM {
 
 void InstallInterfaces(Core::System& system) {
-    auto& service_manager = system.ServiceManager();
+    Service::SM::ServiceManager& service_manager = system.ServiceManager();
     std::make_shared<NIM_AOC>()->InstallAsService(service_manager);
     std::make_shared<NIM_S>()->InstallAsService(service_manager);
     std::make_shared<NIM_U>(system)->InstallAsService(service_manager);

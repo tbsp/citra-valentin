@@ -232,7 +232,7 @@ void GatewayCheat::Execute(Core::System& system) const {
 
     for (state.current_line_nr = 0; state.current_line_nr < cheat_lines.size();
          state.current_line_nr++) {
-        auto line = cheat_lines[state.current_line_nr];
+        Cheats::GatewayCheat::CheatLine line = cheat_lines[state.current_line_nr];
         if (state.if_flag > 0) {
             switch (line.type) {
             case CheatType::GreaterThan32:
@@ -439,8 +439,9 @@ std::string GatewayCheat::GetType() const {
 
 std::string GatewayCheat::GetCode() const {
     std::string result;
-    for (const auto& line : cheat_lines)
+    for (const Cheats::GatewayCheat::CheatLine& line : cheat_lines) {
         result += line.cheat_line + '\n';
+    }
     return result;
 }
 
@@ -456,8 +457,9 @@ std::string GatewayCheat::ToString() const {
     }
     std::vector<std::string> comment_lines;
     Common::SplitString(comments, '\n', comment_lines);
-    for (const auto& comment_line : comment_lines)
+    for (const std::string& comment_line : comment_lines) {
         result += "*" + comment_line + '\n';
+    }
     result += GetCode() + '\n';
     return result;
 }

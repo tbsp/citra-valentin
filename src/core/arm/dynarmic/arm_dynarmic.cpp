@@ -296,8 +296,9 @@ void ARM_Dynarmic::PrepareReschedule() {
 
 void ARM_Dynarmic::ClearInstructionCache() {
     // TODO: Clear interpreter cache when appropriate.
-    for (const auto& j : jits) {
-        j.second->ClearCache();
+    for (const std::pair<Memory::PageTable* const, std::unique_ptr<Dynarmic::A32::Jit>>& jit :
+         jits) {
+        jit.second->ClearCache();
     }
 
     interpreter_state->instruction_cache.clear();
@@ -316,7 +317,7 @@ void ARM_Dynarmic::PageTableChanged() {
         return;
     }
 
-    auto new_jit = MakeJit();
+    std::unique_ptr<Dynarmic::A32::Jit> new_jit = MakeJit();
     jit = new_jit.get();
     jits.emplace(current_page_table, std::move(new_jit));
 }

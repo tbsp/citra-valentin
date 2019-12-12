@@ -153,7 +153,7 @@ void MemorySystem::UnregisterPageTable(PageTable* page_table) {
  * This function should only be called for virtual addreses with attribute `PageType::Special`.
  */
 static MMIORegionPointer GetMMIOHandler(const PageTable& page_table, VAddr vaddr) {
-    for (const auto& region : page_table.special_regions) {
+    for (const Memory::SpecialRegion& region : page_table.special_regions) {
         if (vaddr >= region.base && vaddr < (region.base + region.size)) {
             return region.handler;
         }
@@ -232,17 +232,20 @@ void MemorySystem::Write(const VAddr vaddr, const T data) {
 }
 
 bool IsValidVirtualAddress(const Kernel::Process& process, const VAddr vaddr) {
-    auto& page_table = process.vm_manager.page_table;
+    const Memory::PageTable& page_table = process.vm_manager.page_table;
 
     const u8* page_pointer = page_table.pointers[vaddr >> PAGE_BITS];
-    if (page_pointer)
+    if (page_pointer) {
         return true;
+    }
 
-    if (page_table.attributes[vaddr >> PAGE_BITS] == PageType::RasterizerCachedMemory)
+    if (page_table.attributes[vaddr >> PAGE_BITS] == PageType::RasterizerCachedMemory) {
         return true;
+    }
 
-    if (page_table.attributes[vaddr >> PAGE_BITS] != PageType::Special)
+    if (page_table.attributes[vaddr >> PAGE_BITS] != PageType::Special) {
         return false;
+    }
 
     MMIORegionPointer mmio_region = GetMMIOHandler(page_table, vaddr);
     if (mmio_region) {
@@ -298,8 +301,8 @@ u8* MemorySystem::GetPhysicalPointer(PAddr address) {
         {N3DS_EXTRA_RAM_PADDR, N3DS_EXTRA_RAM_SIZE},
     };
 
-    const auto area =
-        std::find_if(std::begin(memory_areas), std::end(memory_areas), [&](const auto& area) {
+    const MemoryArea* area =
+        std::find_if(std::begin(memory_areas), std::end(memory_areas), [&](const MemoryArea& area) {
             // Note: the region end check is inclusive because the user can pass in an address that
             // represents an open right bound
             return address >= area.paddr_base && address <= area.paddr_base + area.size;
@@ -448,7 +451,7 @@ void RasterizerFlushVirtualRegion(VAddr start, u32 size, FlushMode mode) {
         PAddr physical_start = paddr_region_start + (overlap_start - region_start);
         u32 overlap_size = overlap_end - overlap_start;
 
-        auto* rasterizer = VideoCore::g_renderer->Rasterizer();
+        VideoCore::RasterizerInterface* rasterizer = VideoCore::g_renderer->Rasterizer();
         switch (mode) {
         case FlushMode::Flush:
             rasterizer->FlushRegion(physical_start, overlap_size);

@@ -83,7 +83,7 @@ private:
 DspHle::Impl::Impl(DspHle& parent_, Memory::MemorySystem& memory) : parent(parent_) {
     dsp_memory.raw_memory.fill(0);
 
-    for (auto& source : sources) {
+    for (HLE::Source& source : sources) {
         source.SetMemory(memory);
     }
 
@@ -281,7 +281,7 @@ void DspHle::Impl::SetServiceToInterrupt(std::weak_ptr<DSP_DSP> dsp) {
 }
 
 void DspHle::Impl::ResetPipes() {
-    for (auto& data : pipe_data) {
+    for (std::vector<u8>& data : pipe_data) {
         data.clear();
     }
     dsp_state = DspState::Off;
@@ -324,7 +324,7 @@ void DspHle::Impl::AudioPipeWriteStructAddresses() {
         WriteU16(DspPipe::Audio, addr);
     }
     // Signal that we have data on this pipe.
-    if (auto service = dsp_dsp.lock()) {
+    if (std::shared_ptr<Service::DSP::DSP_DSP> service = dsp_dsp.lock()) {
         service->SignalInterrupt(InterruptType::Pipe, DspPipe::Audio);
     }
 }
@@ -402,7 +402,7 @@ bool DspHle::Impl::Tick() {
 void DspHle::Impl::AudioTickCallback(s64 cycles_late) {
     if (Tick()) {
         // TODO(merry): Signal all the other interrupts as appropriate.
-        if (auto service = dsp_dsp.lock()) {
+        if (std::shared_ptr<Service::DSP::DSP_DSP> service = dsp_dsp.lock()) {
             service->SignalInterrupt(InterruptType::Pipe, DspPipe::Audio);
             // HACK(merry): Added to prevent regressions. Will remove soon.
             service->SignalInterrupt(InterruptType::Pipe, DspPipe::Binary);

@@ -35,7 +35,7 @@ ResultVal<std::tuple<MediaType, u64>> ParsePath(const Path& path, T program_id_r
     }
 
     const u32* data = reinterpret_cast<const u32*>(vec_data.data());
-    auto media_type = static_cast<MediaType>(data[0]);
+    const Service::FS::MediaType media_type = static_cast<MediaType>(data[0]);
 
     if (media_type != MediaType::SDMC && media_type != MediaType::GameCard) {
         LOG_ERROR(Service_FS, "Unsupported media type {}", static_cast<u32>(media_type));

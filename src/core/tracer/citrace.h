@@ -25,7 +25,7 @@ struct CTHeader {
     u32 version;
     u32 header_size;
 
-    struct {
+    struct InitialStateOffsets {
         // NOTE: Register range sizes are technically hardware-constants, but the actual limits
         // aren't known. Hence we store the presumed limits along the offsets.
         // Sizes are given in u32 units.

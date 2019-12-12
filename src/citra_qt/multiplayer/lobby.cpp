@@ -82,7 +82,7 @@ Lobby::Lobby(QWidget* parent, QStandardItemModel* list,
 void Lobby::UpdateGameList(QStandardItemModel* list) {
     game_list->clear();
     for (int i = 0; i < list->rowCount(); i++) {
-        auto parent = list->item(i, 0);
+        QStandardItem* parent = list->item(i, 0);
         for (int j = 0; j < parent->rowCount(); j++) {
             game_list->appendRow(parent->child(j)->clone());
         }
@@ -101,8 +101,10 @@ QString Lobby::PasswordPrompt() {
 }
 
 void Lobby::OnExpandRoom(const QModelIndex& index) {
-    QModelIndex member_index = proxy->index(index.row(), Column::MEMBER);
-    auto member_list = proxy->data(member_index, LobbyItemMemberList::MemberListRole).toList();
+    // TODO(vvanelslande)
+    // QModelIndex member_index = proxy->index(index.row(), Column::MEMBER);
+    // QVariantList member_list =
+    //     proxy->data(member_index, LobbyItemMemberList::MemberListRole).toList();
 }
 
 void Lobby::OnJoinRoom(const QModelIndex& source) {

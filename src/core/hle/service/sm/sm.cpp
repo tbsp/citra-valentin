@@ -27,7 +27,7 @@ ServiceManager::ServiceManager(Core::System& system) : system(system) {}
 void ServiceManager::InstallInterfaces(Core::System& system) {
     ASSERT(system.ServiceManager().srv_interface.expired());
 
-    auto srv = std::make_shared<SRV>(system);
+    std::shared_ptr<Service::SM::SRV> srv = std::make_shared<SRV>(system);
     srv->InstallAsNamedPort(system.Kernel());
     system.ServiceManager().srv_interface = srv;
 }

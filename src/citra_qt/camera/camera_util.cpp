@@ -172,8 +172,8 @@ static constexpr int V(int r, int g, int b) {
 } // namespace YuvTable
 
 std::vector<u16> Rgb2Yuv(const QImage& source, int width, int height) {
-    auto buffer = std::vector<u16>(width * height);
-    auto dest = buffer.begin();
+    std::vector<u16> buffer(width * height);
+    std::vector<u16>::iterator dest = buffer.begin();
     bool write = false;
     int py, pu, pv;
     for (int y = 0; y < height; ++y) {

@@ -76,7 +76,7 @@ void Module::Interface::GetStepHistory(Kernel::HLERequestContext& ctx) {
 
     u32 hours = rp.Pop<u32>();
     u64 start_time = rp.Pop<u64>();
-    auto& buffer = rp.PopMappedBuffer();
+    Kernel::MappedBuffer& buffer = rp.PopMappedBuffer();
     ASSERT_MSG(sizeof(u16) * hours == buffer.GetSize(),
                "Buffer for steps count has incorrect size");
 
@@ -140,7 +140,8 @@ static void WriteGameCoinData(GameCoin gamecoin_data) {
     FileSys::ArchiveFactory_ExtSaveData extdata_archive_factory(nand_directory, true);
 
     FileSys::Path archive_path(ptm_shared_extdata_id);
-    auto archive_result = extdata_archive_factory.Open(archive_path, 0);
+    ResultVal<std::unique_ptr<FileSys::ArchiveBackend>> archive_result =
+        extdata_archive_factory.Open(archive_path, 0);
     std::unique_ptr<FileSys::ArchiveBackend> archive;
 
     FileSys::Path gamecoin_path("/gamecoin.dat");
@@ -160,9 +161,10 @@ static void WriteGameCoinData(GameCoin gamecoin_data) {
     FileSys::Mode open_mode = {};
     open_mode.write_flag.Assign(1);
     // Open the file and write the default gamecoin information
-    auto gamecoin_result = archive->OpenFile(gamecoin_path, open_mode);
+    ResultVal<std::unique_ptr<FileSys::FileBackend>> gamecoin_result =
+        archive->OpenFile(gamecoin_path, open_mode);
     if (gamecoin_result.Succeeded()) {
-        auto gamecoin = std::move(gamecoin_result).Unwrap();
+        std::unique_ptr<FileSys::FileBackend> gamecoin = std::move(gamecoin_result).Unwrap();
         gamecoin->Write(0, sizeof(GameCoin), true, reinterpret_cast<const u8*>(&gamecoin_data));
         gamecoin->Close();
     }
@@ -173,7 +175,8 @@ static GameCoin ReadGameCoinData() {
     FileSys::ArchiveFactory_ExtSaveData extdata_archive_factory(nand_directory, true);
 
     FileSys::Path archive_path(ptm_shared_extdata_id);
-    auto archive_result = extdata_archive_factory.Open(archive_path, 0);
+    ResultVal<std::unique_ptr<FileSys::ArchiveBackend>> archive_result =
+        extdata_archive_factory.Open(archive_path, 0);
     if (!archive_result.Succeeded()) {
         LOG_ERROR(Service_PTM, "Could not open the PTM SharedExtSaveData archive!");
         return default_game_coin;
@@ -183,13 +186,14 @@ static GameCoin ReadGameCoinData() {
     FileSys::Mode open_mode = {};
     open_mode.read_flag.Assign(1);
 
-    auto gamecoin_result = (*archive_result)->OpenFile(gamecoin_path, open_mode);
+    ResultVal<std::unique_ptr<FileSys::FileBackend>> gamecoin_result =
+        (*archive_result)->OpenFile(gamecoin_path, open_mode);
     if (!gamecoin_result.Succeeded()) {
         LOG_ERROR(Service_PTM, "Could not open the game coin data file!");
         return default_game_coin;
     }
 
-    auto gamecoin = std::move(gamecoin_result).Unwrap();
+    std::unique_ptr<FileSys::FileBackend> gamecoin = std::move(gamecoin_result).Unwrap();
     GameCoin gamecoin_data;
     gamecoin->Read(0, sizeof(GameCoin), reinterpret_cast<u8*>(&gamecoin_data));
     gamecoin->Close();
@@ -202,7 +206,8 @@ Module::Module() {
     std::string nand_directory = FileUtil::GetUserPath(FileUtil::UserPath::NANDDir);
     FileSys::ArchiveFactory_ExtSaveData extdata_archive_factory(nand_directory, true);
     FileSys::Path archive_path(ptm_shared_extdata_id);
-    auto archive_result = extdata_archive_factory.Open(archive_path, 0);
+    ResultVal<std::unique_ptr<FileSys::ArchiveBackend>> archive_result =
+        extdata_archive_factory.Open(archive_path, 0);
     // If the archive didn't exist, write the default game coin file
     if (archive_result.Code() == FileSys::ERR_NOT_FORMATTED) {
         WriteGameCoinData(default_game_coin);
@@ -225,8 +230,8 @@ Module::Interface::Interface(std::shared_ptr<Module> ptm, const char* name, u32 
     : ServiceFramework(name, max_session), ptm(std::move(ptm)) {}
 
 void InstallInterfaces(Core::System& system) {
-    auto& service_manager = system.ServiceManager();
-    auto ptm = std::make_shared<Module>();
+    Service::SM::ServiceManager& service_manager = system.ServiceManager();
+    std::shared_ptr<Service::PTM::Module> ptm = std::make_shared<Module>();
     std::make_shared<PTM_Gets>(ptm)->InstallAsService(service_manager);
     std::make_shared<PTM_Play>(ptm)->InstallAsService(service_manager);
     std::make_shared<PTM_Sets>(ptm)->InstallAsService(service_manager);

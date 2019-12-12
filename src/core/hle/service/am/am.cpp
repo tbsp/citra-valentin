@@ -129,13 +129,13 @@ ResultCode CIAFile::WriteTitleMetadata() {
                       &app_folder, nullptr, nullptr);
     FileUtil::CreateFullPath(app_folder);
 
-    auto content_count = container.GetTitleMetadata().GetContentCount();
+    const std::size_t content_count = container.GetTitleMetadata().GetContentCount();
     content_written.resize(content_count);
 
     if (auto title_key = container.GetTicket().GetTitleKey()) {
         decryption_state->content.resize(content_count);
         for (std::size_t i = 0; i < content_count; ++i) {
-            auto ctr = tmd.GetContentCTRByIndex(i);
+            const std::array<u8, 16Ui64> ctr = tmd.GetContentCTRByIndex(i);
             decryption_state->content[i].SetKeyWithIV(title_key->data(), title_key->size(),
                                                       ctr.data());
         }
@@ -246,23 +246,27 @@ ResultVal<std::size_t> CIAFile::Write(u64 offset, std::size_t length, bool flush
     // The end of our TMD is at the beginning of Content data, so ensure we have that much
     // buffered before trying to parse.
     if (written >= container.GetContentOffset() && install_state != CIAInstallState::TMDLoaded) {
-        auto result = WriteTicket();
-        if (result.IsError())
+        ResultCode result = WriteTicket();
+        if (result.IsError()) {
             return result;
+        }
 
         result = WriteTitleMetadata();
-        if (result.IsError())
+        if (result.IsError()) {
             return result;
+        }
     }
 
     // Content data sizes can only be retrieved from TMD data
-    if (install_state != CIAInstallState::TMDLoaded)
+    if (install_state != CIAInstallState::TMDLoaded) {
         return MakeResult<std::size_t>(length);
+    }
 
     // From this point forward, data will no longer be buffered in data
-    auto result = WriteContentData(offset, length, buffer);
-    if (result.Failed())
+    const ResultVal<std::size_t> result = WriteContentData(offset, length, buffer);
+    if (result.Failed()) {
         return result;
+    }
 
     return MakeResult<std::size_t>(length);
 }
@@ -336,7 +340,7 @@ InstallStatus InstallCIA(const std::string& path,
 
     FileSys::CIAContainer container;
     if (container.Load(path) == Loader::ResultStatus::Success) {
-        Service::AM::CIAFile installFile(
+        Service::AM::CIAFile install_file(
             Service::AM::GetTitleMediaType(container.GetTitleMetadata().GetTitleID()));
 
         bool title_key_available = container.GetTicket().GetTitleKey().has_value();
@@ -351,18 +355,21 @@ InstallStatus InstallCIA(const std::string& path,
         }
 
         FileUtil::IOFile file(path, "rb");
-        if (!file.IsOpen())
+        if (!file.IsOpen()) {
             return InstallStatus::ErrorFailedToOpenFile;
+        }
 
         std::array<u8, 0x10000> buffer;
         std::size_t total_bytes_read = 0;
         while (total_bytes_read != file.GetSize()) {
             std::size_t bytes_read = file.ReadBytes(buffer.data(), buffer.size());
-            auto result = installFile.Write(static_cast<u64>(total_bytes_read), bytes_read, true,
-                                            static_cast<u8*>(buffer.data()));
+            const ResultVal<std::size_t> result =
+                install_file.Write(static_cast<u64>(total_bytes_read), bytes_read, true,
+                                   static_cast<u8*>(buffer.data()));
 
-            if (update_callback)
+            if (update_callback) {
                 update_callback(total_bytes_read, file.GetSize());
+            }
             if (result.Failed()) {
                 LOG_ERROR(Service_AM, "CIA file installation aborted with error code {:08x}",
                           result.Code().raw);
@@ -370,7 +377,7 @@ InstallStatus InstallCIA(const std::string& path,
             }
             total_bytes_read += bytes_read;
         }
-        installFile.Close();
+        install_file.Close();
 
         LOG_INFO(Service_AM, "Installed {} successfully.", path);
         return InstallStatus::Success;
@@ -381,15 +388,17 @@ InstallStatus InstallCIA(const std::string& path,
 }
 
 Service::FS::MediaType GetTitleMediaType(u64 titleId) {
-    u16 platform = static_cast<u16>(titleId >> 48);
-    u16 category = static_cast<u16>((titleId >> 32) & 0xFFFF);
-    u8 variation = static_cast<u8>(titleId & 0xFF);
+    const u16 platform = static_cast<u16>(titleId >> 48);
+    const u16 category = static_cast<u16>((titleId >> 32) & 0xFFFF);
+    const u8 variation = static_cast<u8>(titleId & 0xFF);
 
-    if (platform != PLATFORM_CTR)
+    if (platform != PLATFORM_CTR) {
         return Service::FS::MediaType::NAND;
+    }
 
-    if (category & CATEGORY_SYSTEM || category & CATEGORY_DLP || variation & VARIATION_SYSTEM)
+    if (category & CATEGORY_SYSTEM || category & CATEGORY_DLP || variation & VARIATION_SYSTEM) {
         return Service::FS::MediaType::NAND;
+    }
 
     return Service::FS::MediaType::SDMC;
 }
@@ -548,11 +557,11 @@ void Module::Interface::GetNumPrograms(Kernel::HLERequestContext& ctx) {
 void Module::Interface::FindDLCContentInfos(Kernel::HLERequestContext& ctx) {
     IPC::RequestParser rp(ctx, 0x1002, 4, 4); // 0x10020104
 
-    auto media_type = static_cast<Service::FS::MediaType>(rp.Pop<u8>());
+    const Service::FS::MediaType media_type = static_cast<Service::FS::MediaType>(rp.Pop<u8>());
     u64 title_id = rp.Pop<u64>();
     u32 content_count = rp.Pop<u32>();
-    auto& content_requested_in = rp.PopMappedBuffer();
-    auto& content_info_out = rp.PopMappedBuffer();
+    Kernel::MappedBuffer& content_requested_in = rp.PopMappedBuffer();
+    Kernel::MappedBuffer& content_info_out = rp.PopMappedBuffer();
 
     // Validate that only DLC TIDs are passed in
     u32 tid_high = static_cast<u32>(title_id >> 32);
@@ -616,10 +625,10 @@ void Module::Interface::ListDLCContentInfos(Kernel::HLERequestContext& ctx) {
     IPC::RequestParser rp(ctx, 0x1003, 5, 2); // 0x10030142
 
     u32 content_count = rp.Pop<u32>();
-    auto media_type = static_cast<Service::FS::MediaType>(rp.Pop<u8>());
+    const Service::FS::MediaType media_type = static_cast<Service::FS::MediaType>(rp.Pop<u8>());
     u64 title_id = rp.Pop<u64>();
     u32 start_index = rp.Pop<u32>();
-    auto& content_info_out = rp.PopMappedBuffer();
+    Kernel::MappedBuffer& content_info_out = rp.PopMappedBuffer();
 
     // Validate that only DLC TIDs are passed in
     u32 tid_high = static_cast<u32>(title_id >> 32);
@@ -670,7 +679,7 @@ void Module::Interface::DeleteContents(Kernel::HLERequestContext& ctx) {
     u8 media_type = rp.Pop<u8>();
     u64 title_id = rp.Pop<u64>();
     u32 content_count = rp.Pop<u32>();
-    auto& content_ids_in = rp.PopMappedBuffer();
+    Kernel::MappedBuffer& content_ids_in = rp.PopMappedBuffer();
 
     IPC::RequestBuilder rb = rp.MakeBuilder(1, 2);
     rb.Push(RESULT_SUCCESS);
@@ -684,7 +693,7 @@ void Module::Interface::GetProgramList(Kernel::HLERequestContext& ctx) {
 
     u32 count = rp.Pop<u32>();
     u8 media_type = rp.Pop<u8>();
-    auto& title_ids_output = rp.PopMappedBuffer();
+    Kernel::MappedBuffer& title_ids_output = rp.PopMappedBuffer();
 
     if (media_type > 2) {
         IPC::RequestBuilder rb = rp.MakeBuilder(2, 2);
@@ -736,10 +745,10 @@ ResultCode GetTitleInfoFromList(const std::vector<u64>& title_id_list,
 void Module::Interface::GetProgramInfos(Kernel::HLERequestContext& ctx) {
     IPC::RequestParser rp(ctx, 0x0003, 2, 4); // 0x00030084
 
-    auto media_type = static_cast<Service::FS::MediaType>(rp.Pop<u8>());
-    u32 title_count = rp.Pop<u32>();
-    auto& title_id_list_buffer = rp.PopMappedBuffer();
-    auto& title_info_out = rp.PopMappedBuffer();
+    const Service::FS::MediaType media_type = static_cast<Service::FS::MediaType>(rp.Pop<u8>());
+    const u32 title_count = rp.Pop<u32>();
+    Kernel::MappedBuffer& title_id_list_buffer = rp.PopMappedBuffer();
+    Kernel::MappedBuffer& title_info_out = rp.PopMappedBuffer();
 
     std::vector<u64> title_id_list(title_count);
     title_id_list_buffer.Read(title_id_list.data(), 0, title_count * sizeof(u64));
@@ -754,7 +763,7 @@ void Module::Interface::GetProgramInfos(Kernel::HLERequestContext& ctx) {
 
 void Module::Interface::DeleteUserProgram(Kernel::HLERequestContext& ctx) {
     IPC::RequestParser rp(ctx, 0x0004, 3, 0);
-    auto media_type = rp.PopEnum<FS::MediaType>();
+    Service::FS::MediaType media_type = rp.PopEnum<FS::MediaType>();
     u64 title_id = rp.Pop<u64>();
     IPC::RequestBuilder rb = rp.MakeBuilder(1, 0);
     u16 category = static_cast<u16>((title_id >> 32) & 0xFFFF);
@@ -809,10 +818,10 @@ void Module::Interface::GetProductCode(Kernel::HLERequestContext& ctx) {
 void Module::Interface::GetDLCTitleInfos(Kernel::HLERequestContext& ctx) {
     IPC::RequestParser rp(ctx, 0x1005, 2, 4); // 0x10050084
 
-    auto media_type = static_cast<Service::FS::MediaType>(rp.Pop<u8>());
+    Service::FS::MediaType media_type = static_cast<Service::FS::MediaType>(rp.Pop<u8>());
     u32 title_count = rp.Pop<u32>();
-    auto& title_id_list_buffer = rp.PopMappedBuffer();
-    auto& title_info_out = rp.PopMappedBuffer();
+    Kernel::MappedBuffer& title_id_list_buffer = rp.PopMappedBuffer();
+    Kernel::MappedBuffer& title_info_out = rp.PopMappedBuffer();
 
     std::vector<u64> title_id_list(title_count);
     title_id_list_buffer.Read(title_id_list.data(), 0, title_count * sizeof(u64));
@@ -842,10 +851,10 @@ void Module::Interface::GetDLCTitleInfos(Kernel::HLERequestContext& ctx) {
 void Module::Interface::GetPatchTitleInfos(Kernel::HLERequestContext& ctx) {
     IPC::RequestParser rp(ctx, 0x100D, 2, 4); // 0x100D0084
 
-    auto media_type = static_cast<Service::FS::MediaType>(rp.Pop<u8>());
+    Service::FS::MediaType media_type = static_cast<Service::FS::MediaType>(rp.Pop<u8>());
     u32 title_count = rp.Pop<u32>();
-    auto& title_id_list_buffer = rp.PopMappedBuffer();
-    auto& title_info_out = rp.PopMappedBuffer();
+    Kernel::MappedBuffer& title_id_list_buffer = rp.PopMappedBuffer();
+    Kernel::MappedBuffer& title_info_out = rp.PopMappedBuffer();
 
     std::vector<u64> title_id_list(title_count);
     title_id_list_buffer.Read(title_id_list.data(), 0, title_count * sizeof(u64));
@@ -877,7 +886,7 @@ void Module::Interface::ListDataTitleTicketInfos(Kernel::HLERequestContext& ctx)
     u32 ticket_count = rp.Pop<u32>();
     u64 title_id = rp.Pop<u64>();
     u32 start_index = rp.Pop<u32>();
-    auto& ticket_info_out = rp.PopMappedBuffer();
+    Kernel::MappedBuffer& ticket_info_out = rp.PopMappedBuffer();
 
     std::size_t write_offset = 0;
     for (u32 i = 0; i < ticket_count; i++) {
@@ -902,7 +911,7 @@ void Module::Interface::ListDataTitleTicketInfos(Kernel::HLERequestContext& ctx)
 
 void Module::Interface::GetDLCContentInfoCount(Kernel::HLERequestContext& ctx) {
     IPC::RequestParser rp(ctx, 0x1001, 3, 0); // 0x100100C0
-    auto media_type = static_cast<Service::FS::MediaType>(rp.Pop<u8>());
+    Service::FS::MediaType media_type = static_cast<Service::FS::MediaType>(rp.Pop<u8>());
     u64 title_id = rp.Pop<u64>();
 
     // Validate that only DLC TIDs are passed in
@@ -953,7 +962,7 @@ void Module::Interface::GetTicketList(Kernel::HLERequestContext& ctx) {
     IPC::RequestParser rp(ctx, 0x0009, 2, 2); // 0x00090082
     u32 ticket_list_count = rp.Pop<u32>();
     u32 ticket_index = rp.Pop<u32>();
-    auto& ticket_tids_out = rp.PopMappedBuffer();
+    Kernel::MappedBuffer& ticket_tids_out = rp.PopMappedBuffer();
 
     IPC::RequestBuilder rb = rp.MakeBuilder(2, 2);
     rb.Push(RESULT_SUCCESS);
@@ -1008,7 +1017,7 @@ void Module::Interface::CheckContentRightsIgnorePlatform(Kernel::HLERequestConte
 
 void Module::Interface::BeginImportProgram(Kernel::HLERequestContext& ctx) {
     IPC::RequestParser rp(ctx, 0x0402, 1, 0); // 0x04020040
-    auto media_type = static_cast<Service::FS::MediaType>(rp.Pop<u8>());
+    Service::FS::MediaType media_type = static_cast<Service::FS::MediaType>(rp.Pop<u8>());
 
     if (am->cia_installing) {
         IPC::RequestBuilder rb = rp.MakeBuilder(1, 0);
@@ -1020,7 +1029,7 @@ void Module::Interface::BeginImportProgram(Kernel::HLERequestContext& ctx) {
     // Create our CIAFile handle for the app to write to, and while the app writes
     // Citra will store contents out to sdmc/nand
     const FileSys::Path cia_path = {};
-    auto file = std::make_shared<Service::FS::File>(
+    std::shared_ptr<Service::FS::File> file = std::make_shared<Service::FS::File>(
         am->system, std::make_unique<CIAFile>(media_type), cia_path);
 
     am->cia_installing = true;
@@ -1047,7 +1056,7 @@ void Module::Interface::BeginImportProgramTemporarily(Kernel::HLERequestContext&
     // Create our CIAFile handle for the app to write to, and while the app writes Citra will store
     // contents out to sdmc/nand
     const FileSys::Path cia_path = {};
-    auto file = std::make_shared<Service::FS::File>(
+    std::shared_ptr<Service::FS::File> file = std::make_shared<Service::FS::File>(
         am->system, std::make_unique<CIAFile>(FS::MediaType::NAND), cia_path);
 
     am->cia_installing = true;
@@ -1061,7 +1070,7 @@ void Module::Interface::BeginImportProgramTemporarily(Kernel::HLERequestContext&
 
 void Module::Interface::EndImportProgram(Kernel::HLERequestContext& ctx) {
     IPC::RequestParser rp(ctx, 0x0405, 0, 2); // 0x04050002
-    auto cia = rp.PopObject<Kernel::ClientSession>();
+    std::shared_ptr<Kernel::ClientSession> cia = rp.PopObject<Kernel::ClientSession>();
 
     am->ScanForAllTitles();
 
@@ -1072,7 +1081,7 @@ void Module::Interface::EndImportProgram(Kernel::HLERequestContext& ctx) {
 
 void Module::Interface::EndImportProgramWithoutCommit(Kernel::HLERequestContext& ctx) {
     IPC::RequestParser rp(ctx, 0x0406, 0, 2); // 0x04060002
-    auto cia = rp.PopObject<Kernel::ClientSession>();
+    std::shared_ptr<Kernel::ClientSession> cia = rp.PopObject<Kernel::ClientSession>();
 
     // Note: This function is basically a no-op for us since we don't use title.db or ticket.db
     // files to keep track of installed titles.
@@ -1085,10 +1094,10 @@ void Module::Interface::EndImportProgramWithoutCommit(Kernel::HLERequestContext&
 
 void Module::Interface::CommitImportPrograms(Kernel::HLERequestContext& ctx) {
     IPC::RequestParser rp(ctx, 0x0407, 3, 2); // 0x040700C2
-    auto media_type = static_cast<Service::FS::MediaType>(rp.Pop<u8>());
+    Service::FS::MediaType media_type = static_cast<Service::FS::MediaType>(rp.Pop<u8>());
     u32 title_count = rp.Pop<u32>();
     u8 database = rp.Pop<u8>();
-    auto buffer = rp.PopMappedBuffer();
+    Kernel::MappedBuffer buffer = rp.PopMappedBuffer();
 
     // Note: This function is basically a no-op for us since we don't use title.db or ticket.db
     // files to keep track of installed titles.
@@ -1149,7 +1158,8 @@ ResultVal<std::unique_ptr<AMFileWrapper>> GetFileFromSession(
     }
 
     if (server->hle_handler != nullptr) {
-        auto file = std::dynamic_pointer_cast<Service::FS::File>(server->hle_handler);
+        std::shared_ptr<Service::FS::File> file =
+            std::dynamic_pointer_cast<Service::FS::File>(server->hle_handler);
 
         // TODO(shinyquagsire23): This requires RTTI, use service calls directly instead?
         if (file != nullptr) {
@@ -1172,10 +1182,10 @@ ResultVal<std::unique_ptr<AMFileWrapper>> GetFileFromSession(
 
 void Module::Interface::GetProgramInfoFromCia(Kernel::HLERequestContext& ctx) {
     IPC::RequestParser rp(ctx, 0x0408, 1, 2); // 0x04080042
-    auto media_type = static_cast<Service::FS::MediaType>(rp.Pop<u8>());
-    auto cia = rp.PopObject<Kernel::ClientSession>();
+    Service::FS::MediaType media_type = static_cast<Service::FS::MediaType>(rp.Pop<u8>());
+    std::shared_ptr<Kernel::ClientSession> cia = rp.PopObject<Kernel::ClientSession>();
 
-    auto file_res = GetFileFromSession(cia);
+    ResultVal<std::unique_ptr<Service::AM::AMFileWrapper>> file_res = GetFileFromSession(cia);
     if (!file_res.Succeeded()) {
         IPC::RequestBuilder rb = rp.MakeBuilder(1, 0);
         rb.Push(file_res.Code());
@@ -1209,10 +1219,10 @@ void Module::Interface::GetProgramInfoFromCia(Kernel::HLERequestContext& ctx) {
 
 void Module::Interface::GetSystemMenuDataFromCia(Kernel::HLERequestContext& ctx) {
     IPC::RequestParser rp(ctx, 0x0409, 0, 4); // 0x04090004
-    auto cia = rp.PopObject<Kernel::ClientSession>();
-    auto& output_buffer = rp.PopMappedBuffer();
+    std::shared_ptr<Kernel::ClientSession> cia = rp.PopObject<Kernel::ClientSession>();
+    Kernel::MappedBuffer& output_buffer = rp.PopMappedBuffer();
 
-    auto file_res = GetFileFromSession(cia);
+    ResultVal<std::unique_ptr<Service::AM::AMFileWrapper>> file_res = GetFileFromSession(cia);
     if (!file_res.Succeeded()) {
         IPC::RequestBuilder rb = rp.MakeBuilder(1, 2);
         rb.Push(file_res.Code());
@@ -1234,8 +1244,8 @@ void Module::Interface::GetSystemMenuDataFromCia(Kernel::HLERequestContext& ctx)
     std::vector<u8> temp(output_buffer_size);
 
     //  Read from the Meta offset + 0x400 for the 0x36C0-large SMDH
-    auto read_result = file->Read(container.GetMetadataOffset() + FileSys::CIA_METADATA_SIZE,
-                                  temp.size(), temp.data());
+    ResultVal<std::size_t> read_result = file->Read(
+        container.GetMetadataOffset() + FileSys::CIA_METADATA_SIZE, temp.size(), temp.data());
     if (read_result.Failed() || *read_result != temp.size()) {
         IPC::RequestBuilder rb = rp.MakeBuilder(1, 2);
         rb.Push(ResultCode(ErrCodes::InvalidCIAHeader, ErrorModule::AM,
@@ -1253,9 +1263,9 @@ void Module::Interface::GetSystemMenuDataFromCia(Kernel::HLERequestContext& ctx)
 
 void Module::Interface::GetDependencyListFromCia(Kernel::HLERequestContext& ctx) {
     IPC::RequestParser rp(ctx, 0x040A, 0, 2); // 0x040A0002
-    auto cia = rp.PopObject<Kernel::ClientSession>();
+    std::shared_ptr<Kernel::ClientSession> cia = rp.PopObject<Kernel::ClientSession>();
 
-    auto file_res = GetFileFromSession(cia);
+    ResultVal<std::unique_ptr<Service::AM::AMFileWrapper>> file_res = GetFileFromSession(cia);
     if (!file_res.Succeeded()) {
         IPC::RequestBuilder rb = rp.MakeBuilder(1, 0);
         rb.Push(file_res.Code());
@@ -1280,9 +1290,9 @@ void Module::Interface::GetDependencyListFromCia(Kernel::HLERequestContext& ctx)
 
 void Module::Interface::GetTransferSizeFromCia(Kernel::HLERequestContext& ctx) {
     IPC::RequestParser rp(ctx, 0x040B, 0, 2); // 0x040B0002
-    auto cia = rp.PopObject<Kernel::ClientSession>();
+    std::shared_ptr<Kernel::ClientSession> cia = rp.PopObject<Kernel::ClientSession>();
 
-    auto file_res = GetFileFromSession(cia);
+    ResultVal<std::unique_ptr<Service::AM::AMFileWrapper>> file_res = GetFileFromSession(cia);
     if (!file_res.Succeeded()) {
         IPC::RequestBuilder rb = rp.MakeBuilder(1, 0);
         rb.Push(file_res.Code());
@@ -1304,9 +1314,9 @@ void Module::Interface::GetTransferSizeFromCia(Kernel::HLERequestContext& ctx) {
 
 void Module::Interface::GetCoreVersionFromCia(Kernel::HLERequestContext& ctx) {
     IPC::RequestParser rp(ctx, 0x040C, 0, 2); // 0x040C0002
-    auto cia = rp.PopObject<Kernel::ClientSession>();
+    std::shared_ptr<Kernel::ClientSession> cia = rp.PopObject<Kernel::ClientSession>();
 
-    auto file_res = GetFileFromSession(cia);
+    ResultVal<std::unique_ptr<Service::AM::AMFileWrapper>> file_res = GetFileFromSession(cia);
     if (!file_res.Succeeded()) {
         IPC::RequestBuilder rb = rp.MakeBuilder(1, 0);
         rb.Push(file_res.Code());
@@ -1328,10 +1338,10 @@ void Module::Interface::GetCoreVersionFromCia(Kernel::HLERequestContext& ctx) {
 
 void Module::Interface::GetRequiredSizeFromCia(Kernel::HLERequestContext& ctx) {
     IPC::RequestParser rp(ctx, 0x040D, 1, 2); // 0x040D0042
-    auto media_type = static_cast<Service::FS::MediaType>(rp.Pop<u8>());
-    auto cia = rp.PopObject<Kernel::ClientSession>();
+    Service::FS::MediaType media_type = static_cast<Service::FS::MediaType>(rp.Pop<u8>());
+    std::shared_ptr<Kernel::ClientSession> cia = rp.PopObject<Kernel::ClientSession>();
 
-    auto file_res = GetFileFromSession(cia);
+    ResultVal<std::unique_ptr<Service::AM::AMFileWrapper>> file_res = GetFileFromSession(cia);
     if (!file_res.Succeeded()) {
         IPC::RequestBuilder rb = rp.MakeBuilder(1, 0);
         rb.Push(file_res.Code());
@@ -1356,7 +1366,7 @@ void Module::Interface::GetRequiredSizeFromCia(Kernel::HLERequestContext& ctx) {
 
 void Module::Interface::DeleteProgram(Kernel::HLERequestContext& ctx) {
     IPC::RequestParser rp(ctx, 0x0410, 3, 0);
-    auto media_type = rp.PopEnum<FS::MediaType>();
+    Service::FS::MediaType media_type = rp.PopEnum<FS::MediaType>();
     u64 title_id = rp.Pop<u64>();
     LOG_INFO(Service_AM, "Deleting title 0x{:016x}", title_id);
     std::string path = GetTitlePath(media_type, title_id);
@@ -1370,8 +1380,9 @@ void Module::Interface::DeleteProgram(Kernel::HLERequestContext& ctx) {
     bool success = FileUtil::DeleteDirRecursively(path);
     am->ScanForAllTitles();
     rb.Push(RESULT_SUCCESS);
-    if (!success)
+    if (!success) {
         LOG_ERROR(Service_AM, "FileUtil::DeleteDirRecursively unexpectedly failed");
+    }
 }
 
 void Module::Interface::GetSystemUpdaterMutex(Kernel::HLERequestContext& ctx) {
@@ -1384,9 +1395,9 @@ void Module::Interface::GetSystemUpdaterMutex(Kernel::HLERequestContext& ctx) {
 
 void Module::Interface::GetMetaSizeFromCia(Kernel::HLERequestContext& ctx) {
     IPC::RequestParser rp(ctx, 0x0413, 0, 2); // 0x04130002
-    auto cia = rp.PopObject<Kernel::ClientSession>();
+    std::shared_ptr<Kernel::ClientSession> cia = rp.PopObject<Kernel::ClientSession>();
 
-    auto file_res = GetFileFromSession(cia);
+    ResultVal<std::unique_ptr<Service::AM::AMFileWrapper>> file_res = GetFileFromSession(cia);
     if (!file_res.Succeeded()) {
         IPC::RequestBuilder rb = rp.MakeBuilder(1, 0);
         rb.Push(file_res.Code());
@@ -1411,10 +1422,10 @@ void Module::Interface::GetMetaDataFromCia(Kernel::HLERequestContext& ctx) {
     IPC::RequestParser rp(ctx, 0x0414, 1, 4); // 0x04140044
 
     u32 output_size = rp.Pop<u32>();
-    auto cia = rp.PopObject<Kernel::ClientSession>();
-    auto& output_buffer = rp.PopMappedBuffer();
+    std::shared_ptr<Kernel::ClientSession> cia = rp.PopObject<Kernel::ClientSession>();
+    Kernel::MappedBuffer& output_buffer = rp.PopMappedBuffer();
 
-    auto file_res = GetFileFromSession(cia);
+    ResultVal<std::unique_ptr<Service::AM::AMFileWrapper>> file_res = GetFileFromSession(cia);
     if (!file_res.Succeeded()) {
         IPC::RequestBuilder rb = rp.MakeBuilder(1, 2);
         rb.Push(file_res.Code());
@@ -1436,7 +1447,8 @@ void Module::Interface::GetMetaDataFromCia(Kernel::HLERequestContext& ctx) {
 
     //  Read from the Meta offset for the specified size
     std::vector<u8> temp(output_size);
-    auto read_result = file->Read(container.GetMetadataOffset(), output_size, temp.data());
+    ResultVal<std::size_t> read_result =
+        file->Read(container.GetMetadataOffset(), output_size, temp.data());
     if (read_result.Failed() || *read_result != output_size) {
         IPC::RequestBuilder rb = rp.MakeBuilder(1, 0);
         rb.Push(ResultCode(ErrCodes::InvalidCIAHeader, ErrorModule::AM,
@@ -1458,8 +1470,8 @@ Module::Module(Core::System& system) : system(system) {
 Module::~Module() = default;
 
 void InstallInterfaces(Core::System& system) {
-    auto& service_manager = system.ServiceManager();
-    auto am = std::make_shared<Module>(system);
+    Service::SM::ServiceManager& service_manager = system.ServiceManager();
+    std::shared_ptr<Service::AM::Module> am = std::make_shared<Module>(system);
     std::make_shared<AM_APP>(am)->InstallAsService(service_manager);
     std::make_shared<AM_NET>(am)->InstallAsService(service_manager);
     std::make_shared<AM_SYS>(am)->InstallAsService(service_manager);

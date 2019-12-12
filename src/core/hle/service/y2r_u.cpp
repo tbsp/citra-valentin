@@ -224,7 +224,7 @@ void Y2R_U::SetSendingY(Kernel::HLERequestContext& ctx) {
     conversion.src_Y.image_size = rp.Pop<u32>();
     conversion.src_Y.transfer_unit = rp.Pop<u32>();
     conversion.src_Y.gap = rp.Pop<u32>();
-    auto process = rp.PopObject<Kernel::Process>();
+    std::shared_ptr<Kernel::Process> process = rp.PopObject<Kernel::Process>();
     // TODO (wwylele): pass process handle to y2r engine or convert VAddr to PAddr
 
     IPC::RequestBuilder rb = rp.MakeBuilder(1, 0);
@@ -243,7 +243,7 @@ void Y2R_U::SetSendingU(Kernel::HLERequestContext& ctx) {
     conversion.src_U.image_size = rp.Pop<u32>();
     conversion.src_U.transfer_unit = rp.Pop<u32>();
     conversion.src_U.gap = rp.Pop<u32>();
-    auto process = rp.PopObject<Kernel::Process>();
+    std::shared_ptr<Kernel::Process> process = rp.PopObject<Kernel::Process>();
     // TODO (wwylele): pass the process handle to y2r engine or convert VAddr to PAddr
 
     IPC::RequestBuilder rb = rp.MakeBuilder(1, 0);
@@ -263,7 +263,7 @@ void Y2R_U::SetSendingV(Kernel::HLERequestContext& ctx) {
     conversion.src_V.image_size = rp.Pop<u32>();
     conversion.src_V.transfer_unit = rp.Pop<u32>();
     conversion.src_V.gap = rp.Pop<u32>();
-    auto process = rp.PopObject<Kernel::Process>();
+    std::shared_ptr<Kernel::Process> process = rp.PopObject<Kernel::Process>();
     // TODO (wwylele): pass the process handle to y2r engine or convert VAddr to PAddr
 
     IPC::RequestBuilder rb = rp.MakeBuilder(1, 0);
@@ -283,7 +283,7 @@ void Y2R_U::SetSendingYUYV(Kernel::HLERequestContext& ctx) {
     conversion.src_YUYV.image_size = rp.Pop<u32>();
     conversion.src_YUYV.transfer_unit = rp.Pop<u32>();
     conversion.src_YUYV.gap = rp.Pop<u32>();
-    auto process = rp.PopObject<Kernel::Process>();
+    std::shared_ptr<Kernel::Process> process = rp.PopObject<Kernel::Process>();
     // TODO (wwylele): pass the process handle to y2r engine or convert VAddr to PAddr
 
     IPC::RequestBuilder rb = rp.MakeBuilder(1, 0);
@@ -343,7 +343,7 @@ void Y2R_U::SetReceiving(Kernel::HLERequestContext& ctx) {
     conversion.dst.image_size = rp.Pop<u32>();
     conversion.dst.transfer_unit = rp.Pop<u32>();
     conversion.dst.gap = rp.Pop<u32>();
-    auto dst_process = rp.PopObject<Kernel::Process>();
+    std::shared_ptr<Kernel::Process> dst_process = rp.PopObject<Kernel::Process>();
     // TODO (wwylele): pass the process handle to y2r engine or convert VAddr to PAddr
 
     IPC::RequestBuilder rb = rp.MakeBuilder(1, 0);
@@ -538,7 +538,7 @@ void Y2R_U::IsBusyConversion(Kernel::HLERequestContext& ctx) {
 
 void Y2R_U::SetPackageParameter(Kernel::HLERequestContext& ctx) {
     IPC::RequestParser rp(ctx, 0x29, 7, 0);
-    auto params = rp.PopRaw<ConversionParameters>();
+    Service::Y2R::ConversionParameters params = rp.PopRaw<ConversionParameters>();
 
     conversion.input_format = params.input_format;
     conversion.output_format = params.output_format;
@@ -547,18 +547,21 @@ void Y2R_U::SetPackageParameter(Kernel::HLERequestContext& ctx) {
 
     ResultCode result = conversion.SetInputLineWidth(params.input_line_width);
 
-    if (result.IsError())
+    if (result.IsError()) {
         goto cleanup;
+    }
 
     result = conversion.SetInputLines(params.input_lines);
 
-    if (result.IsError())
+    if (result.IsError()) {
         goto cleanup;
+    }
 
     result = conversion.SetStandardCoefficient(params.standard_coefficient);
 
-    if (result.IsError())
+    if (result.IsError()) {
         goto cleanup;
+    }
 
     conversion.padding = params.padding;
     conversion.alpha = params.alpha;
@@ -688,7 +691,7 @@ Y2R_U::Y2R_U(Core::System& system) : ServiceFramework("y2r:u", 1), system(system
 Y2R_U::~Y2R_U() = default;
 
 void InstallInterfaces(Core::System& system) {
-    auto& service_manager = system.ServiceManager();
+    Service::SM::ServiceManager& service_manager = system.ServiceManager();
     std::make_shared<Y2R_U>(system)->InstallAsService(service_manager);
 }
 

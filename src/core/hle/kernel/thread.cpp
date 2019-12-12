@@ -62,7 +62,7 @@ void Thread::Stop() {
     WakeupAllWaitingThreads();
 
     // Clean up any dangling references in objects that this thread was waiting for
-    for (auto& wait_object : wait_objects) {
+    for (std::shared_ptr<Kernel::WaitObject>& wait_object : wait_objects) {
         wait_object->RemoveWaitingThread(this);
     }
     wait_objects.clear();
@@ -103,7 +103,7 @@ void ThreadManager::SwitchContext(Thread* new_thread) {
         // Cancel any outstanding wakeup events for this thread
         timing.UnscheduleEvent(ThreadWakeupEventType, new_thread->thread_id);
 
-        auto previous_process = kernel.GetCurrentProcess();
+        std::shared_ptr<Kernel::Process> previous_process = kernel.GetCurrentProcess();
 
         current_thread = SharedFrom(new_thread);
 
@@ -151,7 +151,9 @@ void ThreadManager::ExitCurrentThread() {
     Thread* thread = GetCurrentThread();
     thread->Stop();
     thread_list.erase(std::remove_if(thread_list.begin(), thread_list.end(),
-                                     [thread](const auto& p) { return p.get() == thread; }),
+                                     [thread](const std::shared_ptr<Kernel::Thread>& p) {
+                                         return p.get() == thread;
+                                     }),
                       thread_list.end());
 }
 
@@ -167,12 +169,14 @@ void ThreadManager::ThreadWakeupCallback(u64 thread_id, s64 cycles_late) {
         thread->status == ThreadStatus::WaitHleEvent) {
 
         // Invoke the wakeup callback before clearing the wait objects
-        if (thread->wakeup_callback)
+        if (thread->wakeup_callback) {
             thread->wakeup_callback(ThreadWakeupReason::Timeout, thread, nullptr);
+        }
 
         // Remove the thread from each of its waiting objects' waitlists
-        for (auto& object : thread->wait_objects)
+        for (std::shared_ptr<Kernel::WaitObject>& object : thread->wait_objects) {
             object->RemoveWaitingThread(thread.get());
+        }
         thread->wait_objects.clear();
     }
 
@@ -236,7 +240,7 @@ void ThreadManager::DebugThreadQueue() {
     }
 
     for (auto& t : thread_list) {
-        u32 priority = ready_queue.contains(t.get());
+        const u32 priority = ready_queue.contains(t.get());
         if (priority != -1) {
             LOG_DEBUG(Kernel, "0x{:02X} {}", priority, t->GetObjectId());
         }
@@ -309,7 +313,7 @@ ResultVal<std::shared_ptr<Thread>> KernelSystem::CreateThread(std::string name, 
                           ErrorSummary::InvalidArgument, ErrorLevel::Permanent);
     }
 
-    auto thread{std::make_shared<Thread>(*this)};
+    std::shared_ptr<Kernel::Thread> thread = std::make_shared<Thread>(*this);
 
     thread_manager->thread_list.push_back(thread);
     thread_manager->ready_queue.prepare(priority);
@@ -338,7 +342,7 @@ ResultVal<std::shared_ptr<Thread>> KernelSystem::CreateThread(std::string name, 
         MemoryRegionInfo* memory_region = GetMemoryRegion(MemoryRegion::BASE);
 
         // Allocate some memory from the end of the linear heap for this region.
-        auto offset = memory_region->LinearAllocate(Memory::PAGE_SIZE);
+        std::optional<u32> offset = memory_region->LinearAllocate(Memory::PAGE_SIZE);
         if (!offset) {
             LOG_ERROR(Kernel_SVC,
                       "Not enough space in region to allocate a new TLS page for thread");
@@ -350,7 +354,7 @@ ResultVal<std::shared_ptr<Thread>> KernelSystem::CreateThread(std::string name, 
         available_page = tls_slots.size() - 1;
         available_slot = 0; // Use the first slot in the new page
 
-        auto& vm_manager = owner_process.vm_manager;
+        Kernel::VMManager& vm_manager = owner_process.vm_manager;
 
         // Map the page to the current process' address space.
         vm_manager.MapBackingMemory(Memory::TLS_AREA_VADDR + available_page * Memory::PAGE_SIZE,
@@ -389,9 +393,10 @@ void Thread::SetPriority(u32 priority) {
 
 void Thread::UpdatePriority() {
     u32 best_priority = nominal_priority;
-    for (auto& mutex : held_mutexes) {
-        if (mutex->priority < best_priority)
+    for (std::shared_ptr<Kernel::Mutex>& mutex : held_mutexes) {
+        if (mutex->priority < best_priority) {
             best_priority = mutex->priority;
+        }
     }
     BoostPriority(best_priority);
 }
@@ -408,7 +413,7 @@ void Thread::BoostPriority(u32 priority) {
 std::shared_ptr<Thread> SetupMainThread(KernelSystem& kernel, u32 entry_point, u32 priority,
                                         std::shared_ptr<Process> owner_process) {
     // Initialize new "main" thread
-    auto thread_res =
+    ResultVal<std::shared_ptr<Kernel::Thread>> thread_res =
         kernel.CreateThread("main", entry_point, priority, 0, owner_process->ideal_processor,
                             Memory::HEAP_VADDR_END, *owner_process);
 
@@ -450,8 +455,10 @@ void Thread::SetWaitSynchronizationOutput(s32 output) {
 
 s32 Thread::GetWaitObjectIndex(const WaitObject* object) const {
     ASSERT_MSG(!wait_objects.empty(), "Thread is not waiting for anything");
-    const auto match = std::find_if(wait_objects.rbegin(), wait_objects.rend(),
-                                    [object](const auto& p) { return p.get() == object; });
+    const std::reverse_iterator<std::vector<std::shared_ptr<Kernel::WaitObject>>::const_iterator>
+        match = std::find_if(
+            wait_objects.rbegin(), wait_objects.rend(),
+            [object](const std::shared_ptr<Kernel::WaitObject>& p) { return p.get() == object; });
     return static_cast<s32>(std::distance(match, wait_objects.rend()) - 1);
 }
 
@@ -469,8 +476,8 @@ ThreadManager::ThreadManager(Kernel::KernelSystem& kernel) : kernel(kernel) {
 }
 
 ThreadManager::~ThreadManager() {
-    for (auto& t : thread_list) {
-        t->Stop();
+    for (std::shared_ptr<Kernel::Thread>& thread : thread_list) {
+        thread->Stop();
     }
 }
 

@@ -20,8 +20,9 @@ static void StepOverSamples(State& state, StereoBuffer16& input, float rate, Ste
                             std::size_t& outputi, Function fn) {
     ASSERT(rate > 0);
 
-    if (input.empty())
+    if (input.empty()) {
         return;
+    }
 
     input.insert(input.begin(), {state.xn2, state.xn1});
 

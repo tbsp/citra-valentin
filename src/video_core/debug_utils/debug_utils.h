@@ -23,13 +23,13 @@
 
 namespace CiTrace {
 class Recorder;
-}
+} // namespace CiTrace
 
 namespace Pica {
 
 namespace Shader {
 struct ShaderSetup;
-}
+} // namespace Shader
 
 class DebugContext {
 public:
@@ -68,8 +68,8 @@ public:
         }
 
         virtual ~BreakPointObserver() {
-            auto context = context_weak.lock();
-            if (context) {
+            std::shared_ptr<Pica::DebugContext> context = context_weak.lock();
+            if (context != nullptr) {
                 std::unique_lock lock(context->breakpoint_mutex);
                 context->breakpoint_observers.remove(this);
 
@@ -147,8 +147,8 @@ public:
      * Delete all set breakpoints and resume emulation.
      */
     void ClearBreakpoints() {
-        for (auto& bp : breakpoints) {
-            bp.enabled = false;
+        for (BreakPoint& breakpoint : breakpoints) {
+            breakpoint.enabled = false;
         }
         Resume();
     }

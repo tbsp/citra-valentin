@@ -9,7 +9,7 @@
 ConfigureUi::ConfigureUi(QWidget* parent) : QWidget(parent), ui(new Ui::ConfigureUi) {
     ui->setupUi(this);
 
-    for (const auto& theme : UISettings::themes) {
+    for (const std::pair<const char*, const char*>& theme : UISettings::themes) {
         ui->theme_combobox->addItem(QString::fromUtf8(theme.first),
                                     QString::fromUtf8(theme.second));
     }

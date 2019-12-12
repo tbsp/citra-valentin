@@ -32,7 +32,7 @@ Network::VerifyUser::UserData VerifyUserJWT::LoadUserData(const std::string& ver
     const std::string audience = fmt::format("external-{}", verify_UID);
     using namespace jwt::params;
     std::error_code error;
-    auto decoded =
+    jwt::jwt_object decoded =
         jwt::decode(token, algorithms({"rs256"}), error, secret(pub_key), issuer("citra-core"),
                     aud(audience), validate_iat(true), validate_jti(true));
     if (error) {
@@ -51,7 +51,8 @@ Network::VerifyUser::UserData VerifyUserJWT::LoadUserData(const std::string& ver
         user_data.avatar_url = decoded.payload().get_claim_value<std::string>("avatarUrl");
     }
     if (decoded.payload().has_claim("roles")) {
-        auto roles = decoded.payload().get_claim_value<std::vector<std::string>>("roles");
+        std::vector<std::string> roles =
+            decoded.payload().get_claim_value<std::vector<std::string>>("roles");
         user_data.moderator = std::find(roles.begin(), roles.end(), "moderator") != roles.end();
     }
     return user_data;

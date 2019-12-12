@@ -12,7 +12,7 @@ static float LookupLightingLut(const Pica::State::Lighting& lighting, std::size_
     ASSERT_MSG(lut_index < lighting.luts.size(), "Out of range lut");
     ASSERT_MSG(index < lighting.luts[lut_index].size(), "Out of range index");
 
-    const auto& lut = lighting.luts[lut_index][index];
+    const Pica::State::Lighting::LutEntry& lut = lighting.luts[lut_index][index];
 
     float lut_value = lut.ToFloat();
     float lut_diff = lut.DiffToFloat();
@@ -62,15 +62,15 @@ std::tuple<Common::Vec4<u8>, Common::Vec4<u8>> ComputeFragmentsColors(
     }
 
     // Use the normalized the quaternion when performing the rotation
-    auto normal = Common::QuaternionRotate(normquat, surface_normal);
-    auto tangent = Common::QuaternionRotate(normquat, surface_tangent);
+    Common::Vec3f normal = Common::QuaternionRotate(normquat, surface_normal);
+    Common::Vec3f tangent = Common::QuaternionRotate(normquat, surface_tangent);
 
     Common::Vec4<float> diffuse_sum = {0.0f, 0.0f, 0.0f, 1.0f};
     Common::Vec4<float> specular_sum = {0.0f, 0.0f, 0.0f, 1.0f};
 
     for (unsigned light_index = 0; light_index <= lighting.max_light_index; ++light_index) {
         unsigned num = lighting.light_enable.GetNum(light_index);
-        const auto& light_config = lighting.light[num];
+        const Pica::LightingRegs::LightSrc& light_config = lighting.light[num];
 
         Common::Vec3<float> refl_value = {};
         Common::Vec3<float> position = {float16::FromRaw(light_config.x).ToFloat32(),
@@ -78,10 +78,11 @@ std::tuple<Common::Vec4<u8>, Common::Vec4<u8>> ComputeFragmentsColors(
                                         float16::FromRaw(light_config.z).ToFloat32()};
         Common::Vec3<float> light_vector;
 
-        if (light_config.config.directional)
+        if (light_config.config.directional) {
             light_vector = position;
-        else
+        } else {
             light_vector = position + view;
+        }
 
         light_vector.Normalize();
 
@@ -90,7 +91,7 @@ std::tuple<Common::Vec4<u8>, Common::Vec4<u8>> ComputeFragmentsColors(
 
         float dist_atten = 1.0f;
         if (!lighting.IsDistAttenDisabled(num)) {
-            auto distance = (-view - position).Length();
+            const float distance = (-view - position).Length();
             float scale = Pica::float20::FromRaw(light_config.dist_atten_scale).ToFloat32();
             float bias = Pica::float20::FromRaw(light_config.dist_atten_bias).ToFloat32();
             std::size_t lut =
@@ -177,7 +178,8 @@ std::tuple<Common::Vec4<u8>, Common::Vec4<u8>> ComputeFragmentsColors(
         if (!lighting.IsSpotAttenDisabled(num) &&
             LightingRegs::IsLightingSamplerSupported(
                 lighting.config0.config, LightingRegs::LightingSampler::SpotlightAttenuation)) {
-            auto lut = LightingRegs::SpotlightAttenuationSampler(num);
+            Pica::LightingRegs::LightingSampler lut =
+                LightingRegs::SpotlightAttenuationSampler(num);
             spot_atten = GetLutValue(lighting.lut_input.sp, lighting.abs_lut_input.disable_sp == 0,
                                      lighting.lut_scale.sp, lut);
         }
@@ -261,11 +263,12 @@ std::tuple<Common::Vec4<u8>, Common::Vec4<u8>> ComputeFragmentsColors(
             }
         }
 
-        auto dot_product = Common::Dot(light_vector, normal);
-        if (light_config.config.two_sided_diffuse)
+        float dot_product = Common::Dot(light_vector, normal);
+        if (light_config.config.two_sided_diffuse) {
             dot_product = std::abs(dot_product);
-        else
+        } else {
             dot_product = std::max(dot_product, 0.0f);
+        }
 
         float clamp_highlights = 1.0f;
         if (lighting.config0.clamp_highlights) {
@@ -283,10 +286,11 @@ std::tuple<Common::Vec4<u8>, Common::Vec4<u8>> ComputeFragmentsColors(
             }
         }
 
-        auto diffuse =
+        Common::Vec3f diffuse =
             (light_config.diffuse.ToVec3f() * dot_product + light_config.ambient.ToVec3f()) *
             dist_atten * spot_atten;
-        auto specular = (specular_0 + specular_1) * clamp_highlights * dist_atten * spot_atten;
+        Common::Vec3f specular =
+            (specular_0 + specular_1) * clamp_highlights * dist_atten * spot_atten;
 
         if (!lighting.IsShadowDisabled(num)) {
             if (lighting.config0.shadow_primary) {
@@ -316,16 +320,16 @@ std::tuple<Common::Vec4<u8>, Common::Vec4<u8>> ComputeFragmentsColors(
 
     diffuse_sum += Common::MakeVec(lighting.global_ambient.ToVec3f(), 0.0f);
 
-    auto diffuse = Common::MakeVec<float>(std::clamp(diffuse_sum.x, 0.0f, 1.0f) * 255,
-                                          std::clamp(diffuse_sum.y, 0.0f, 1.0f) * 255,
-                                          std::clamp(diffuse_sum.z, 0.0f, 1.0f) * 255,
-                                          std::clamp(diffuse_sum.w, 0.0f, 1.0f) * 255)
-                       .Cast<u8>();
-    auto specular = Common::MakeVec<float>(std::clamp(specular_sum.x, 0.0f, 1.0f) * 255,
-                                           std::clamp(specular_sum.y, 0.0f, 1.0f) * 255,
-                                           std::clamp(specular_sum.z, 0.0f, 1.0f) * 255,
-                                           std::clamp(specular_sum.w, 0.0f, 1.0f) * 255)
-                        .Cast<u8>();
+    Common::Vec4<u8> diffuse = Common::MakeVec<float>(std::clamp(diffuse_sum.x, 0.0f, 1.0f) * 255,
+                                                      std::clamp(diffuse_sum.y, 0.0f, 1.0f) * 255,
+                                                      std::clamp(diffuse_sum.z, 0.0f, 1.0f) * 255,
+                                                      std::clamp(diffuse_sum.w, 0.0f, 1.0f) * 255)
+                                   .Cast<u8>();
+    Common::Vec4<u8> specular = Common::MakeVec<float>(std::clamp(specular_sum.x, 0.0f, 1.0f) * 255,
+                                                       std::clamp(specular_sum.y, 0.0f, 1.0f) * 255,
+                                                       std::clamp(specular_sum.z, 0.0f, 1.0f) * 255,
+                                                       std::clamp(specular_sum.w, 0.0f, 1.0f) * 255)
+                                    .Cast<u8>();
     return std::make_tuple(diffuse, specular);
 }
 

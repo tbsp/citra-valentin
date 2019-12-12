@@ -93,7 +93,7 @@ void Context::MakeRequest() {
         return true;
     };
 
-    for (const auto& header : headers) {
+    for (const Service::HTTP::Context::RequestHeader& header : headers) {
         request.headers.emplace(header.name, header.value);
     }
 
@@ -104,7 +104,8 @@ void Context::MakeRequest() {
         LOG_ERROR(Service_HTTP, "Failed to set SSL verification mode to None");
     }
 
-    if (auto client_cert = ssl_config.client_cert_ctx.lock()) {
+    if (std::shared_ptr<Service::HTTP::ClientCertContext> client_cert =
+            ssl_config.client_cert_ctx.lock()) {
         if (!client->add_client_cert_ASN1(client_cert->certificate, client_cert->private_key)) {
             LOG_ERROR(Service_HTTP, "Failed to set client certificate");
         }
@@ -131,7 +132,7 @@ void HTTP_C::Initialize(Kernel::HLERequestContext& ctx) {
 
     LOG_WARNING(Service_HTTP, "(STUBBED) called, shared memory size: {} pid: {}", shmem_size, pid);
 
-    auto* session_data = GetSessionData(ctx.Session());
+    Service::HTTP::SessionData* session_data = GetSessionData(ctx.Session());
     ASSERT(session_data);
 
     if (session_data->initialized) {
@@ -157,7 +158,7 @@ void HTTP_C::InitializeConnectionSession(Kernel::HLERequestContext& ctx) {
 
     LOG_DEBUG(Service_HTTP, "called, context_id={} pid={}", context_handle, pid);
 
-    auto* session_data = GetSessionData(ctx.Session());
+    Service::HTTP::SessionData* session_data = GetSessionData(ctx.Session());
     ASSERT(session_data);
 
     if (session_data->initialized) {
@@ -191,7 +192,7 @@ void HTTP_C::BeginRequest(Kernel::HLERequestContext& ctx) {
 
     LOG_WARNING(Service_HTTP, "(STUBBED) called, context_id={}", context_handle);
 
-    auto* session_data = GetSessionData(ctx.Session());
+    Service::HTTP::SessionData* session_data = GetSessionData(ctx.Session());
     ASSERT(session_data);
 
     if (!session_data->initialized) {
@@ -244,7 +245,7 @@ void HTTP_C::BeginRequestAsync(Kernel::HLERequestContext& ctx) {
 
     LOG_WARNING(Service_HTTP, "(STUBBED) called, context_id={}", context_handle);
 
-    auto* session_data = GetSessionData(ctx.Session());
+    Service::HTTP::SessionData* session_data = GetSessionData(ctx.Session());
     ASSERT(session_data);
 
     if (!session_data->initialized) {
@@ -304,7 +305,7 @@ void HTTP_C::CreateContext(Kernel::HLERequestContext& ctx) {
     LOG_DEBUG(Service_HTTP, "called, url_size={}, url={}, method={}", url_size, url,
               static_cast<u32>(method));
 
-    auto* session_data = GetSessionData(ctx.Session());
+    Service::HTTP::SessionData* session_data = GetSessionData(ctx.Session());
     ASSERT(session_data);
 
     if (!session_data->initialized) {
@@ -372,7 +373,7 @@ void HTTP_C::CloseContext(Kernel::HLERequestContext& ctx) {
 
     LOG_WARNING(Service_HTTP, "(STUBBED) called, handle={}", context_handle);
 
-    auto* session_data = GetSessionData(ctx.Session());
+    Service::HTTP::SessionData* session_data = GetSessionData(ctx.Session());
     ASSERT(session_data);
 
     if (!session_data->initialized) {
@@ -423,7 +424,7 @@ void HTTP_C::AddRequestHeader(Kernel::HLERequestContext& ctx) {
     LOG_DEBUG(Service_HTTP, "called, name={}, value={}, context_handle={}", name, value,
               context_handle);
 
-    auto* session_data = GetSessionData(ctx.Session());
+    Service::HTTP::SessionData* session_data = GetSessionData(ctx.Session());
     ASSERT(session_data);
 
     if (!session_data->initialized) {
@@ -499,7 +500,7 @@ void HTTP_C::AddPostDataAscii(Kernel::HLERequestContext& ctx) {
     LOG_DEBUG(Service_HTTP, "called, name={}, value={}, context_handle={}", name, value,
               context_handle);
 
-    auto* session_data = GetSessionData(ctx.Session());
+    Service::HTTP::SessionData* session_data = GetSessionData(ctx.Session());
     ASSERT(session_data);
 
     if (!session_data->initialized) {
@@ -564,7 +565,7 @@ void HTTP_C::SetClientCertContext(Kernel::HLERequestContext& ctx) {
     LOG_DEBUG(Service_HTTP, "called with context_handle={} client_cert_handle={}", context_handle,
               client_cert_handle);
 
-    auto* session_data = GetSessionData(ctx.Session());
+    Service::HTTP::SessionData* session_data = GetSessionData(ctx.Session());
     ASSERT(session_data);
 
     if (!session_data->initialized) {
@@ -652,7 +653,7 @@ void HTTP_C::OpenClientCertContext(Kernel::HLERequestContext& ctx) {
 
     LOG_DEBUG(Service_HTTP, "called, cert_size {}, key_size {}", cert_size, key_size);
 
-    auto* session_data = GetSessionData(ctx.Session());
+    Service::HTTP::SessionData* session_data = GetSessionData(ctx.Session());
     ASSERT(session_data);
 
     ResultCode result(RESULT_SUCCESS);
@@ -690,7 +691,7 @@ void HTTP_C::OpenDefaultClientCertContext(Kernel::HLERequestContext& ctx) {
 
     LOG_DEBUG(Service_HTTP, "called, cert_id={} cert_handle={}", cert_id, client_certs_counter);
 
-    auto* session_data = GetSessionData(ctx.Session());
+    Service::HTTP::SessionData* session_data = GetSessionData(ctx.Session());
     ASSERT(session_data);
 
     if (!session_data->initialized) {
@@ -729,11 +730,14 @@ void HTTP_C::OpenDefaultClientCertContext(Kernel::HLERequestContext& ctx) {
         return;
     }
 
-    const auto& it = std::find_if(client_certs.begin(), client_certs.end(),
-                                  [default_cert_id, &session_data](const auto& i) {
-                                      return default_cert_id == i.second->cert_id &&
-                                             session_data->session_id == i.second->session_id;
-                                  });
+    const auto& it = std::find_if(
+        client_certs.begin(), client_certs.end(),
+        [default_cert_id, &session_data](
+            const std::pair<ClientCertContext::Handle, std::shared_ptr<ClientCertContext>>&
+                client_cert) {
+            return default_cert_id == client_cert.second->cert_id &&
+                   session_data->session_id == client_cert.second->session_id;
+        });
 
     if (it != client_certs.end()) {
         IPC::RequestBuilder rb = rp.MakeBuilder(2, 0);
@@ -762,7 +766,7 @@ void HTTP_C::CloseClientCertContext(Kernel::HLERequestContext& ctx) {
 
     LOG_DEBUG(Service_HTTP, "called, cert_handle={}", cert_handle);
 
-    auto* session_data = GetSessionData(ctx.Session());
+    Service::HTTP::SessionData* session_data = GetSessionData(ctx.Session());
     ASSERT(session_data);
 
     if (client_certs.find(cert_handle) == client_certs.end()) {
@@ -809,13 +813,14 @@ void HTTP_C::DecryptClCertA() {
         FileSys::NCCHFileOpenType::NCCHData, 0, FileSys::NCCHFilePathType::RomFS, exefs_filepath);
     FileSys::Mode open_mode = {};
     open_mode.read_flag.Assign(1);
-    auto file_result = archive.OpenFile(file_path, open_mode);
+    ResultVal<std::unique_ptr<FileSys::FileBackend>> file_result =
+        archive.OpenFile(file_path, open_mode);
     if (file_result.Failed()) {
         LOG_ERROR(Service_HTTP, "ClCertA file missing");
         return;
     }
 
-    auto romfs = std::move(file_result).Unwrap();
+    std::unique_ptr<FileSys::FileBackend> romfs = std::move(file_result).Unwrap();
     std::vector<u8> romfs_buffer(romfs->GetSize());
     romfs->Read(0, romfs_buffer.size(), romfs_buffer.data());
     romfs->Close();
@@ -939,7 +944,7 @@ HTTP_C::HTTP_C() : ServiceFramework("http:C", 32) {
 }
 
 void InstallInterfaces(Core::System& system) {
-    auto& service_manager = system.ServiceManager();
+    Service::SM::ServiceManager& service_manager = system.ServiceManager();
     std::make_shared<HTTP_C>()->InstallAsService(service_manager);
 }
 } // namespace Service::HTTP

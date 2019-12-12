@@ -125,7 +125,7 @@ void ConfigureAudio::UpdateAudioOutputDevices(int sink_index) {
     ui->audio_device_combo_box->addItem(QString::fromUtf8(AudioCore::auto_device_name));
 
     const std::string sink_id = ui->output_sink_combo_box->itemText(sink_index).toStdString();
-    for (const auto& device : AudioCore::GetDeviceListForSink(sink_id)) {
+    for (const std::string& device : AudioCore::GetDeviceListForSink(sink_id)) {
         ui->audio_device_combo_box->addItem(QString::fromStdString(device));
     }
 }
@@ -143,7 +143,7 @@ void ConfigureAudio::UpdateAudioInputDevices(int index) {
     ui->input_device_combo_box->clear();
     ui->input_device_combo_box->addItem(Frontend::Mic::default_device_name);
 
-    for (const auto& device : AudioCore::ListCubebInputDevices()) {
+    for (const std::string& device : AudioCore::ListCubebInputDevices()) {
         ui->input_device_combo_box->addItem(QString::fromStdString(device));
     }
 

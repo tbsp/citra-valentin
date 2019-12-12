@@ -23,8 +23,8 @@ ResultCode TranslateCommandBuffer(Kernel::KernelSystem& kernel, Memory::MemorySy
                                   VAddr dst_address,
                                   std::vector<MappedBufferContext>& mapped_buffer_context,
                                   bool reply) {
-    auto& src_process = src_thread->owner_process;
-    auto& dst_process = dst_thread->owner_process;
+    Kernel::Process*& src_process = src_thread->owner_process;
+    Kernel::Process*& dst_process = dst_thread->owner_process;
 
     IPC::Header header;
     // TODO(Subv): Replace by Memory::Read32 when possible.
@@ -86,7 +86,8 @@ ResultCode TranslateCommandBuffer(Kernel::KernelSystem& kernel, Memory::MemorySy
                     continue;
                 }
 
-                auto result = dst_process->handle_table.Create(std::move(object));
+                ResultVal<Kernel::Handle> result =
+                    dst_process->handle_table.Create(std::move(object));
                 cmd_buf[i++] = result.ValueOr(0);
             }
             break;
@@ -151,7 +152,7 @@ ResultCode TranslateCommandBuffer(Kernel::KernelSystem& kernel, Memory::MemorySy
             if (reply) {
                 // Scan the target's command buffer for the matching mapped buffer.
                 // The real kernel panics if you try to reply with an unsolicited MappedBuffer.
-                auto found = std::find_if(
+                std::vector<Kernel::MappedBufferContext>::iterator found = std::find_if(
                     mapped_buffer_context.begin(), mapped_buffer_context.end(),
                     [permissions, size, source_address](const MappedBufferContext& context) {
                         // Note: reply's source_address is request's target_address
@@ -172,8 +173,10 @@ ResultCode TranslateCommandBuffer(Kernel::KernelSystem& kernel, Memory::MemorySy
                 VAddr prev_reserve = page_start - Memory::PAGE_SIZE;
                 VAddr next_reserve = page_start + num_pages * Memory::PAGE_SIZE;
 
-                auto& prev_vma = src_process->vm_manager.FindVMA(prev_reserve)->second;
-                auto& next_vma = src_process->vm_manager.FindVMA(next_reserve)->second;
+                const Kernel::VirtualMemoryArea& prev_vma =
+                    src_process->vm_manager.FindVMA(prev_reserve)->second;
+                const Kernel::VirtualMemoryArea& next_vma =
+                    src_process->vm_manager.FindVMA(next_reserve)->second;
                 ASSERT(prev_vma.meminfo_state == MemoryState::Reserved &&
                        next_vma.meminfo_state == MemoryState::Reserved);
 
@@ -193,12 +196,12 @@ ResultCode TranslateCommandBuffer(Kernel::KernelSystem& kernel, Memory::MemorySy
             // TODO(Subv): Perform permission checks.
 
             // Reserve a page of memory before the mapped buffer
-            auto reserve_buffer = std::make_unique<u8[]>(Memory::PAGE_SIZE);
+            std::unique_ptr<u8[]> reserve_buffer = std::make_unique<u8[]>(Memory::PAGE_SIZE);
             dst_process->vm_manager.MapBackingMemoryToBase(
                 Memory::IPC_MAPPING_VADDR, Memory::IPC_MAPPING_SIZE, reserve_buffer.get(),
                 Memory::PAGE_SIZE, Kernel::MemoryState::Reserved);
 
-            auto buffer = std::make_unique<u8[]>(num_pages * Memory::PAGE_SIZE);
+            std::unique_ptr<u8[]> buffer = std::make_unique<u8[]>(num_pages * Memory::PAGE_SIZE);
             memory.ReadBlock(*src_process, source_address, buffer.get() + page_offset, size);
 
             // Map the page(s) into the target process' address space.

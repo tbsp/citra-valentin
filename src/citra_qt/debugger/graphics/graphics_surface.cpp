@@ -104,7 +104,7 @@ GraphicsSurfaceWidget::GraphicsSurfaceWidget(std::shared_ptr<Pica::DebugContext>
     surface_picture_label->setAlignment(Qt::AlignLeft | Qt::AlignTop);
     surface_picture_label->setScaledContents(false);
 
-    auto scroll_area = new QScrollArea();
+    QScrollArea* scroll_area = new QScrollArea;
     scroll_area->setBackgroundRole(QPalette::Dark);
     scroll_area->setWidgetResizable(false);
     scroll_area->setWidget(surface_picture_label);
@@ -130,52 +130,52 @@ GraphicsSurfaceWidget::GraphicsSurfaceWidget(std::shared_ptr<Pica::DebugContext>
             &GraphicsSurfaceWidget::OnSurfacePickerYChanged);
     connect(save_surface, &QPushButton::clicked, this, &GraphicsSurfaceWidget::SaveSurface);
 
-    auto main_widget = new QWidget;
-    auto main_layout = new QVBoxLayout;
+    QWidget* main_widget = new QWidget;
+    QVBoxLayout* main_layout = new QVBoxLayout;
     {
-        auto sub_layout = new QHBoxLayout;
+        QHBoxLayout* sub_layout = new QHBoxLayout;
         sub_layout->addWidget(new QLabel(QStringLiteral("Source:")));
         sub_layout->addWidget(surface_source_list);
         main_layout->addLayout(sub_layout);
     }
     {
-        auto sub_layout = new QHBoxLayout;
+        QHBoxLayout* sub_layout = new QHBoxLayout;
         sub_layout->addWidget(new QLabel(QStringLiteral("Physical Address:")));
         sub_layout->addWidget(surface_address_control);
         main_layout->addLayout(sub_layout);
     }
     {
-        auto sub_layout = new QHBoxLayout;
+        QHBoxLayout* sub_layout = new QHBoxLayout;
         sub_layout->addWidget(new QLabel(QStringLiteral("Width:")));
         sub_layout->addWidget(surface_width_control);
         main_layout->addLayout(sub_layout);
     }
     {
-        auto sub_layout = new QHBoxLayout;
+        QHBoxLayout* sub_layout = new QHBoxLayout;
         sub_layout->addWidget(new QLabel(QStringLiteral("Height:")));
         sub_layout->addWidget(surface_height_control);
         main_layout->addLayout(sub_layout);
     }
     {
-        auto sub_layout = new QHBoxLayout;
+        QHBoxLayout* sub_layout = new QHBoxLayout;
         sub_layout->addWidget(new QLabel(QStringLiteral("Format:")));
         sub_layout->addWidget(surface_format_control);
         main_layout->addLayout(sub_layout);
     }
     main_layout->addWidget(scroll_area);
 
-    auto info_layout = new QHBoxLayout;
+    QHBoxLayout* info_layout = new QHBoxLayout;
     {
-        auto xy_layout = new QVBoxLayout;
+        QVBoxLayout* xy_layout = new QVBoxLayout;
         {
             {
-                auto sub_layout = new QHBoxLayout;
+                QHBoxLayout* sub_layout = new QHBoxLayout;
                 sub_layout->addWidget(new QLabel(QStringLiteral("X:")));
                 sub_layout->addWidget(surface_picker_x_control);
                 xy_layout->addLayout(sub_layout);
             }
             {
-                auto sub_layout = new QHBoxLayout;
+                QHBoxLayout* sub_layout = new QHBoxLayout;
                 sub_layout->addWidget(new QLabel(QStringLiteral("Y:")));
                 sub_layout->addWidget(surface_picker_y_control);
                 xy_layout->addLayout(sub_layout);
@@ -301,7 +301,7 @@ void GraphicsSurfaceWidget::Pick(int x, int y) {
     auto GetText = [offset](Format format, const u8* pixel) {
         switch (format) {
         case Format::RGBA8: {
-            auto value = Color::DecodeRGBA8(pixel) / 255.0f;
+            const Common::Vec4f value = Color::DecodeRGBA8(pixel) / 255.0f;
             return QStringLiteral("Red: %1, Green: %2, Blue: %3, Alpha: %4")
                 .arg(QString::number(value.r(), 'f', 2))
                 .arg(QString::number(value.g(), 'f', 2))
@@ -309,14 +309,14 @@ void GraphicsSurfaceWidget::Pick(int x, int y) {
                 .arg(QString::number(value.a(), 'f', 2));
         }
         case Format::RGB8: {
-            auto value = Color::DecodeRGB8(pixel) / 255.0f;
+            const Common::Vec4f value = Color::DecodeRGB8(pixel) / 255.0f;
             return QStringLiteral("Red: %1, Green: %2, Blue: %3")
                 .arg(QString::number(value.r(), 'f', 2))
                 .arg(QString::number(value.g(), 'f', 2))
                 .arg(QString::number(value.b(), 'f', 2));
         }
         case Format::RGB5A1: {
-            auto value = Color::DecodeRGB5A1(pixel) / 255.0f;
+            const Common::Vec4f value = Color::DecodeRGB5A1(pixel) / 255.0f;
             return QStringLiteral("Red: %1, Green: %2, Blue: %3, Alpha: %4")
                 .arg(QString::number(value.r(), 'f', 2))
                 .arg(QString::number(value.g(), 'f', 2))
@@ -324,14 +324,14 @@ void GraphicsSurfaceWidget::Pick(int x, int y) {
                 .arg(QString::number(value.a(), 'f', 2));
         }
         case Format::RGB565: {
-            auto value = Color::DecodeRGB565(pixel) / 255.0f;
+            const Common::Vec4f value = Color::DecodeRGB565(pixel) / 255.0f;
             return QStringLiteral("Red: %1, Green: %2, Blue: %3")
                 .arg(QString::number(value.r(), 'f', 2))
                 .arg(QString::number(value.g(), 'f', 2))
                 .arg(QString::number(value.b(), 'f', 2));
         }
         case Format::RGBA4: {
-            auto value = Color::DecodeRGBA4(pixel) / 255.0f;
+            const Common::Vec4f value = Color::DecodeRGBA4(pixel) / 255.0f;
             return QStringLiteral("Red: %1, Green: %2, Blue: %3, Alpha: %4")
                 .arg(QString::number(value.r(), 'f', 2))
                 .arg(QString::number(value.g(), 'f', 2))
@@ -341,7 +341,7 @@ void GraphicsSurfaceWidget::Pick(int x, int y) {
         case Format::IA8:
             return QStringLiteral("Index: %1, Alpha: %2").arg(pixel[0]).arg(pixel[1]);
         case Format::RG8: {
-            auto value = Color::DecodeRG8(pixel) / 255.0f;
+            const Common::Vec4f value = Color::DecodeRG8(pixel) / 255.0f;
             return QStringLiteral("Red: %1, Green: %2")
                 .arg(QString::number(value.r(), 'f', 2))
                 .arg(QString::number(value.g(), 'f', 2));
@@ -367,17 +367,17 @@ void GraphicsSurfaceWidget::Pick(int x, int y) {
             // TODO: Display block information or channel values?
             return QStringLiteral("Compressed data");
         case Format::D16: {
-            auto value = Color::DecodeD16(pixel);
+            const u32 value = Color::DecodeD16(pixel);
             return QStringLiteral("Depth: %1").arg(QString::number(value / (float)0xFFFF, 'f', 4));
         }
         case Format::D24: {
-            auto value = Color::DecodeD24(pixel);
+            const u32 value = Color::DecodeD24(pixel);
             return QStringLiteral("Depth: %1")
                 .arg(QString::number(value / (float)0xFFFFFF, 'f', 4));
         }
         case Format::D24X8:
         case Format::X24S8: {
-            auto values = Color::DecodeD24S8(pixel);
+            const Common::Vec2<u32> values = Color::DecodeD24S8(pixel);
             return QStringLiteral("Depth: %1, Stencil: %2")
                 .arg(QString::number(values[0] / (float)0xFFFFFF, 'f', 4))
                 .arg(values[1]);
@@ -414,7 +414,8 @@ void GraphicsSurfaceWidget::OnUpdate() {
         // TODO: Store a reference to the registers in the debug context instead of accessing them
         // directly...
 
-        const auto& framebuffer = Pica::g_state.regs.framebuffer.framebuffer;
+        const Pica::FramebufferRegs::FramebufferConfig& framebuffer =
+            Pica::g_state.regs.framebuffer.framebuffer;
 
         surface_address = framebuffer.GetColorBufferPhysicalAddress();
         surface_width = framebuffer.GetWidth();
@@ -450,7 +451,8 @@ void GraphicsSurfaceWidget::OnUpdate() {
     }
 
     case Source::DepthBuffer: {
-        const auto& framebuffer = Pica::g_state.regs.framebuffer.framebuffer;
+        const Pica::FramebufferRegs::FramebufferConfig& framebuffer =
+            Pica::g_state.regs.framebuffer.framebuffer;
 
         surface_address = framebuffer.GetDepthBufferPhysicalAddress();
         surface_width = framebuffer.GetWidth();
@@ -478,7 +480,8 @@ void GraphicsSurfaceWidget::OnUpdate() {
     }
 
     case Source::StencilBuffer: {
-        const auto& framebuffer = Pica::g_state.regs.framebuffer.framebuffer;
+        const Pica::FramebufferRegs::FramebufferConfig& framebuffer =
+            Pica::g_state.regs.framebuffer.framebuffer;
 
         surface_address = framebuffer.GetDepthBufferPhysicalAddress();
         surface_width = framebuffer.GetWidth();
@@ -512,8 +515,10 @@ void GraphicsSurfaceWidget::OnUpdate() {
             break;
         }
 
-        const auto texture = Pica::g_state.regs.texturing.GetTextures()[texture_index];
-        auto info = Pica::Texture::TextureInfo::FromPicaRegister(texture.config, texture.format);
+        const Pica::TexturingRegs::FullTextureConfig& texture =
+            Pica::g_state.regs.texturing.GetTextures()[texture_index];
+        const Pica::Texture::TextureInfo info =
+            Pica::Texture::TextureInfo::FromPicaRegister(texture.config, texture.format);
 
         surface_address = info.physical_address;
         surface_width = info.width;

@@ -66,10 +66,11 @@ int GPUCommandListModel::columnCount(const QModelIndex& parent) const {
 }
 
 QVariant GPUCommandListModel::data(const QModelIndex& index, int role) const {
-    if (!index.isValid())
+    if (!index.isValid()) {
         return QVariant();
+    }
 
-    const auto& write = pica_trace.writes[index.row()];
+    const Pica::DebugUtils::PicaTrace::Write& write = pica_trace.writes[index.row()];
 
     if (role == Qt::DisplayRole) {
         switch (index.column()) {
@@ -164,9 +165,10 @@ void GpuCommandListWidget::SetCommandInfo(const QModelIndex& index) {
 
         const auto texture = Pica::g_state.regs.texturing.GetTextures()[texture_index];
         const auto config = texture.config;
-        const auto format = texture.format;
+        const Pica::TexturingRegs::TextureFormat format = texture.format;
 
-        const auto info = Pica::Texture::TextureInfo::FromPicaRegister(config, format);
+        const Pica::Texture::TextureInfo info =
+            Pica::Texture::TextureInfo::FromPicaRegister(config, format);
         const u8* src =
             Core::System::GetInstance().Memory().GetPhysicalPointer(config.GetPhysicalAddress());
         new_info_widget = new TextureInfoWidget(src, info);

@@ -69,7 +69,8 @@ private:
 };
 
 State::State() {
-    auto status = std::make_shared<DeviceStatus>();
+    std::shared_ptr<InputCommon::CemuhookUDP::DeviceStatus> status =
+        std::make_shared<DeviceStatus>();
     client =
         std::make_unique<Client>(status, Settings::values.current_input_profile.udp_input_address,
                                  Settings::values.current_input_profile.udp_input_port,

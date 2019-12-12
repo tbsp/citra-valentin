@@ -345,7 +345,7 @@ struct CachedSurface : SurfaceParams, std::enable_shared_from_this<CachedSurface
     }
 
     bool IsSurfaceFullyInvalid() const {
-        auto interval = GetInterval();
+        OpenGL::SurfaceInterval interval = GetInterval();
         return *invalid_regions.equal_range(interval).first == interval;
     }
 
@@ -393,26 +393,28 @@ struct CachedSurface : SurfaceParams, std::enable_shared_from_this<CachedSurface
                            GLuint draw_fb_handle);
 
     std::shared_ptr<SurfaceWatcher> CreateWatcher() {
-        auto watcher = std::make_shared<SurfaceWatcher>(weak_from_this());
+        std::shared_ptr<OpenGL::SurfaceWatcher> watcher =
+            std::make_shared<SurfaceWatcher>(weak_from_this());
         watchers.push_front(watcher);
         return watcher;
     }
 
     void InvalidateAllWatcher() {
-        for (const auto& watcher : watchers) {
-            if (auto locked = watcher.lock()) {
+        for (const std::weak_ptr<OpenGL::SurfaceWatcher>& watcher : watchers) {
+            if (std::shared_ptr<OpenGL::SurfaceWatcher> locked = watcher.lock()) {
                 locked->valid = false;
             }
         }
     }
 
     void UnlinkAllWatcher() {
-        for (const auto& watcher : watchers) {
-            if (auto locked = watcher.lock()) {
+        for (const std::weak_ptr<OpenGL::SurfaceWatcher>& watcher : watchers) {
+            if (std::shared_ptr<OpenGL::SurfaceWatcher> locked = watcher.lock()) {
                 locked->valid = false;
                 locked->surface.reset();
             }
         }
+
         watchers.clear();
     }
 

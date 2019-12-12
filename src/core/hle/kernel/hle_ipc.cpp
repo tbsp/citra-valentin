@@ -43,7 +43,7 @@ std::shared_ptr<Event> HLERequestContext::SleepClientThread(const std::string& r
         ASSERT(thread->status == ThreadStatus::WaitHleEvent);
         callback(thread, context, reason);
 
-        auto& process = thread->owner_process;
+        Kernel::Process*& process = thread->owner_process;
         // We must copy the entire command buffer *plus* the entire static buffers area, since
         // the translation might need to read from it in order to retrieve the StaticBuffer
         // target addresses.
@@ -57,7 +57,8 @@ std::shared_ptr<Event> HLERequestContext::SleepClientThread(const std::string& r
                           cmd_buff.size() * sizeof(u32));
     };
 
-    auto event = kernel.CreateEvent(Kernel::ResetType::OneShot, "HLE Pause Event: " + reason);
+    std::shared_ptr<Kernel::Event> event =
+        kernel.CreateEvent(Kernel::ResetType::OneShot, "HLE Pause Event: " + reason);
     thread->status = ThreadStatus::WaitHleEvent;
     thread->wait_objects = {event};
     event->AddWaitingThread(SharedFrom(thread));
@@ -219,7 +220,7 @@ ResultCode HLERequestContext::WriteToOutgoingCommandBuffer(u32_le* dst_cmdbuf,
         case IPC::DescriptorType::StaticBuffer: {
             IPC::StaticBufferDescInfo buffer_info{descriptor};
 
-            const auto& data = GetStaticBuffer(buffer_info.buffer_id);
+            const std::vector<u8>& data = GetStaticBuffer(buffer_info.buffer_id);
 
             // Grab the address that the target thread set up to receive the response static buffer
             // and write our data there. The static buffers area is located right after the command

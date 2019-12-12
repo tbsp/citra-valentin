@@ -26,7 +26,7 @@ void SSL_C::Initialize(Kernel::HLERequestContext& ctx) {
 void SSL_C::GenerateRandomData(Kernel::HLERequestContext& ctx) {
     IPC::RequestParser rp(ctx, 0x11, 1, 2);
     u32 size = rp.Pop<u32>();
-    auto buffer = rp.PopMappedBuffer();
+    Kernel::MappedBuffer buffer = rp.PopMappedBuffer();
 
     // Fill the output buffer with random data.
     u32 data = 0;
@@ -88,7 +88,7 @@ SSL_C::SSL_C() : ServiceFramework("ssl:C") {
 }
 
 void InstallInterfaces(Core::System& system) {
-    auto& service_manager = system.ServiceManager();
+    Service::SM::ServiceManager& service_manager = system.ServiceManager();
     std::make_shared<SSL_C>()->InstallAsService(service_manager);
 }
 

@@ -411,15 +411,17 @@ const PadState& Module::GetState() const {
 }
 
 std::shared_ptr<Module> GetModule(Core::System& system) {
-    auto hid = system.ServiceManager().GetService<Service::HID::Module::Interface>("hid:USER");
-    if (!hid)
+    std::shared_ptr<Service::HID::Module::Interface> hid =
+        system.ServiceManager().GetService<Service::HID::Module::Interface>("hid:USER");
+    if (hid == nullptr) {
         return nullptr;
+    }
     return hid->GetModule();
 }
 
 void InstallInterfaces(Core::System& system) {
-    auto& service_manager = system.ServiceManager();
-    auto hid = std::make_shared<Module>(system);
+    Service::SM::ServiceManager& service_manager = system.ServiceManager();
+    std::shared_ptr<Service::HID::Module> hid = std::make_shared<Module>(system);
     std::make_shared<User>(hid)->InstallAsService(service_manager);
     std::make_shared<Spvr>(hid)->InstallAsService(service_manager);
 }

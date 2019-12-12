@@ -431,7 +431,7 @@ void Room::RoomImpl::HandleModKickPacket(const ENetEvent* event) {
     std::string username;
     {
         std::lock_guard lock(member_mutex);
-        const auto target_member =
+        const std::vector<Network::Room::RoomImpl::Member>::iterator target_member =
             std::find_if(members.begin(), members.end(),
                          [&nickname](const Member& member) { return member.nickname == nickname; });
         if (target_member == members.end()) {
@@ -471,7 +471,7 @@ void Room::RoomImpl::HandleModBanPacket(const ENetEvent* event) {
 
     {
         std::lock_guard lock(member_mutex);
-        const auto target_member =
+        const std::vector<Network::Room::RoomImpl::Member>::iterator target_member =
             std::find_if(members.begin(), members.end(),
                          [&nickname](const Member& member) { return member.nickname == nickname; });
         if (target_member == members.end()) {
@@ -533,7 +533,8 @@ void Room::RoomImpl::HandleModUnbanPacket(const ENetEvent* event) {
     {
         std::lock_guard lock(ban_list_mutex);
 
-        auto it = std::find(username_ban_list.begin(), username_ban_list.end(), address);
+        std::vector<std::string>::iterator it =
+            std::find(username_ban_list.begin(), username_ban_list.end(), address);
         if (it != username_ban_list.end()) {
             unbanned = true;
             username_ban_list.erase(it);
@@ -591,7 +592,7 @@ bool Room::RoomImpl::IsValidConsoleId(const std::string& console_id_hash) const 
 
 bool Room::RoomImpl::HasModPermission(const ENetPeer* client) const {
     std::lock_guard lock(member_mutex);
-    const auto sending_member =
+    const std::vector<Network::Room::RoomImpl::Member>::const_iterator sending_member =
         std::find_if(members.begin(), members.end(),
                      [client](const Member& member) { return member.peer == client; });
     if (sending_member == members.end()) {
@@ -894,7 +895,7 @@ void Room::RoomImpl::HandleWifiPacket(const ENetEvent* event) {
 
 void Room::RoomImpl::HandleChatPacket(const ENetEvent* event) {
     std::lock_guard lock(member_mutex);
-    const auto sending_member =
+    const std::vector<Network::Room::RoomImpl::Member>::iterator sending_member =
         std::find_if(members.begin(), members.end(),
                      [event](const Member& member) -> bool { return member.peer == event->peer; });
     if (sending_member == members.end()) {

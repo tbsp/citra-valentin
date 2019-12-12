@@ -37,7 +37,7 @@ State::State() : geometry_pipeline(*this) {
             Shader::OutputVertex::FromAttributeBuffer(regs.rasterizer, vertex), AddTriangle);
     };
 
-    auto SetWinding = [this]() { primitive_assembler.SetWinding(); };
+    auto SetWinding = [this] { primitive_assembler.SetWinding(); };
 
     g_state.gs_unit.SetVertexHandler(SubmitVertex, SetWinding);
     g_state.geometry_pipeline.SetVertexHandler(SubmitVertex);

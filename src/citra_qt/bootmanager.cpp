@@ -134,12 +134,13 @@ OpenGLWindow::~OpenGLWindow() {
 }
 
 void OpenGLWindow::Present() {
-    if (!isExposed())
+    if (!isExposed()) {
         return;
+    }
     context->makeCurrent(this);
     VideoCore::g_renderer->TryPresent(100);
     context->swapBuffers(this);
-    auto f = context->versionFunctions<QOpenGLFunctions_3_3_Core>();
+    QOpenGLFunctions_3_3_Core* f = context->versionFunctions<QOpenGLFunctions_3_3_Core>();
     f->glFinish();
     QWindow::requestUpdate();
     emit Presented();
@@ -197,7 +198,7 @@ GRenderWindow::GRenderWindow(QWidget* parent, EmuThread* emu_thread)
 
     setWindowTitle("Citra");
     setAttribute(Qt::WA_AcceptTouchEvents);
-    auto layout = new QHBoxLayout(this);
+    QHBoxLayout* layout = new QHBoxLayout(this);
     layout->setMargin(0);
     setLayout(layout);
     InputCommon::Init();
@@ -280,36 +281,38 @@ void GRenderWindow::keyReleaseEvent(QKeyEvent* event) {
 }
 
 void GRenderWindow::mousePressEvent(QMouseEvent* event) {
-    if (event->source() == Qt::MouseEventSynthesizedBySystem)
-        return; // touch input is handled in TouchBeginEvent
+    if (event->source() == Qt::MouseEventSynthesizedBySystem) {
+        return; // Touch input is handled in TouchBeginEvent
+    }
 
-    auto pos = event->pos();
+    const QPoint position = event->pos();
     if (event->button() == Qt::LeftButton) {
-        const auto [x, y] = ScaleTouch(pos);
-        this->TouchPressed(x, y);
+        const auto [x, y] = ScaleTouch(position);
+        TouchPressed(x, y);
     } else if (event->button() == Qt::MiddleButton) {
         emit MiddleClick();
     } else if (event->button() == Qt::RightButton) {
-        InputCommon::GetMotionEmu()->BeginTilt(pos.x(), pos.y());
+        InputCommon::GetMotionEmu()->BeginTilt(position.x(), position.y());
     }
 }
 
 void GRenderWindow::mouseMoveEvent(QMouseEvent* event) {
-    if (event->source() == Qt::MouseEventSynthesizedBySystem)
-        return; // touch input is handled in TouchUpdateEvent
+    if (event->source() == Qt::MouseEventSynthesizedBySystem) {
+        return; // Touch input is handled in TouchUpdateEvent
+    }
 
-    auto pos = event->pos();
-    const auto [x, y] = ScaleTouch(pos);
-    this->TouchMoved(x, y);
-    InputCommon::GetMotionEmu()->Tilt(pos.x(), pos.y());
+    const QPoint position = event->pos();
+    const auto [x, y] = ScaleTouch(position);
+    TouchMoved(x, y);
+    InputCommon::GetMotionEmu()->Tilt(position.x(), position.y());
 }
 
 void GRenderWindow::mouseReleaseEvent(QMouseEvent* event) {
     if (event->source() == Qt::MouseEventSynthesizedBySystem)
-        return; // touch input is handled in TouchEndEvent
+        return; // Touch input is handled in TouchEndEvent
 
     if (event->button() == Qt::LeftButton)
-        this->TouchReleased();
+        TouchReleased();
     else if (event->button() == Qt::RightButton)
         InputCommon::GetMotionEmu()->EndTilt();
 }
@@ -317,29 +320,30 @@ void GRenderWindow::mouseReleaseEvent(QMouseEvent* event) {
 void GRenderWindow::TouchBeginEvent(const QTouchEvent* event) {
     // TouchBegin always has exactly one touch point, so take the .first()
     const auto [x, y] = ScaleTouch(event->touchPoints().first().pos());
-    this->TouchPressed(x, y);
+    TouchPressed(x, y);
 }
 
 void GRenderWindow::TouchUpdateEvent(const QTouchEvent* event) {
-    QPointF pos;
+    QPointF position;
     int active_points = 0;
 
-    // average all active touch points
-    for (const auto tp : event->touchPoints()) {
-        if (tp.state() & (Qt::TouchPointPressed | Qt::TouchPointMoved | Qt::TouchPointStationary)) {
+    // Average all active touch points
+    for (const QTouchEvent::TouchPoint& point : event->touchPoints()) {
+        if (point.state() &
+            (Qt::TouchPointPressed | Qt::TouchPointMoved | Qt::TouchPointStationary)) {
             active_points++;
-            pos += tp.pos();
+            position += point.pos();
         }
     }
 
-    pos /= active_points;
+    position /= active_points;
 
-    const auto [x, y] = ScaleTouch(pos);
-    this->TouchMoved(x, y);
+    const auto [x, y] = ScaleTouch(position);
+    TouchMoved(x, y);
 }
 
 void GRenderWindow::TouchEndEvent() {
-    this->TouchReleased();
+    TouchReleased();
 }
 
 bool GRenderWindow::event(QEvent* event) {

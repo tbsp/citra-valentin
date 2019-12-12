@@ -136,13 +136,13 @@ static void SaveBanList(const Network::Room::BanList& ban_list, const std::strin
     file << BanListMagic << "\n";
 
     // Username ban list
-    for (const auto& username : ban_list.first) {
+    for (const std::string& username : ban_list.first) {
         file << username << "\n";
     }
     file << "\n";
 
     // IP ban list
-    for (const auto& ip : ban_list.second) {
+    for (const std::string& ip : ban_list.second) {
         file << ip << "\n";
     }
 
@@ -337,7 +337,8 @@ int main(int argc, char** argv) {
             return -1;
         }
         std::cout << "Room is open. Close with Q+Enter...\n\n";
-        auto announce_session = std::make_unique<Core::AnnounceMultiplayerSession>();
+        std::unique_ptr<Core::AnnounceMultiplayerSession> announce_session =
+            std::make_unique<Core::AnnounceMultiplayerSession>();
         if (announce) {
             announce_session->Start();
         }

@@ -578,7 +578,7 @@ static const std::string& GetHomeDirectory() {
         if (envvar) {
             home_path = envvar;
         } else {
-            auto pw = getpwuid(getuid());
+            passwd* pw = getpwuid(getuid());
             ASSERT_MSG(pw,
                        "$HOME isn’t defined, and the current user can’t be found in /etc/passwd.");
             home_path = pw->pw_dir;
@@ -740,8 +740,8 @@ std::vector<std::string> SplitPathComponents(std::string_view filename) {
 }
 
 std::string_view GetParentPath(std::string_view path) {
-    const auto name_bck_index = path.rfind('\\');
-    const auto name_fwd_index = path.rfind('/');
+    const std::size_t name_bck_index = path.rfind('\\');
+    const std::size_t name_fwd_index = path.rfind('/');
     std::size_t name_index;
 
     if (name_bck_index == std::string_view::npos || name_fwd_index == std::string_view::npos) {
@@ -765,13 +765,13 @@ std::string_view GetPathWithoutTop(std::string_view path) {
         }
     }
 
-    const auto name_bck_index = path.find('\\');
-    const auto name_fwd_index = path.find('/');
+    const std::size_t name_bck_index = path.find('\\');
+    const std::size_t name_fwd_index = path.find('/');
     return path.substr(std::min(name_bck_index, name_fwd_index) + 1);
 }
 
 std::string_view GetFilename(std::string_view path) {
-    const auto name_index = path.find_last_of("\\/");
+    const std::size_t name_index = path.find_last_of("\\/");
 
     if (name_index == std::string_view::npos) {
         return {};

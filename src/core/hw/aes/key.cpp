@@ -26,7 +26,7 @@ namespace {
 // normal key dumped from a Wii U solving the equation:
 // NormalKey = (((KeyX ROL 2) XOR KeyY) + constant) ROL 87
 // On a real 3DS the generation for the normal key is hardware based, and thus the constant can't
-// get dumped . generated normal keys are also not accesible on a 3DS. The used formula for
+// get dumped. generated normal keys are also not accesible on a 3DS. The used formula for
 // calculating the constant is a software implementation of what the hardware generator does.
 constexpr AESKey generator_constant = {{0x1F, 0xF9, 0xE9, 0xAA, 0xC5, 0xFE, 0x04, 0x08, 0x02, 0x45,
                                         0x91, 0xDC, 0x5D, 0x52, 0x76, 0x8A}};
@@ -158,8 +158,8 @@ void LoadBootromKeys() {
     // and have no value for emulation
 
     const std::string filepath = FileUtil::GetUserPath(FileUtil::UserPath::SysDataDir) + BOOTROM9;
-    auto file = FileUtil::IOFile(filepath, "rb");
-    if (!file) {
+    FileUtil::IOFile file(filepath, "rb");
+    if (!file.IsOpen()) {
         return;
     }
 
@@ -173,7 +173,7 @@ void LoadBootromKeys() {
     file.Seek(KEY_SECTION_START, SEEK_SET); // Jump to the key section
 
     AESKey new_key;
-    for (const auto& key : keys) {
+    for (const KeyDesc& key : keys) {
         if (!key.same_as_before) {
             file.ReadArray(new_key.data(), new_key.size());
             if (!file) {
@@ -216,11 +216,13 @@ void LoadNativeFirmKeysOld3DS() {
         FileSys::NCCHFileOpenType::NCCHData, 0, FileSys::NCCHFilePathType::ExeFS, exefs_filepath);
     FileSys::Mode open_mode = {};
     open_mode.read_flag.Assign(1);
-    auto file_result = archive.OpenFile(file_path, open_mode);
-    if (file_result.Failed())
+    ResultVal<std::unique_ptr<FileSys::FileBackend>> file_result =
+        archive.OpenFile(file_path, open_mode);
+    if (file_result.Failed()) {
         return;
+    }
 
-    auto firm = std::move(file_result).Unwrap();
+    std::unique_ptr<FileSys::FileBackend> firm = std::move(file_result).Unwrap();
     const std::size_t size = firm->GetSize();
     if (size != 843776) {
         LOG_ERROR(HW_AES, "save mode native firm has wrong size {}", size);
@@ -256,8 +258,8 @@ void LoadNativeFirmKeysNew3DS() {
     // native_firm
     const std::string filepath =
         FileUtil::GetUserPath(FileUtil::UserPath::SysDataDir) + SECRET_SECTOR;
-    auto secret = FileUtil::IOFile(filepath, "rb");
-    if (!secret) {
+    FileUtil::IOFile secret(filepath, "rb");
+    if (!secret.IsOpen()) {
         return;
     }
     ASSERT(secret.GetSize() > 0x10);
@@ -280,11 +282,13 @@ void LoadNativeFirmKeysNew3DS() {
         FileSys::NCCHFileOpenType::NCCHData, 0, FileSys::NCCHFilePathType::ExeFS, exefs_filepath);
     FileSys::Mode open_mode = {};
     open_mode.read_flag.Assign(1);
-    auto file_result = archive.OpenFile(file_path, open_mode);
-    if (file_result.Failed())
+    ResultVal<std::unique_ptr<FileSys::FileBackend>> file_result =
+        archive.OpenFile(file_path, open_mode);
+    if (file_result.Failed()) {
         return;
+    }
 
-    auto firm = std::move(file_result).Unwrap();
+    std::unique_ptr<FileSys::FileBackend> firm = std::move(file_result).Unwrap();
     std::vector<u8> firm_buffer(firm->GetSize());
     firm->Read(0, firm_buffer.size(), firm_buffer.data());
     firm->Close();
@@ -302,7 +306,7 @@ void LoadNativeFirmKeysNew3DS() {
 
     u32 arm9_offset(0);
     u32 arm9_size(0);
-    for (auto section_header : header.section_headers) {
+    for (const FirmwareSectionHeader& section_header : header.section_headers) {
         if (section_header.firmware_type == FirmwareType::ARM9) {
             arm9_offset = section_header.offset;
             arm9_size = section_header.size;
@@ -329,7 +333,7 @@ void LoadNativeFirmKeysNew3DS() {
 
     key_slots.at(0x15).SetKeyX(keyX_slot0x15);
     key_slots.at(0x15).SetKeyY(arm9_header.key_y);
-    auto normal_key_slot0x15 = key_slots.at(0x15).normal;
+    std::optional<HW::AES::AESKey> normal_key_slot0x15 = key_slots.at(0x15).normal;
     if (!normal_key_slot0x15) {
         LOG_ERROR(HW_AES, "Failed to get normal key for slot id 0x15");
         return;
@@ -441,8 +445,9 @@ void LoadPresetKeys() {
 
 void InitKeys() {
     static bool initialized = false;
-    if (initialized)
+    if (initialized) {
         return;
+    }
     LoadBootromKeys();
     LoadNativeFirmKeysOld3DS();
     LoadNativeFirmKeysNew3DS();

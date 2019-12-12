@@ -71,7 +71,7 @@ ResultVal<std::unique_ptr<FileBackend>> SDMCArchive::OpenFileBase(const Path& pa
         return ERROR_INVALID_OPEN_FLAGS;
     }
 
-    const auto full_path = path_parser.BuildHostPath(mount_point);
+    const std::string full_path = path_parser.BuildHostPath(mount_point);
 
     switch (path_parser.GetHostStatus(mount_point)) {
     case PathParser::InvalidMountPoint:
@@ -117,7 +117,7 @@ ResultCode SDMCArchive::DeleteFile(const Path& path) const {
         return ERROR_INVALID_PATH;
     }
 
-    const auto full_path = path_parser.BuildHostPath(mount_point);
+    const std::string full_path = path_parser.BuildHostPath(mount_point);
 
     switch (path_parser.GetHostStatus(mount_point)) {
     case PathParser::InvalidMountPoint:
@@ -159,8 +159,8 @@ ResultCode SDMCArchive::RenameFile(const Path& src_path, const Path& dest_path) 
         return ERROR_INVALID_PATH;
     }
 
-    const auto src_path_full = path_parser_src.BuildHostPath(mount_point);
-    const auto dest_path_full = path_parser_dest.BuildHostPath(mount_point);
+    const std::string src_path_full = path_parser_src.BuildHostPath(mount_point);
+    const std::string dest_path_full = path_parser_dest.BuildHostPath(mount_point);
 
     if (FileUtil::Rename(src_path_full, dest_path_full)) {
         return RESULT_SUCCESS;
@@ -185,7 +185,7 @@ static ResultCode DeleteDirectoryHelper(const Path& path, const std::string& mou
     if (path_parser.IsRootDirectory())
         return ERROR_NOT_FOUND;
 
-    const auto full_path = path_parser.BuildHostPath(mount_point);
+    const std::string full_path = path_parser.BuildHostPath(mount_point);
 
     switch (path_parser.GetHostStatus(mount_point)) {
     case PathParser::InvalidMountPoint:
@@ -228,7 +228,7 @@ ResultCode SDMCArchive::CreateFile(const FileSys::Path& path, u64 size) const {
         return ERROR_INVALID_PATH;
     }
 
-    const auto full_path = path_parser.BuildHostPath(mount_point);
+    const std::string full_path = path_parser.BuildHostPath(mount_point);
 
     switch (path_parser.GetHostStatus(mount_point)) {
     case PathParser::InvalidMountPoint:
@@ -273,7 +273,7 @@ ResultCode SDMCArchive::CreateDirectory(const Path& path) const {
         return ERROR_INVALID_PATH;
     }
 
-    const auto full_path = path_parser.BuildHostPath(mount_point);
+    const std::string full_path = path_parser.BuildHostPath(mount_point);
 
     switch (path_parser.GetHostStatus(mount_point)) {
     case PathParser::InvalidMountPoint:
@@ -316,8 +316,8 @@ ResultCode SDMCArchive::RenameDirectory(const Path& src_path, const Path& dest_p
         return ERROR_INVALID_PATH;
     }
 
-    const auto src_path_full = path_parser_src.BuildHostPath(mount_point);
-    const auto dest_path_full = path_parser_dest.BuildHostPath(mount_point);
+    const std::string src_path_full = path_parser_src.BuildHostPath(mount_point);
+    const std::string dest_path_full = path_parser_dest.BuildHostPath(mount_point);
 
     if (FileUtil::Rename(src_path_full, dest_path_full)) {
         return RESULT_SUCCESS;
@@ -337,7 +337,7 @@ ResultVal<std::unique_ptr<DirectoryBackend>> SDMCArchive::OpenDirectory(const Pa
         return ERROR_INVALID_PATH;
     }
 
-    const auto full_path = path_parser.BuildHostPath(mount_point);
+    const std::string full_path = path_parser.BuildHostPath(mount_point);
 
     switch (path_parser.GetHostStatus(mount_point)) {
     case PathParser::InvalidMountPoint:

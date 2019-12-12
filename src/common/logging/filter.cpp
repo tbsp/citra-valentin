@@ -75,9 +75,10 @@ void Filter::SetClassLevel(Class log_class, Level level) {
 }
 
 void Filter::ParseFilterString(std::string_view filter_view) {
-    auto clause_begin = filter_view.cbegin();
+    std::string_view::const_iterator clause_begin = filter_view.cbegin();
     while (clause_begin != filter_view.cend()) {
-        auto clause_end = std::find(clause_begin, filter_view.cend(), ' ');
+        std::string_view::const_iterator clause_end =
+            std::find(clause_begin, filter_view.cend(), ' ');
 
         // If clause isn't empty
         if (clause_end != clause_begin) {

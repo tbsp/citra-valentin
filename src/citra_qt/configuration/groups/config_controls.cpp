@@ -124,7 +124,7 @@ void Config::SaveControlsValues() {
     qt_config->beginWriteArray(QStringLiteral("profiles"));
     for (std::size_t p = 0; p < Settings::values.input_profiles.size(); ++p) {
         qt_config->setArrayIndex(static_cast<int>(p));
-        const auto& profile = Settings::values.input_profiles[p];
+        const Settings::InputProfile& profile = Settings::values.input_profiles[p];
         WriteSetting(QStringLiteral("name"), QString::fromStdString(profile.name),
                      QStringLiteral("default"));
         for (int i = 0; i < Settings::NativeButton::NumButtons; ++i) {

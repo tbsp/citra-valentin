@@ -251,7 +251,7 @@ void Module::Interface::GetConfigInfoBlk2(Kernel::HLERequestContext& ctx) {
     IPC::RequestParser rp(ctx, 0x01, 2, 2);
     u32 size = rp.Pop<u32>();
     u32 block_id = rp.Pop<u32>();
-    auto& buffer = rp.PopMappedBuffer();
+    Kernel::MappedBuffer& buffer = rp.PopMappedBuffer();
 
     IPC::RequestBuilder rb = rp.MakeBuilder(1, 2);
     std::vector<u8> data(size);
@@ -264,7 +264,7 @@ void Module::Interface::GetConfigInfoBlk8(Kernel::HLERequestContext& ctx, u16 id
     IPC::RequestParser rp(ctx, id, 2, 2);
     u32 size = rp.Pop<u32>();
     u32 block_id = rp.Pop<u32>();
-    auto& buffer = rp.PopMappedBuffer();
+    Kernel::MappedBuffer& buffer = rp.PopMappedBuffer();
 
     IPC::RequestBuilder rb = rp.MakeBuilder(1, 2);
     std::vector<u8> data(size);
@@ -277,7 +277,7 @@ void Module::Interface::SetConfigInfoBlk4(Kernel::HLERequestContext& ctx, u16 id
     IPC::RequestParser rp(ctx, id, 2, 2);
     u32 block_id = rp.Pop<u32>();
     u32 size = rp.Pop<u32>();
-    auto& buffer = rp.PopMappedBuffer();
+    Kernel::MappedBuffer& buffer = rp.PopMappedBuffer();
 
     std::vector<u8> data(size);
     buffer.Read(data.data(), 0, data.size());
@@ -303,7 +303,7 @@ ResultVal<void*> Module::GetConfigInfoBlockPointer(u32 block_id, u32 size, u32 f
     // Read the header
     SaveFileConfig* config = reinterpret_cast<SaveFileConfig*>(cfg_config_file_buffer.data());
 
-    auto itr =
+    Service::CFG::SaveConfigBlockEntry* itr =
         std::find_if(std::begin(config->block_entries), std::end(config->block_entries),
                      [&](const SaveConfigBlockEntry& entry) { return entry.block_id == block_id; });
 
@@ -398,10 +398,11 @@ ResultCode Module::UpdateConfigNANDSavegame() {
 
     FileSys::Path path("/config");
 
-    auto config_result = cfg_system_save_data_archive->OpenFile(path, mode);
+    ResultVal<std::unique_ptr<FileSys::FileBackend>> config_result =
+        cfg_system_save_data_archive->OpenFile(path, mode);
     ASSERT_MSG(config_result.Succeeded(), "could not open file");
 
-    auto config = std::move(config_result).Unwrap();
+    std::unique_ptr<FileSys::FileBackend> config = std::move(config_result).Unwrap();
     config->Write(0, CONFIG_SAVEFILE_SIZE, 1, cfg_config_file_buffer.data());
 
     return RESULT_SUCCESS;
@@ -533,7 +534,8 @@ ResultCode Module::LoadConfigNANDSaveFile() {
 
     // Open the SystemSaveData archive 0x00010017
     FileSys::Path archive_path(cfg_system_savedata_id);
-    auto archive_result = systemsavedata_factory.Open(archive_path, 0);
+    ResultVal<std::unique_ptr<FileSys::ArchiveBackend>> archive_result =
+        systemsavedata_factory.Open(archive_path, 0);
 
     // If the archive didn't exist, create the files inside
     if (archive_result.Code() == FileSys::ERR_NOT_FORMATTED) {
@@ -552,11 +554,12 @@ ResultCode Module::LoadConfigNANDSaveFile() {
     FileSys::Mode open_mode = {};
     open_mode.read_flag.Assign(1);
 
-    auto config_result = cfg_system_save_data_archive->OpenFile(config_path, open_mode);
+    ResultVal<std::unique_ptr<FileSys::FileBackend>> config_result =
+        cfg_system_save_data_archive->OpenFile(config_path, open_mode);
 
     // Read the file if it already exists
     if (config_result.Succeeded()) {
-        auto config = std::move(config_result).Unwrap();
+        std::unique_ptr<FileSys::FileBackend> config = std::move(config_result).Unwrap();
         config->Read(0, CONFIG_SAVEFILE_SIZE, cfg_config_file_buffer.data());
         return RESULT_SUCCESS;
     }
@@ -602,7 +605,7 @@ static std::tuple<u32 /*region*/, SystemLanguage> AdjustLanguageInfoBlock(
     }};
     // Check if any available region supports the languages
     for (u32 region : region_code) {
-        const auto& available = region_languages[region];
+        const std::vector<Service::CFG::SystemLanguage>& available = region_languages[region];
         if (std::find(available.begin(), available.end(), language) != available.end()) {
             // found a proper region, so return this region - language pair
             return {region, language};
@@ -707,18 +710,21 @@ ResultCode Module::SetConsoleUniqueId(u32 random_number, u64 console_id) {
     u64_le console_id_le = console_id;
     ResultCode res =
         SetConfigInfoBlock(ConsoleUniqueID1BlockID, sizeof(console_id_le), 0xE, &console_id_le);
-    if (!res.IsSuccess())
+    if (!res.IsSuccess()) {
         return res;
+    }
 
     res = SetConfigInfoBlock(ConsoleUniqueID2BlockID, sizeof(console_id_le), 0xE, &console_id_le);
-    if (!res.IsSuccess())
+    if (!res.IsSuccess()) {
         return res;
+    }
 
     u32_le random_number_le = random_number;
     res = SetConfigInfoBlock(ConsoleUniqueID3BlockID, sizeof(random_number_le), 0xE,
                              &random_number_le);
-    if (!res.IsSuccess())
+    if (!res.IsSuccess()) {
         return res;
+    }
 
     return RESULT_SUCCESS;
 }
@@ -744,15 +750,17 @@ void Module::SetEULAVersion(const EULAVersion& version) {
 }
 
 std::shared_ptr<Module> GetModule(Core::System& system) {
-    auto cfg = system.ServiceManager().GetService<Service::CFG::Module::Interface>("cfg:u");
-    if (!cfg)
+    std::shared_ptr<Service::CFG::Module::Interface> cfg =
+        system.ServiceManager().GetService<Service::CFG::Module::Interface>("cfg:u");
+    if (!cfg) {
         return nullptr;
+    }
     return cfg->GetModule();
 }
 
 void InstallInterfaces(Core::System& system) {
-    auto& service_manager = system.ServiceManager();
-    auto cfg = std::make_shared<Module>();
+    Service::SM::ServiceManager& service_manager = system.ServiceManager();
+    std::shared_ptr<Service::CFG::Module> cfg = std::make_shared<Module>();
     std::make_shared<CFG_I>(cfg)->InstallAsService(service_manager);
     std::make_shared<CFG_S>(cfg)->InstallAsService(service_manager);
     std::make_shared<CFG_U>(cfg)->InstallAsService(service_manager);
@@ -763,7 +771,7 @@ std::string GetConsoleIdHash(Core::System& system) {
     u64_le console_id{};
     std::array<u8, sizeof(console_id)> buffer;
     if (system.IsPoweredOn()) {
-        auto cfg = GetModule(system);
+        std::shared_ptr<Service::CFG::Module> cfg = GetModule(system);
         ASSERT_MSG(cfg, "CFG Module missing!");
         console_id = cfg->GetConsoleUniqueId();
     } else {

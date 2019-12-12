@@ -17,37 +17,43 @@
 namespace Kernel {
 
 void WaitObject::AddWaitingThread(std::shared_ptr<Thread> thread) {
-    auto itr = std::find(waiting_threads.begin(), waiting_threads.end(), thread);
-    if (itr == waiting_threads.end())
+    std::vector<std::shared_ptr<Kernel::Thread>>::iterator itr =
+        std::find(waiting_threads.begin(), waiting_threads.end(), thread);
+    if (itr == waiting_threads.end()) {
         waiting_threads.push_back(std::move(thread));
+    }
 }
 
 void WaitObject::RemoveWaitingThread(Thread* thread) {
-    auto itr = std::find_if(waiting_threads.begin(), waiting_threads.end(),
-                            [thread](const auto& p) { return p.get() == thread; });
+    std::vector<std::shared_ptr<Kernel::Thread>>::iterator itr = std::find_if(
+        waiting_threads.begin(), waiting_threads.end(),
+        [thread](const std::shared_ptr<Kernel::Thread>& p) { return p.get() == thread; });
     // If a thread passed multiple handles to the same object,
     // the kernel might attempt to remove the thread from the object's
     // waiting threads list multiple times.
-    if (itr != waiting_threads.end())
+    if (itr != waiting_threads.end()) {
         waiting_threads.erase(itr);
+    }
 }
 
 std::shared_ptr<Thread> WaitObject::GetHighestPriorityReadyThread() const {
     Thread* candidate = nullptr;
     u32 candidate_priority = ThreadPrioLowest + 1;
 
-    for (const auto& thread : waiting_threads) {
+    for (const std::shared_ptr<Kernel::Thread>& thread : waiting_threads) {
         // The list of waiting threads must not contain threads that are not waiting to be awakened.
         ASSERT_MSG(thread->status == ThreadStatus::WaitSynchAny ||
                        thread->status == ThreadStatus::WaitSynchAll ||
                        thread->status == ThreadStatus::WaitHleEvent,
                    "Inconsistent thread statuses in waiting_threads");
 
-        if (thread->current_priority >= candidate_priority)
+        if (thread->current_priority >= candidate_priority) {
             continue;
+        }
 
-        if (ShouldWait(thread.get()))
+        if (ShouldWait(thread.get())) {
             continue;
+        }
 
         // A thread is ready to run if it's either in ThreadStatus::WaitSynchAny or
         // in ThreadStatus::WaitSynchAll and the rest of the objects it is waiting on are ready.
@@ -69,21 +75,23 @@ std::shared_ptr<Thread> WaitObject::GetHighestPriorityReadyThread() const {
 }
 
 void WaitObject::WakeupAllWaitingThreads() {
-    while (auto thread = GetHighestPriorityReadyThread()) {
+    while (std::shared_ptr<Kernel::Thread> thread = GetHighestPriorityReadyThread()) {
         if (!thread->IsSleepingOnWaitAll()) {
             Acquire(thread.get());
         } else {
-            for (auto& object : thread->wait_objects) {
+            for (std::shared_ptr<Kernel::WaitObject>& object : thread->wait_objects) {
                 object->Acquire(thread.get());
             }
         }
 
         // Invoke the wakeup callback before clearing the wait objects
-        if (thread->wakeup_callback)
+        if (thread->wakeup_callback) {
             thread->wakeup_callback(ThreadWakeupReason::Signal, thread, SharedFrom(this));
+        }
 
-        for (auto& object : thread->wait_objects)
+        for (std::shared_ptr<Kernel::WaitObject>& object : thread->wait_objects) {
             object->RemoveWaitingThread(thread.get());
+        }
         thread->wait_objects.clear();
 
         thread->ResumeFromWait();

@@ -167,9 +167,10 @@ struct MIC_U::Impl {
             mic->StopSampling();
         }
 
-        auto sign = encoding == Encoding::PCM8Signed || encoding == Encoding::PCM16Signed
-                        ? Frontend::Mic::Signedness::Signed
-                        : Frontend::Mic::Signedness::Unsigned;
+        const Frontend::Mic::Signedness sign =
+            encoding == Encoding::PCM8Signed || encoding == Encoding::PCM16Signed
+                ? Frontend::Mic::Signedness::Signed
+                : Frontend::Mic::Signedness::Unsigned;
         u8 sample_size = encoding == Encoding::PCM8Signed || encoding == Encoding::PCM8 ? 8 : 16;
         state.offset = state.initial_offset = audio_buffer_offset;
         state.sample_rate = sample_rate;
@@ -342,7 +343,7 @@ struct MIC_U::Impl {
         if (mic) {
             new_mic->SetGain(mic->GetGain());
             new_mic->SetPower(mic->GetPower());
-            auto params = mic->GetParameters();
+            Frontend::Mic::Parameters params = mic->GetParameters();
             if (mic->IsSampling()) {
                 mic->StopSampling();
                 new_mic->StartSampling(params);
@@ -463,14 +464,16 @@ void MIC_U::ReloadMic() {
 }
 
 void ReloadMic(Core::System& system) {
-    auto micu = system.ServiceManager().GetService<Service::MIC::MIC_U>("mic:u");
-    if (!micu)
+    std::shared_ptr<Service::MIC::MIC_U> micu =
+        system.ServiceManager().GetService<Service::MIC::MIC_U>("mic:u");
+    if (!micu) {
         return;
+    }
     micu->ReloadMic();
 }
 
 void InstallInterfaces(Core::System& system) {
-    auto& service_manager = system.ServiceManager();
+    Service::SM::ServiceManager& service_manager = system.ServiceManager();
     std::make_shared<MIC_U>(system)->InstallAsService(service_manager);
 }
 

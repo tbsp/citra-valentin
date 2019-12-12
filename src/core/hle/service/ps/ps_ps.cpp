@@ -48,8 +48,8 @@ void PS_PS::EncryptDecryptAes(Kernel::HLERequestContext& ctx) {
 
     AlgorithmType algorithm = rp.PopEnum<AlgorithmType>();
     u8 key_type = rp.Pop<u8>();
-    auto source = rp.PopMappedBuffer();
-    auto destination = rp.PopMappedBuffer();
+    Kernel::MappedBuffer source = rp.PopMappedBuffer();
+    Kernel::MappedBuffer destination = rp.PopMappedBuffer();
 
     LOG_DEBUG(Service_PS, "called algorithm={} key_type={}", static_cast<u8>(algorithm), key_type);
 
@@ -164,7 +164,7 @@ PS_PS::PS_PS() : ServiceFramework("ps:ps", DefaultMaxSessions) {
 };
 
 void InstallInterfaces(Core::System& system) {
-    auto& service_manager = system.ServiceManager();
+    Service::SM::ServiceManager& service_manager = system.ServiceManager();
     std::make_shared<PS_PS>()->InstallAsService(service_manager);
 }
 

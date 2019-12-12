@@ -131,7 +131,8 @@ std::optional<Seed::Data> GetSeed(u64 title_id) {
     if (!db.Load()) {
         return std::nullopt;
     }
-    const auto found_seed_iter{db.FindSeedByTitleID(title_id)};
+    const std::vector<FileSys::Seed>::const_iterator found_seed_iter =
+        db.FindSeedByTitleID(title_id);
     if (found_seed_iter != db.seeds.end()) {
         return found_seed_iter->data;
     }

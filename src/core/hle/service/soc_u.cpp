@@ -139,8 +139,9 @@ static const std::unordered_map<int, int> error_map = {{
 /// Converts a network error from platform-specific to 3ds-specific
 static int TranslateError(int error) {
     auto found = error_map.find(error);
-    if (found != error_map.end())
+    if (found != error_map.end()) {
         return -found->second;
+    }
 
     return error;
 }
@@ -341,8 +342,9 @@ struct CTRAddrInfo {
 static_assert(sizeof(CTRAddrInfo) == 0x130, "Size of CTRAddrInfo is not correct");
 
 void SOC_U::CleanupSockets() {
-    for (auto sock : open_sockets)
+    for (std::pair<const u32, Service::SOC::SocketHolder>& sock : open_sockets) {
         closesocket(sock.second.socket_fd);
+    }
     open_sockets.clear();
 }
 
@@ -391,7 +393,7 @@ void SOC_U::Bind(Kernel::HLERequestContext& ctx) {
     u32 socket_handle = rp.Pop<u32>();
     u32 len = rp.Pop<u32>();
     rp.PopPID();
-    auto sock_addr_buf = rp.PopStaticBuffer();
+    std::vector<u8> sock_addr_buf = rp.PopStaticBuffer();
 
     CTRSockAddr ctr_sock_addr;
     std::memcpy(&ctr_sock_addr, sock_addr_buf.data(), sizeof(CTRSockAddr));
@@ -562,8 +564,8 @@ void SOC_U::SendTo(Kernel::HLERequestContext& ctx) {
     u32 flags = rp.Pop<u32>();
     u32 addr_len = rp.Pop<u32>();
     rp.PopPID();
-    auto input_buff = rp.PopStaticBuffer();
-    auto dest_addr_buff = rp.PopStaticBuffer();
+    std::vector<u8> input_buff = rp.PopStaticBuffer();
+    std::vector<u8> dest_addr_buff = rp.PopStaticBuffer();
 
     s32 ret = -1;
     if (addr_len > 0) {
@@ -592,7 +594,7 @@ void SOC_U::RecvFromOther(Kernel::HLERequestContext& ctx) {
     u32 flags = rp.Pop<u32>();
     u32 addr_len = rp.Pop<u32>();
     rp.PopPID();
-    auto& buffer = rp.PopMappedBuffer();
+    Kernel::MappedBuffer& buffer = rp.PopMappedBuffer();
 
     CTRSockAddr ctr_src_addr;
     std::vector<u8> output_buff(len);
@@ -681,7 +683,7 @@ void SOC_U::Poll(Kernel::HLERequestContext& ctx) {
     u32 nfds = rp.Pop<u32>();
     s32 timeout = rp.Pop<s32>();
     rp.PopPID();
-    auto input_fds = rp.PopStaticBuffer();
+    std::vector<u8> input_fds = rp.PopStaticBuffer();
 
     std::vector<CTRPollFD> ctr_fds(nfds);
     std::memcpy(ctr_fds.data(), input_fds.data(), nfds * sizeof(CTRPollFD));
@@ -779,7 +781,7 @@ void SOC_U::Connect(Kernel::HLERequestContext& ctx) {
     u32 socket_handle = rp.Pop<u32>();
     u32 input_addr_len = rp.Pop<u32>();
     rp.PopPID();
-    auto input_addr_buf = rp.PopStaticBuffer();
+    std::vector<u8> input_addr_buf = rp.PopStaticBuffer();
 
     CTRSockAddr ctr_input_addr;
     std::memcpy(&ctr_input_addr, input_addr_buf.data(), sizeof(ctr_input_addr));
@@ -854,7 +856,7 @@ void SOC_U::SetSockOpt(Kernel::HLERequestContext& ctx) {
     s32 optname = rp.Pop<s32>();
     socklen_t optlen = static_cast<socklen_t>(rp.Pop<u32>());
     rp.PopPID();
-    auto optval = rp.PopStaticBuffer();
+    std::vector<u8> optval = rp.PopStaticBuffer();
 
     s32 err = 0;
 
@@ -884,9 +886,9 @@ void SOC_U::GetAddrInfoImpl(Kernel::HLERequestContext& ctx) {
     u32 service_length = rp.Pop<u32>();
     u32 hints_size = rp.Pop<u32>();
     u32 out_size = rp.Pop<u32>();
-    auto node = rp.PopStaticBuffer();
-    auto service = rp.PopStaticBuffer();
-    auto hints_buff = rp.PopStaticBuffer();
+    std::vector<u8> node = rp.PopStaticBuffer();
+    std::vector<u8> service = rp.PopStaticBuffer();
+    std::vector<u8> hints_buff = rp.PopStaticBuffer();
 
     const char* node_data = node_length > 0 ? reinterpret_cast<const char*>(node.data()) : nullptr;
     const char* service_data =
@@ -944,7 +946,7 @@ void SOC_U::GetNameInfoImpl(Kernel::HLERequestContext& ctx) {
     u32 hostlen = rp.Pop<u32>();
     u32 servlen = rp.Pop<u32>();
     s32 flags = rp.Pop<s32>();
-    auto sa_buff = rp.PopStaticBuffer();
+    std::vector<u8> sa_buff = rp.PopStaticBuffer();
 
     CTRSockAddr ctr_sa;
     std::memcpy(&ctr_sa, sa_buff.data(), socklen);
@@ -1020,7 +1022,7 @@ SOC_U::~SOC_U() {
 }
 
 void InstallInterfaces(Core::System& system) {
-    auto& service_manager = system.ServiceManager();
+    Service::SM::ServiceManager& service_manager = system.ServiceManager();
     std::make_shared<SOC_U>()->InstallAsService(service_manager);
 }
 

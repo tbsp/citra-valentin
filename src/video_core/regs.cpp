@@ -475,8 +475,9 @@ static const std::pair<u16, const char*> register_names[] = {
 };
 
 const char* Regs::GetRegisterName(u16 index) {
-    auto found = std::lower_bound(std::begin(register_names), std::end(register_names), index,
-                                  [](auto p, auto i) { return p.first < i; });
+    const std::pair<u16, const char*>* found = std::lower_bound(
+        std::begin(register_names), std::end(register_names), index,
+        [](const std::pair<u16, const char*>& a, const u16 b) { return a.first > b; });
     if (found->first == index) {
         return found->second;
     } else {

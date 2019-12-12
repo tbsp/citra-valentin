@@ -72,18 +72,22 @@ struct ErrInfo {
     } errinfo_common;
     static_assert(sizeof(ErrInfoCommon) == 0x20, "ErrInfoCommon struct has incorrect size");
 
+    struct Generic {
+        char data[0x60]; // 0x20
+    };
+
+    struct ResultFailure {
+        char message[0x60]; // 0x20
+    };
+
+    struct Exception {
+        ExceptionData exception_data; // 0x20
+    };
+
     union {
-        struct {
-            char data[0x60]; // 0x20
-        } generic;
-
-        struct {
-            ExceptionData exception_data; // 0x20
-        } exception;
-
-        struct {
-            char message[0x60]; // 0x20
-        } result_failure;
+        Generic generic;
+        ResultFailure result_failure;
+        Exception exception;
     };
 };
 
@@ -122,8 +126,8 @@ static std::string GetExceptionType(u8 type_code) {
 }
 
 static std::string GetCurrentSystemTime() {
-    auto now = std::chrono::system_clock::now();
-    auto time = std::chrono::system_clock::to_time_t(now);
+    const std::chrono::time_point<std::chrono::system_clock> now = std::chrono::system_clock::now();
+    std::time_t time = std::chrono::system_clock::to_time_t(now);
 
     std::stringstream time_stream;
     time_stream << std::put_time(std::localtime(&time), "%Y/%m/%d %H:%M:%S");
@@ -168,7 +172,7 @@ void ERR_F::ThrowFatalError(Kernel::HLERequestContext& ctx) {
         break;
     }
     case FatalErrType::Exception: {
-        const auto& errtype = errinfo.exception;
+        const ErrInfo::Exception& errtype = errinfo.exception;
 
         // Register Info
         LOG_CRITICAL(Service_ERR, "ARM Registers:");
@@ -218,7 +222,7 @@ void ERR_F::ThrowFatalError(Kernel::HLERequestContext& ctx) {
     }
 
     case FatalErrType::ResultFailure: {
-        const auto& errtype = errinfo.result_failure;
+        const ErrInfo::ResultFailure& errtype = errinfo.result_failure;
 
         // Failure Message
         LOG_CRITICAL(Service_ERR, "Failure Message: {}", errtype.message);
@@ -243,7 +247,7 @@ ERR_F::ERR_F(Core::System& system) : ServiceFramework("err:f", 1), system(system
 ERR_F::~ERR_F() = default;
 
 void InstallInterfaces(Core::System& system) {
-    auto errf = std::make_shared<ERR_F>(system);
+    std::shared_ptr<Service::ERR::ERR_F> errf = std::make_shared<ERR_F>(system);
     errf->InstallAsNamedPort(system.Kernel());
 }
 

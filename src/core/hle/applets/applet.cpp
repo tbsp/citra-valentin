@@ -73,8 +73,9 @@ ResultCode Applet::Create(Service::APT::AppletId id,
 
 std::shared_ptr<Applet> Applet::Get(Service::APT::AppletId id) {
     auto itr = applets.find(id);
-    if (itr != applets.end())
+    if (itr != applets.end()) {
         return itr->second;
+    }
     return nullptr;
 }
 
@@ -97,9 +98,10 @@ static void AppletUpdateEvent(u64 applet_id, s64 cycles_late) {
 }
 
 ResultCode Applet::Start(const Service::APT::AppletStartupParameter& parameter) {
-    ResultCode result = StartImpl(parameter);
-    if (result.IsError())
+    const ResultCode result = StartImpl(parameter);
+    if (result.IsError()) {
         return result;
+    }
     // Schedule the update event
     Core::System::GetInstance().CoreTiming().ScheduleEvent(
         usToCycles(applet_update_interval_us), applet_update_event, static_cast<u64>(id));
@@ -111,7 +113,7 @@ bool Applet::IsRunning() const {
 }
 
 void Applet::SendParameter(const Service::APT::MessageParameter& parameter) {
-    if (auto locked = manager.lock()) {
+    if (std::shared_ptr<Service::APT::AppletManager> locked = manager.lock()) {
         locked->CancelAndSendParameter(parameter);
     } else {
         LOG_ERROR(Service_APT, "called after destructing applet manager");
@@ -120,9 +122,11 @@ void Applet::SendParameter(const Service::APT::MessageParameter& parameter) {
 
 bool IsLibraryAppletRunning() {
     // Check the applets map for instances of any applet
-    for (auto itr = applets.begin(); itr != applets.end(); ++itr)
-        if (itr->second != nullptr)
+    for (auto itr = applets.begin(); itr != applets.end(); ++itr) {
+        if (itr->second != nullptr) {
             return true;
+        }
+    }
     return false;
 }
 

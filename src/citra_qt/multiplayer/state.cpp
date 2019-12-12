@@ -201,8 +201,8 @@ bool MultiplayerState::OnCloseRoom() {
     if (!NetworkMessage::WarnCloseRoom()) {
         return false;
     }
-    if (auto room = Network::GetRoom().lock()) {
-        // if you are in a room, leave it
+    if (std::shared_ptr<Network::Room> room = Network::GetRoom().lock()) {
+        // If you are in a room, leave it
         if (std::shared_ptr<Network::RoomMember> room_member = Network::GetRoomMember().lock()) {
             room_member->Leave();
             LOG_DEBUG(Frontend, "Left the room (as a client)");
@@ -211,14 +211,16 @@ bool MultiplayerState::OnCloseRoom() {
 #endif
         }
 
-        // if you are hosting a room, also stop hosting
+        // If you are hosting a room, also stop hosting
         if (room->GetState() != Network::Room::State::Open) {
             return true;
         }
+
         // Save ban list
-        if (auto room = Network::GetRoom().lock()) {
+        if (std::shared_ptr<Network::Room> room = Network::GetRoom().lock()) {
             UISettings::values.ban_list = std::move(room->GetBanList());
         }
+
         room->Destroy();
         announce_multiplayer_session->Stop();
         LOG_DEBUG(Frontend, "Closed the room (as a server)");
