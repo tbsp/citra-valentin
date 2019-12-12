@@ -23,7 +23,7 @@ void VertexLoader::Setup(const PipelineRegs& regs) {
     const PipelineRegs::VertexAttributes& attribute_config = regs.vertex_attributes;
     num_total_attributes = attribute_config.GetNumTotalAttributes();
 
-    boost::fill(vertex_attribute_sources, 0xdeadbeef);
+    std::fill(vertex_attribute_sources.begin(), vertex_attribute_sources.end(), 0xdeadbeef);
 
     for (int i = 0; i < 16; i++) {
         vertex_attribute_is_default[i] = attribute_config.IsDefaultAttribute(i);

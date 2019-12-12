@@ -8,11 +8,11 @@ namespace Pica {
 
 namespace DebugUtils {
 class MemoryAccessTracker;
-}
+} // namespace DebugUtils
 
 namespace Shader {
 struct AttributeBuffer;
-}
+} // namespace Shader
 
 class VertexLoader {
 public:

@@ -206,7 +206,7 @@ std::string GenerateTrivialVertexShader(bool separable_shader);
 
 /**
  * Generates the GLSL vertex shader program source code for the given VS program
- * @returns String of the shader source code; boost::none on failure
+ * @returns String of the shader source code; std::nullopt on failure
  */
 std::optional<std::string> GenerateVertexShader(const Pica::Shader::ShaderSetup& setup,
                                                 const PicaVSConfig& config, bool separable_shader);

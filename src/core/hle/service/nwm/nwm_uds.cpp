@@ -515,7 +515,7 @@ void NWM_UDS::OnWifiPacketReceived(const Network::WifiPacket& packet) {
     }
 }
 
-boost::optional<Network::MacAddress> NWM_UDS::GetNodeMacAddress(u16 dest_node_id, u8 flags) {
+std::optional<Network::MacAddress> NWM_UDS::GetNodeMacAddress(u16 dest_node_id, u8 flags) {
     constexpr u8 BroadcastFlag = 0x2;
     if ((flags & BroadcastFlag) || dest_node_id == BroadcastNetworkNodeId) {
         // Broadcast
@@ -1055,7 +1055,7 @@ void NWM_UDS::SendTo(Kernel::HLERequestContext& ctx) {
         LOG_ERROR(Service_NWM, "Unexpected flags 0x{:02X}", flags);
     }
 
-    boost::optional<Network::MacAddress> dest_address = GetNodeMacAddress(dest_node_id, flags);
+    std::optional<Network::MacAddress> dest_address = GetNodeMacAddress(dest_node_id, flags);
     if (!dest_address) {
         rb.Push(ResultCode(ErrorDescription::NotFound, ErrorModule::UDS,
                            ErrorSummary::WrongArgument, ErrorLevel::Status));

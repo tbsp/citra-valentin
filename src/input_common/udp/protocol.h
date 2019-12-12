@@ -215,7 +215,7 @@ static_assert(sizeof(Message<PadData>) == MAX_PACKET_SIZE,
 /**
  * Create a Response Message from the data
  * @param data array of bytes sent from the server
- * @return boost::none if it failed to parse or Type if it succeeded. The client can then safely
+ * @return std::nullopt if it failed to parse or Type if it succeeded. The client can then safely
  * copy the data into the appropriate struct for that Type
  */
 std::optional<Type> Validate(u8* data, std::size_t size);
