@@ -1,8 +1,4 @@
-# (Unreleased) 8.2.0
-
-## Features
-
-- Qt: Realtime new release messages
+# (Unreleased)
 
 ## Fixes
 
