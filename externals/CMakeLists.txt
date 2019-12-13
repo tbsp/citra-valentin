@@ -113,5 +113,4 @@ endif()
 
 if(WIN32)
     add_subdirectory(libdshowcapture)
-    target_include_directories(libdshowcapture INTERFACE ./libdshowcapture)
 endif()

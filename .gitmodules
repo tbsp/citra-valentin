@@ -9,7 +9,7 @@
     url = https://github.com/citra-emu/ext-soundtouch.git
 [submodule "catch"]
     path = externals/catch
-    url = https://github.com/philsquared/Catch.git
+    url = https://github.com/catchorg/Catch2.git
 [submodule "dynarmic"]
     path = externals/dynarmic
     url = https://github.com/MerryMage/dynarmic.git
@@ -49,15 +49,15 @@
 [submodule "discord-rpc"]
     path = externals/discord-rpc
     url = https://github.com/discordapp/discord-rpc.git
-[submodule "libdshowcapture"]
-    path = externals/libdshowcapture
-    url = https://github.com/vvanelslande/libdshowcapture.git
 [submodule "semver"]
     path = externals/semver
     url = https://github.com/Neargye/semver.git
 [submodule "cpp-httplib"]
     path = externals/cpp-httplib
     url = https://github.com/yhirose/cpp-httplib.git
-[submodule "externals/lurlparser/LUrlParser"]
+[submodule "LUrlParser"]
 	path = externals/lurlparser/LUrlParser
 	url = https://github.com/corporateshark/LUrlParser.git
+[submodule "libdshowcapture/libdshowcapture"]
+	path = externals/libdshowcapture/libdshowcapture
+	url = https://github.com/obsproject/libdshowcapture.git

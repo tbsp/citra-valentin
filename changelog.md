@@ -3,6 +3,7 @@
 ## Minor Changes
 
 - Externals: Convert cpp-httplib and LUrlParser to submodules
+- Externals: libdshowcapture: add `CMakeLists.txt` and use unmodified repository
 - Externals: Update json and xbyak
 
 # 8.2.0
