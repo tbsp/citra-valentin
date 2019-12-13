@@ -1,3 +1,10 @@
+# Unreleased
+
+## Minor Changes
+
+- Externals: Convert cpp-httplib and LUrlParser to submodules
+- Externals: Update json
+
 # 8.2.0
 
 ## Discord related changes in the Qt frontend (Discord Logger and Capture Screenshot Then Send To Discord Server)
