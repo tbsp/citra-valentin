@@ -58,3 +58,6 @@
 [submodule "cpp-httplib"]
     path = externals/cpp-httplib
     url = https://github.com/yhirose/cpp-httplib.git
+[submodule "externals/lurlparser/LUrlParser"]
+	path = externals/lurlparser/LUrlParser
+	url = https://github.com/corporateshark/LUrlParser.git
