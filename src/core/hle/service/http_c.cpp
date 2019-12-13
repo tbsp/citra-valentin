@@ -51,25 +51,25 @@ const ResultCode ERROR_CERT_ALREADY_SET = // 0xD8A0A03D
     ResultCode(61, ErrorModule::HTTP, ErrorSummary::InvalidState, ErrorLevel::Permanent);
 
 void Context::MakeRequest() {
-    assert(state == RequestState::NotStarted);
+    ASSERT(state == RequestState::NotStarted);
 
     LUrlParser::clParseURL parsedUrl = LUrlParser::clParseURL::ParseURL(url);
     int port;
-    std::unique_ptr<httplib::Client> client;
+    std::shared_ptr<httplib::Client> client;
     if (parsedUrl.m_Scheme == "http") {
         if (!parsedUrl.GetPort(&port)) {
             port = 80;
         }
         // TODO(B3N30): Support for setting timeout
         // Figure out what the default timeout on 3DS is
-        client = std::make_unique<httplib::Client>(parsedUrl.m_Host.c_str(), port);
+        client = std::make_shared<httplib::Client>(parsedUrl.m_Host.c_str(), port);
     } else {
         if (!parsedUrl.GetPort(&port)) {
             port = 443;
         }
         // TODO(B3N30): Support for setting timeout
         // Figure out what the default timeout on 3DS is
-        client = std::make_unique<httplib::SSLClient>(parsedUrl.m_Host.c_str(), port);
+        client = std::make_shared<httplib::SSLClient>(parsedUrl.m_Host.c_str(), port);
     }
 
     state = RequestState::InProgress;
@@ -83,8 +83,9 @@ void Context::MakeRequest() {
 
     httplib::Request request;
     request.method = request_method_strings.at(method);
-    request.path = url;
+    request.path = '/' + parsedUrl.m_Path;
     // TODO(B3N30): Add post data body
+
     request.progress = [this](u64 current, u64 total) {
         // TODO(B3N30): Is there a state that shows response header are available
         current_download_size_bytes = current;
@@ -97,17 +98,25 @@ void Context::MakeRequest() {
         request.headers.emplace(header.name, header.value);
     }
 
-    // TODO(B3N30): Check for SSLOptions-Bits and set the verify method accordingly
-    // https://www.3dbrew.org/wiki/SSL_Services#SSLOpt
-    // Hack: Since for now no RootCerts are not implemented we set the VerifyMode to None.
-    if (!client->set_verify(httplib::SSLVerifyMode::None)) {
-        LOG_ERROR(Service_HTTP, "Failed to set SSL verification mode to None");
-    }
+    if (parsedUrl.m_Scheme == "https") {
+        std::shared_ptr<httplib::SSLClient> ssl_client =
+            std::static_pointer_cast<httplib::SSLClient>(client);
+        SSL_CTX* ssl_context = ssl_client->ssl_context();
 
-    if (std::shared_ptr<Service::HTTP::ClientCertContext> client_cert =
-            ssl_config.client_cert_ctx.lock()) {
-        if (!client->add_client_cert_ASN1(client_cert->certificate, client_cert->private_key)) {
-            LOG_ERROR(Service_HTTP, "Failed to set client certificate");
+        // TODO(B3N30): Check for SSLOptions-Bits and set the verify method accordingly
+        // https://www.3dbrew.org/wiki/SSL_Services#SSLOpt
+        // Hack: Since for now no RootCerts are not implemented we disable verification.
+        SSL_CTX_set_verify(ssl_context, SSL_VERIFY_NONE, NULL);
+
+        if (std::shared_ptr<Service::HTTP::ClientCertContext> client_cert =
+                ssl_config.client_cert_ctx.lock()) {
+            if (SSL_CTX_use_certificate_ASN1(ssl_context, client_cert->certificate.size(),
+                                             client_cert->certificate.data()) != 1 ||
+                SSL_CTX_use_PrivateKey_ASN1(EVP_PKEY_RSA, ssl_context,
+                                            client_cert->private_key.data(),
+                                            client_cert->private_key.size()) != 1) {
+                LOG_ERROR(Service_HTTP, "Failed to set client certificate");
+            }
         }
     }
 

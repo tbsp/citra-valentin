@@ -88,8 +88,7 @@ target_compile_definitions(ssl PRIVATE -DHAVE_INET_NTOP)
 add_subdirectory(lurlparser EXCLUDE_FROM_ALL)
 
 # httplib
-add_library(httplib INTERFACE)
-target_include_directories(httplib INTERFACE ./httplib)
+add_subdirectory(cpp-httplib)
 
 # JSON
 add_library(json-headers INTERFACE)

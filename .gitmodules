@@ -55,3 +55,6 @@
 [submodule "semver"]
     path = externals/semver
     url = https://github.com/Neargye/semver.git
+[submodule "cpp-httplib"]
+    path = externals/cpp-httplib
+    url = https://github.com/yhirose/cpp-httplib.git

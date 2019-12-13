@@ -273,7 +273,7 @@ void ConfigureReleases::ShowContextMenuForReleases(const QPoint& position) {
         QFuture<std::vector<std::shared_ptr<httplib::Response>>> future =
             QtConcurrent::run([this, &name, version] {
                 httplib::SSLClient client("github.com");
-                client.follow_location(true);
+                client.set_follow_location(true);
 
                 std::shared_ptr<httplib::Response> response = client.Get(
                     fmt::format("/vvanelslande/citra/releases/download/{}/{}", version.to_string(),
@@ -507,7 +507,7 @@ void ConfigureReleases::ShowContextMenuForWindowsUpdater(const QPoint& position)
         QFuture<std::vector<std::shared_ptr<httplib::Response>>> future =
             QtConcurrent::run([this, &name, version] {
                 httplib::SSLClient client("github.com");
-                client.follow_location(true);
+                client.set_follow_location(true);
 
                 std::shared_ptr<httplib::Response> response = client.Get(
                     fmt::format("/vvanelslande/cvu/releases/download/{}/{}", version.to_string(),
