@@ -5,4 +5,4 @@ add_library(lurlparser
 
 create_target_directory_groups(lurlparser)
 
-target_include_directories(lurlparser INTERFACE ${CMAKE_CURRENT_SOURCE_DIR})
+target_include_directories(lurlparser INTERFACE ./LUrlParser)

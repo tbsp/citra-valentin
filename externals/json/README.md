@@ -1,9 +1,5 @@
-JSON for Modern C++
-===================
-
-v3.1.2
+# JSON for Modern C++
 
 This is a mirror providing the single required header file.
 
-The original repository can be found at:
-https://github.com/nlohmann/json/commit/d2dd27dc3b8472dbaa7d66f83619b3ebcd9185fe
+The original repository can be found at https://github.com/nlohmann/json
