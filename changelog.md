@@ -3,7 +3,7 @@
 ## Minor Changes
 
 - Externals: Convert cpp-httplib and LUrlParser to submodules
-- Externals: Update json
+- Externals: Update json and xbyak
 
 # 8.2.0
 
