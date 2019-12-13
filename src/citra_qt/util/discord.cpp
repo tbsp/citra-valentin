@@ -11,10 +11,12 @@
 
 namespace DiscordUtil {
 
-nlohmann::json GetBaseJson() {
-    static nlohmann::json json;
-    if (!json.empty()) {
-        return json;
+BaseJson GetBaseJson() {
+    static BaseJson base_json;
+    if (base_json.first != nullptr && base_json.first->status == 200) {
+        return base_json;
+    } else {
+        base_json.second.clear();
     }
 
     QDesktopServices::openUrl(
@@ -31,28 +33,33 @@ nlohmann::json GetBaseJson() {
         api_input_json["code"] = code;
 
         httplib::SSLClient api_client("cv-aadb.glitch.me");
-        std::shared_ptr<httplib::Response> user_response =
+        base_json.first =
             api_client.Post("/discord/user", std::move(api_input_json).dump(), "application/json");
-        if (user_response == nullptr) {
+        if (base_json.first == nullptr) {
             LOG_ERROR(Frontend, "Discord user information request failed");
             res.status = 500;
-        } else if (user_response->status != 200) {
+        } else if (base_json.first->status != 200) {
             LOG_ERROR(Frontend,
                       "Discord user information request failed, status code: {}, body: {}",
-                      user_response->status, user_response->body);
-            res.status = user_response->status;
-            res.set_content(user_response->body,
-                            httplib::detail::get_header_value(user_response->headers,
+                      base_json.first->status, base_json.first->body);
+            res.status = base_json.first->status;
+            res.set_content(base_json.first->body,
+                            httplib::detail::get_header_value(base_json.first->headers,
                                                               "content-type", 0, "text/plain"));
         } else {
-            res.status = user_response->status;
-            res.set_content(user_response->body,
-                            httplib::detail::get_header_value(user_response->headers,
+            res.status = base_json.first->status;
+            res.set_content(base_json.first->body,
+                            httplib::detail::get_header_value(base_json.first->headers,
                                                               "content-type", 0, "text/plain"));
 
-            const nlohmann::json discord_user_json = nlohmann::json::parse(user_response->body);
-            json["username"] = discord_user_json["username"].get<std::string>();
-            json["avatar_url"] = discord_user_json["avatar_url"].get<std::string>();
+            if (std::strstr(httplib::detail::get_header_value(base_json.first->headers,
+                                                              "content-type", 0, "text/plain"),
+                            "application/json") != nullptr) {
+                const nlohmann::json discord_user_json =
+                    nlohmann::json::parse(base_json.first->body);
+                base_json.second["username"] = discord_user_json["username"].get<std::string>();
+                base_json.second["avatar_url"] = discord_user_json["avatar_url"].get<std::string>();
+            }
         }
 
         server.stop();
@@ -60,7 +67,7 @@ nlohmann::json GetBaseJson() {
 
     server.listen("127.0.0.1", 6310);
 
-    return json;
+    return base_json;
 }
 
 } // namespace DiscordUtil

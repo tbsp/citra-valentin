@@ -4,10 +4,18 @@
 
 #pragma once
 
+#include <memory>
+#include <utility>
 #include <json.hpp>
+
+namespace httplib {
+struct Response;
+} // namespace httplib
 
 namespace DiscordUtil {
 
-nlohmann::json GetBaseJson();
+using BaseJson = std::pair<std::shared_ptr<httplib::Response>, nlohmann::json>;
+
+BaseJson GetBaseJson();
 
 } // namespace DiscordUtil
