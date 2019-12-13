@@ -169,6 +169,8 @@ add_executable(citra-qt
     uisettings.h
     util/clickable_label.cpp
     util/clickable_label.h
+    util/discord.cpp
+    util/discord.h
     util/sequence_dialog/sequence_dialog.cpp
     util/sequence_dialog/sequence_dialog.h
     util/spinbox.cpp

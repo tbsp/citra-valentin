@@ -96,6 +96,8 @@ struct Values {
     QString theme;
     u32 callout_flags;
 
+    std::string discord_token;
+
     // Qt frontend only buttons
     QString capture_screenshot_then_send_to_discord_server_button;
     QString increase_volume_button;

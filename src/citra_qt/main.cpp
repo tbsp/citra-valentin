@@ -54,6 +54,7 @@
 #include "citra_qt/qt_image_interface.h"
 #include "citra_qt/uisettings.h"
 #include "citra_qt/util/clickable_label.h"
+#include "citra_qt/util/discord.h"
 #include "common/common_paths.h"
 #include "common/detached_tasks.h"
 #include "common/file_util.h"
@@ -2506,7 +2507,7 @@ void GMainWindow::CaptureScreenshotToClipboard() {
     VideoCore::RequestScreenshot(
         screenshot_image->bits(),
         [this] {
-            QTimer::singleShot(0, this, [this] {
+            QTimer::singleShot(0, qApp, [this] {
                 QMutexLocker screenshot_image_mutex_locker(&screenshot_image_mutex);
                 QApplication::clipboard()->setImage(screenshot_image->mirrored(false, true));
                 screenshot_image.reset();
@@ -2521,6 +2522,17 @@ void GMainWindow::CaptureScreenshotThenSendToDiscordServer() {
         return;
     }
 
+    if (progress_dialog == nullptr) {
+        progress_dialog =
+            std::make_unique<QProgressDialog>(QStringLiteral("Sending Screenshot"), QString(), 0, 0,
+                                              this, Qt::WindowTitleHint | Qt::WindowSystemMenuHint);
+        progress_dialog->setModal(false);
+        progress_dialog->setWindowTitle(QStringLiteral("Sending Screenshot"));
+        progress_dialog->show();
+    }
+
+    const bool was_running = emu_thread->IsRunning();
+
     const Layout::FramebufferLayout layout = Layout::FrameLayoutFromResolutionScale(
         UISettings::values.screenshot_resolution_factor == 0
             ? VideoCore::GetResolutionScaleFactor()
@@ -2529,21 +2541,9 @@ void GMainWindow::CaptureScreenshotThenSendToDiscordServer() {
         std::make_unique<QImage>(QSize(layout.width, layout.height), QImage::Format_RGB32);
     VideoCore::RequestScreenshot(
         screenshot_image->bits(),
-        [this] {
-            const bool was_running = emu_thread->IsRunning();
-
-            QTimer::singleShot(0, this, [this, was_running] {
+        [=] {
+            QTimer::singleShot(0, qApp, [=] {
                 if (was_running) {
-                    OnPauseGame();
-                }
-
-                if (progress_dialog == nullptr) {
-                    progress_dialog = std::make_unique<QProgressDialog>(
-                        QStringLiteral("Sending Screenshot"), QString(), 0, 0, this,
-                        Qt::WindowTitleHint | Qt::WindowSystemMenuHint);
-                    progress_dialog->setModal(false);
-                    progress_dialog->setWindowTitle(QStringLiteral("Sending Screenshot"));
-                    progress_dialog->show();
                 }
             });
 
@@ -2555,77 +2555,16 @@ void GMainWindow::CaptureScreenshotThenSendToDiscordServer() {
                 screenshot_image.reset();
             }
 
-            nlohmann::json json;
-
-            if (Settings::values.citra_username.empty()) {
-                if (!game_title.isEmpty()) {
-                    json["username"] = fmt::format("Someone playing {}", game_title.toStdString());
-                }
-            } else {
-                httplib::SSLClient forum_client("community.citra-emu.org");
-                std::shared_ptr<httplib::Response> forum_summary_response = forum_client.Get(
-                    fmt::format("https://community.citra-emu.org/u/{}/summary.json",
-                                Settings::values.citra_username)
-                        .c_str());
-                if (forum_summary_response == nullptr) {
-                    LOG_ERROR(Frontend, "Forum summary request failed");
-
-                    QTimer::singleShot(0, this, [this, was_running] {
-                        if (progress_dialog != nullptr) {
-                            progress_dialog.reset();
-                        }
-
-                        if (was_running) {
-                            OnStartGame();
-                        }
-                    });
-
-                    return;
-                }
-                if (forum_summary_response->status != 200) {
-                    LOG_ERROR(Frontend, "Forum summary request failed, status code: {}, body: {}",
-                              forum_summary_response->status, forum_summary_response->body);
-
-                    QTimer::singleShot(0, this, [this, was_running] {
-                        if (progress_dialog != nullptr) {
-                            progress_dialog.reset();
-                        }
-
-                        if (was_running) {
-                            OnStartGame();
-                        }
-                    });
-
-                    return;
-                }
-
-                const nlohmann::json forum_summary =
-                    nlohmann::json::parse(forum_summary_response->body);
-
-                if (game_title.isEmpty()) {
-                    json["username"] = Settings::values.citra_username;
-                } else {
-                    json["username"] = fmt::format("{} playing {}", Settings::values.citra_username,
-                                                   game_title.toStdString());
-                }
-
-                if (forum_summary.count("users")) {
-                    const nlohmann::json user = forum_summary["users"][0];
-                    const std::string avatar_template = user["avatar_template"].get<std::string>();
-
-                    json["avatar_url"] =
-                        QString::fromStdString(std::string("https://community.citra-emu.org") +
-                                               avatar_template)
-                            .replace(QStringLiteral("{size}"), QStringLiteral("128"))
-                            .toStdString();
-                }
+            nlohmann::json json = DiscordUtil::GetBaseJson();
+            json["file"] = "unknown.png";
+            if (!game_title.isEmpty()) {
+                json["username"] = json["username"].get<std::string>().append(
+                    fmt::format(" playing {}", game_title.toStdString()));
             }
 
             QBuffer buffer;
             buffer.open(QIODevice::WriteOnly);
             mirrored.save(&buffer, "PNG");
-
-            json["file"] = "unknown.png";
 
             const std::string boundary = httplib::detail::make_multipart_data_boundary();
 
@@ -2634,7 +2573,7 @@ void GMainWindow::CaptureScreenshotThenSendToDiscordServer() {
 
             httplib::MultipartFormData json_item;
             json_item.name = "payload_json";
-            json_item.content = json.dump();
+            json_item.content = std::move(json).dump();
             json_item.content_type = "application/json";
             items.push_back(std::move(json_item));
 
@@ -2674,7 +2613,7 @@ void GMainWindow::CaptureScreenshotThenSendToDiscordServer() {
                           discord_response->status, discord_response->body);
             }
 
-            QTimer::singleShot(0, this, [this, was_running] {
+            QTimer::singleShot(0, qApp, [=] {
                 if (progress_dialog != nullptr) {
                     progress_dialog.reset();
                 }

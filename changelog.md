@@ -1,12 +1,18 @@
-# (Unreleased)
+# 8.2.0
 
-## Fixes
+## Features
 
-- Qt: Don't send game name if it's empty
+- Qt: Key/controller button to continue/pause emulation
+
+## Discord related changes in the Qt frontend (Discord Logger and Capture Screenshot Then Send To Discord Server)
+
+- Citra Valentin now uses your Discord username and avatar.
+- Now you need to be a member of the Citra Valentin Discord server to send logs and screenshots.
+- Now sending logs and screenshots is faster because your Discord account information is cached.
 
 ## Minor Changes
 
-- Remove `multiply_input` because it didn't work
+- SDL Analogs: Remove `multiply_input` because it didn't work
 - Lots of code style changes
 
 # 8.1.0

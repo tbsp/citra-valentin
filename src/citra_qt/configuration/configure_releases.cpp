@@ -514,7 +514,7 @@ void ConfigureReleases::ShowContextMenuForWindowsUpdater(const QPoint& position)
                                 name)
                         .c_str(),
                     [this](u64 current, u64 total) {
-                        QTimer::singleShot(0, qApp, [this, current, total] {
+                        QTimer::singleShot(0, qApp, [=] {
                             progress_dialog->setValue(static_cast<int>(
                                 100 * (static_cast<double>(current) / static_cast<double>(total))));
                         });
