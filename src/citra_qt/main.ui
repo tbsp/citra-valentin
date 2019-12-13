@@ -481,7 +481,8 @@
     <string>Send To Discord Server</string>
    </property>
    <property name="toolTip">
-    <string>Capture a screenshot then send it to #screenshots-from-cv in the Discord server</string>
+    <string>Capture a screenshot then send it to #screenshots-from-cv in the Discord server.
+This feature is only for Discord members.</string>
    </property>
   </action>
   <action name="action_Create_Pica_Surface_Viewer">
@@ -497,7 +498,8 @@
     <string>Enable Discord Logger</string>
    </property>
    <property name="toolTip">
-    <string>Sends the log to #logs-from-cv in the Discord server after the emulation stops.</string>
+    <string>Sends the log to #logs-from-cv in the Discord server after the emulation stops.
+This feature is only for Discord members.</string>
    </property>
   </action>
  </widget>

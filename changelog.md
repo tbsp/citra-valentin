@@ -2,7 +2,7 @@
 
 ## Features
 
-- Qt: Key/controller button to continue/pause emulation
+- Qt: Converted the continue/pause so now you can use it with your controller.
 
 ## Discord related changes in the Qt frontend (Discord Logger and Capture Screenshot Then Send To Discord Server)
 

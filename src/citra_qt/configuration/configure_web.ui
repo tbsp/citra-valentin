@@ -17,8 +17,7 @@
         <item>
          <widget class="QLabel" name="web_credentials_disclaimer">
           <property name="text">
-           <string>This is required to host public rooms.
-Your username and profile picture will be used by Capture Screenshot Then Send To Discord Server and the Discord Logger.</string>
+           <string>This is required to host public rooms.</string>
           </property>
           <property name="wordWrap">
            <bool>true</bool>
