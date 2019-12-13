@@ -7,7 +7,7 @@
 #include "citra_qt/uisettings.h"
 
 // clang-format off
-const std::array<UISettings::Shortcut, 37> default_hotkeys{
+const std::array<UISettings::Shortcut, 36> default_hotkeys{
     {{QStringLiteral("2x Native Internal Resolution"),                  QStringLiteral("Main Window"), {QStringLiteral("Alt+2"), Qt::ApplicationShortcut}},
      {QStringLiteral("3x Native Internal Resolution"),                  QStringLiteral("Main Window"), {QStringLiteral("Alt+3"), Qt::ApplicationShortcut}},
      {QStringLiteral("4x Native Internal Resolution"),                  QStringLiteral("Main Window"), {QStringLiteral("Alt+4"), Qt::ApplicationShortcut}},
@@ -21,7 +21,6 @@ const std::array<UISettings::Shortcut, 37> default_hotkeys{
      {QStringLiteral("Auto Internal Resolution"),                       QStringLiteral("Main Window"), {QStringLiteral("Alt+A"), Qt::ApplicationShortcut}},
      {QStringLiteral("Capture Screenshot Then Save To File"),           QStringLiteral("Main Window"), {QStringLiteral("Ctrl+P"), Qt::ApplicationShortcut}},
      {QStringLiteral("Capture Screenshot Then Copy To Clipboard"),      QStringLiteral("Main Window"), {QStringLiteral("Ctrl+B"), Qt::ApplicationShortcut}},
-     {QStringLiteral("Continue/Pause Emulation"),                       QStringLiteral("Main Window"), {QStringLiteral("F4"), Qt::WindowShortcut}},
      {QStringLiteral("Decrease Speed Limit"),                           QStringLiteral("Main Window"), {QStringLiteral("-"), Qt::ApplicationShortcut}},
      {QStringLiteral("Exit"),                                           QStringLiteral("Main Window"), {QStringLiteral("Ctrl+Q"), Qt::WindowShortcut}},
      {QStringLiteral("Exit Fullscreen"),                                QStringLiteral("Main Window"), {QStringLiteral("Esc"), Qt::WindowShortcut}},

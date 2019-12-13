@@ -53,14 +53,16 @@ void EmuThread::run() {
             emit DiskShaderCacheLoadingProgress(stage, value, total);
         });
 
-    // Holds whether the cpu was running during the last iteration,
+    // Holds whether the CPU was running during the last iteration,
     // so that the DebugModeLeft signal can be emitted before the
     // next execution step.
     bool was_active = false;
+
     while (!stop_run) {
-        if (running) {
-            if (!was_active)
+        if (running && !pause_button->GetStatus()) {
+            if (!was_active) {
                 emit DebugModeLeft();
+            }
 
             if (capture_screenshot_then_send_to_discord_server_button->GetStatus()) {
                 emit CaptureScreenshotThenSendToDiscordServerRequested();
@@ -83,11 +85,13 @@ void EmuThread::run() {
             }
 
             was_active = running || exec_step;
-            if (!was_active && !stop_run)
+            if (!was_active && !stop_run) {
                 emit DebugModeEntered();
+            }
         } else if (exec_step) {
-            if (!was_active)
+            if (!was_active) {
                 emit DebugModeLeft();
+            }
 
             exec_step = false;
             Core::System::GetInstance().SingleStep();
@@ -96,8 +100,8 @@ void EmuThread::run() {
 
             was_active = false;
         } else {
-            std::unique_lock lock{running_mutex};
-            running_cv.wait(lock, [this] { return IsRunning() || exec_step || stop_run; });
+            std::unique_lock<std::mutex> lock(running_mutex);
+            running_cv.wait(lock, [&] { return IsRunning() || exec_step || stop_run; });
         }
     }
 
@@ -113,6 +117,8 @@ void EmuThread::UpdateQtButtons() {
         UISettings::values.increase_volume_button.toStdString());
     decrease_volume_button = Input::CreateDevice<Input::ButtonDevice>(
         UISettings::values.decrease_volume_button.toStdString());
+    pause_button =
+        Input::CreateDevice<Input::ButtonDevice>(UISettings::values.pause_button.toStdString());
 }
 
 OpenGLWindow::OpenGLWindow(QWindow* parent, QWidget* event_handler, QOpenGLContext* shared_context)

@@ -66,7 +66,7 @@ public:
      * @note This function is thread-safe
      */
     void SetRunning(bool running) {
-        std::unique_lock lock{running_mutex};
+        std::unique_lock<std::mutex> lock(running_mutex);
         this->running = running;
         lock.unlock();
         running_cv.notify_all();
@@ -104,6 +104,7 @@ private:
     std::unique_ptr<Input::ButtonDevice> capture_screenshot_then_send_to_discord_server_button;
     std::unique_ptr<Input::ButtonDevice> increase_volume_button;
     std::unique_ptr<Input::ButtonDevice> decrease_volume_button;
+    std::unique_ptr<Input::ButtonDevice> pause_button;
 
 signals:
     /**

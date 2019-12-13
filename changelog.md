@@ -1,9 +1,5 @@
 # 8.2.0
 
-## Features
-
-- Qt: Converted the continue/pause so now you can use it with your controller.
-
 ## Discord related changes in the Qt frontend (Discord Logger and Capture Screenshot Then Send To Discord Server)
 
 - Citra Valentin now uses your Discord username and avatar.
@@ -12,6 +8,8 @@
 
 ## Minor Changes
 
+- Qt: Split controls into `3DS Controls` and `Qt Buttons`
+- Qt: Converted the continue/pause so now you can use it with your controller. The hotkey was removed and now the game is paused while the key/controller button is pressed.
 - SDL Analogs: Remove `multiply_input` because it didn't work
 - Lots of code style changes
 
