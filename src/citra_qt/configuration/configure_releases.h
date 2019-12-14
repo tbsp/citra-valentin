@@ -35,20 +35,13 @@ public:
     ~ConfigureReleases();
 
 private slots:
-    void FetchReleases();
-    void FetchWindowsUpdaterReleases();
-
-    void ShowContextMenuForReleases(const QPoint& position);
-    void ShowContextMenuForWindowsUpdater(const QPoint& position);
+    void Fetch();
+    void ShowContextMenu(const QPoint& position);
 
 private:
     std::unique_ptr<QFutureWatcher<std::vector<std::shared_ptr<httplib::Response>>>>
         http_responses_future_watcher;
     std::unique_ptr<QProgressDialog> progress_dialog;
-
-#ifdef _WIN32
-    QString install_dir;
-#endif
 
     std::unique_ptr<Ui::ConfigureReleases> ui;
 };

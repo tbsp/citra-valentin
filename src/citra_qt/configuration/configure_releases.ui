@@ -19,13 +19,22 @@
      </property>
      <layout class="QVBoxLayout" name="verticalLayout_2">
       <item>
-       <widget class="QLabel" name="label">
-        <property name="text">
-         <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Right click a version to open the release in your browser, open the changelog in your browser or download assets.&lt;/p&gt;&lt;p&gt;If the release was installed using the Windows-only updater, you can start the release, open the location of the release and delete the release.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
-        </property>
-        <property name="wordWrap">
-         <bool>true</bool>
-        </property>
+       <widget class="QComboBox" name="releases_of_what">
+        <item>
+         <property name="text">
+          <string>vvanelslande/citra</string>
+         </property>
+        </item>
+        <item>
+         <property name="text">
+          <string>vvanelslande/cvu</string>
+         </property>
+        </item>
+        <item>
+         <property name="text">
+          <string>vvanelslande/dc4c</string>
+         </property>
+        </item>
        </widget>
       </item>
       <item>
@@ -33,79 +42,6 @@
       </item>
       <item>
        <widget class="QPushButton" name="fetch_releases">
-        <property name="enabled">
-         <bool>true</bool>
-        </property>
-        <property name="text">
-         <string>Fetch</string>
-        </property>
-       </widget>
-      </item>
-     </layout>
-    </widget>
-   </item>
-   <item>
-    <widget class="QGroupBox" name="groupBox_2">
-     <property name="enabled">
-      <bool>true</bool>
-     </property>
-     <property name="title">
-      <string>Windows-only Updater Releases</string>
-     </property>
-     <layout class="QVBoxLayout" name="verticalLayout">
-      <item>
-       <widget class="QLabel" name="label_2">
-        <property name="enabled">
-         <bool>true</bool>
-        </property>
-        <property name="text">
-         <string>Right click to open the release in your browser, open the changelog in your browser or download assets.</string>
-        </property>
-        <property name="wordWrap">
-         <bool>true</bool>
-        </property>
-       </widget>
-      </item>
-      <item>
-       <widget class="QWidget" name="cvu_install_dir_group" native="true">
-        <property name="enabled">
-         <bool>true</bool>
-        </property>
-        <layout class="QHBoxLayout">
-         <property name="leftMargin">
-          <number>0</number>
-         </property>
-         <property name="topMargin">
-          <number>0</number>
-         </property>
-         <property name="rightMargin">
-          <number>0</number>
-         </property>
-         <property name="bottomMargin">
-          <number>0</number>
-         </property>
-         <item>
-          <widget class="QLabel" name="cvu_install_dir">
-           <property name="text">
-            <string>Installation Directory: </string>
-           </property>
-          </widget>
-         </item>
-         <item>
-          <widget class="QPushButton" name="open_cvu_install_dir">
-           <property name="text">
-            <string>Open</string>
-           </property>
-          </widget>
-         </item>
-        </layout>
-       </widget>
-      </item>
-      <item>
-       <widget class="QListWidget" name="cvu_releases"/>
-      </item>
-      <item>
-       <widget class="QPushButton" name="fetch_cvu_releases">
         <property name="enabled">
          <bool>true</bool>
         </property>

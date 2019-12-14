@@ -3,7 +3,7 @@
 ## Added
 
 - Qt: Named pipe (Windows-only) camera implementation
-- Qt/ConfigureReleases: Citra Valentin, Citra Valentin Updater or DC4C combobox
+- Qt/ConfigureReleases: Citra Valentin, Citra Valentin Updater or DC4C combobox. Some right click context menu options were removed.
 
 ## Removed
 
