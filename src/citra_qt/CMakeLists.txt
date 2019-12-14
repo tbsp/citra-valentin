@@ -177,6 +177,10 @@ add_executable(citra-qt
     util/spinbox.h
     util/util.cpp
     util/util.h
+    $<$<BOOL:${WIN32}>:
+        camera/pipe_camera.cpp
+        camera/pipe_camera.h
+    >
     $<$<BOOL:${CITRA_ENABLE_DISCORD_RP}>:
         discord_rp.cpp
         discord_rp.h

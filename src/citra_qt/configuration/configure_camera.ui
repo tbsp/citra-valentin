@@ -2,6 +2,14 @@
 <ui version="4.0">
  <class>ConfigureCamera</class>
  <widget class="QWidget" name="ConfigureCamera">
+  <property name="geometry">
+   <rect>
+    <x>0</x>
+    <y>0</y>
+    <width>278</width>
+    <height>424</height>
+   </rect>
+  </property>
   <property name="windowTitle">
    <string>Form</string>
   </property>
@@ -144,6 +152,11 @@
           <item>
            <property name="text">
             <string>System Camera (qt)</string>
+           </property>
+          </item>
+          <item>
+           <property name="text">
+            <string>Named Pipe Camera (pipe, Windows only)</string>
            </property>
           </item>
          </widget>

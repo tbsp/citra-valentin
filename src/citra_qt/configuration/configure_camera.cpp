@@ -15,10 +15,11 @@
 #include "core/settings.h"
 #include "ui_configure_camera.h"
 
-const std::array<std::string, 3> ConfigureCamera::Implementations = {
+const std::array<std::string, 4> ConfigureCamera::Implementations = {
     "blank", /* Blank */
     "image", /* Image */
     "qt",    /* System Camera */
+    "pipe"   /* Named Pipe Camera */
 };
 
 ConfigureCamera::ConfigureCamera(QWidget* parent)
@@ -116,7 +117,7 @@ void ConfigureCamera::UpdateImageSourceUI() {
     switch (image_source) {
     case 0: /* blank */
     case 2:
-    case 3: /* system camera */
+    case 3: /* system camera or named pipe camera */
         ui->prompt_before_load->setHidden(true);
         ui->prompt_before_load->setChecked(false);
         ui->camera_file_label->setHidden(true);
@@ -142,8 +143,8 @@ void ConfigureCamera::UpdateImageSourceUI() {
     default:
         LOG_ERROR(Service_CAM, "Unknown image source {}", image_source);
     }
-    ui->system_camera_label->setHidden(image_source != 2 && image_source != 3);
-    ui->system_camera->setHidden(image_source != 2 && image_source != 3);
+    ui->system_camera_label->setHidden(image_source != 2);
+    ui->system_camera->setHidden(image_source != 2);
     ui->camera_flip_label->setHidden(image_source == 0);
     ui->camera_flip->setHidden(image_source == 0);
 }
@@ -152,7 +153,7 @@ void ConfigureCamera::RecordConfig() {
     std::string implementation = Implementations[ui->image_source->currentIndex()];
     int image_source = ui->image_source->currentIndex();
     std::string config;
-    if (image_source == 2 || image_source == 3) { /* system camera */
+    if (image_source == 2) { /* system camera */
         if (ui->system_camera->currentIndex() == 0) {
             config = "";
         } else {

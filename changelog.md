@@ -1,5 +1,10 @@
 # 9.0.0
 
+## Added
+
+- Qt: Named pipe (Windows-only) camera implementation
+- Qt/ConfigureReleases: Citra Valentin, Citra Valentin Updater or DC4C combobox
+
 ## Removed
 
 - Qt: DirectShow camera implementation. for some reason libdshowcapture only returns DroidCam Source 3 and that one doesn't work for me.
