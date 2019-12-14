@@ -199,6 +199,7 @@ GMainWindow::GMainWindow()
 
     show();
 
+    game_list->SetDirectoryWatcherEnabled(true);
     game_list->PopulateAsync(UISettings::values.game_dirs);
 
     // Show one-time "callout" messages to the user
@@ -1125,6 +1126,8 @@ void GMainWindow::BootGame(const QString& filename) {
         return;
     }
 
+    game_list->SetDirectoryWatcherEnabled(false);
+
     // Create and start the emulation thread
     emu_thread = std::make_unique<EmuThread>(*render_window);
     emit EmulationStarting(emu_thread.get());
@@ -1222,6 +1225,9 @@ void GMainWindow::ShutdownGame() {
     // Wait for emulation thread to complete and delete it
     emu_thread->wait();
     emu_thread = nullptr;
+
+    game_list->SetDirectoryWatcherEnabled(true);
+    game_list->PopulateAsync(UISettings::values.game_dirs);
 
     Camera::QtMultimediaCameraHandler::ReleaseHandlers();
 
@@ -1470,7 +1476,7 @@ void GMainWindow::OnMenuInstallCIA() {
 
 void GMainWindow::InstallCIA(QStringList filepaths) {
     ui.action_Install_CIA->setEnabled(false);
-    game_list->setDirectoryWatcherEnabled(false);
+    game_list->SetDirectoryWatcherEnabled(false);
     progress_bar->show();
     progress_bar->setMaximum(INT_MAX);
 
@@ -1529,7 +1535,7 @@ void GMainWindow::OnCIAInstallReport(Service::AM::InstallStatus status, QString 
 void GMainWindow::OnCIAInstallFinished() {
     progress_bar->hide();
     progress_bar->setValue(0);
-    game_list->setDirectoryWatcherEnabled(true);
+    game_list->SetDirectoryWatcherEnabled(true);
     ui.action_Install_CIA->setEnabled(true);
     game_list->PopulateAsync(UISettings::values.game_dirs);
 }
@@ -2191,8 +2197,8 @@ static bool IsSingleFileDropEvent(const QMimeData* mime) {
     return mime->hasUrls() && mime->urls().length() == 1;
 }
 
-static const std::array<std::string, 9> ACCEPTED_EXTENSIONS = {"cci",  "cvm", "3ds", "cxi", "bin",
-                                                               "3dsx", "app", "elf", "axf"};
+static const std::array<std::string, 10> ACCEPTED_EXTENSIONS = {"cci",  "cvm", "3ds", "cxi", "bin",
+                                                                "3dsx", "app", "elf", "axf", "cia"};
 
 static bool IsCorrectFileExtension(const QMimeData* mime) {
     const QString& filename = mime->urls().at(0).toLocalFile();

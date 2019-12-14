@@ -275,11 +275,7 @@ void GameList::onFilterCloseClicked() {
     main_window->filterBarSetChecked(false);
 }
 
-GameList::GameList(GMainWindow* parent) : QWidget{parent} {
-    watcher = new QFileSystemWatcher(this);
-    connect(watcher, &QFileSystemWatcher::directoryChanged, this, &GameList::RefreshGameDirectory,
-            Qt::UniqueConnection);
-
+GameList::GameList(GMainWindow* parent) : QWidget(parent) {
     this->main_window = parent;
     layout = new QVBoxLayout;
     tree_view = new QTreeView;
@@ -335,13 +331,13 @@ void GameList::setFilterVisible(bool visibility) {
     search_field->setVisible(visibility);
 }
 
-void GameList::setDirectoryWatcherEnabled(bool enabled) {
+void GameList::SetDirectoryWatcherEnabled(bool enabled) {
     if (enabled) {
-        connect(watcher, &QFileSystemWatcher::directoryChanged, this,
+        watcher = std::make_unique<QFileSystemWatcher>(this);
+        connect(watcher.get(), &QFileSystemWatcher::directoryChanged, this,
                 &GameList::RefreshGameDirectory, Qt::UniqueConnection);
     } else {
-        disconnect(watcher, &QFileSystemWatcher::directoryChanged, this,
-                   &GameList::RefreshGameDirectory);
+        watcher.reset();
     }
 }
 
@@ -459,120 +455,120 @@ void GameList::PopupContextMenu(const QPoint& menu_location) {
 
 void GameList::AddGamePopup(QMenu& context_menu, const QString& path, u64 program_id,
                             u64 extdata_id) {
+    context_menu.addAction(QStringLiteral("Start Using Game Settings"), [this, path] {
+        emit Hide();
+
+        QtConcurrent::run([path] {
+            const std::string& config_dir = FileUtil::GetUserPath(FileUtil::UserPath::ConfigDir);
+            const std::string general_config_path = config_dir + DIR_SEP + "qt-config.ini";
+            const std::string game_config_path = path.toStdString() + ".cv-ini";
+
+            std::string general_config;
+            FileUtil::ReadFileToString(true, general_config_path, general_config);
+
+            if (FileUtil::Exists(game_config_path)) {
+                FileUtil::Copy(game_config_path, general_config_path);
+            } else {
+                FileUtil::WriteStringToFile(true, general_config_path, "");
+            }
+
+            QProcess::execute(QCoreApplication::applicationFilePath(), QStringList() << path);
+
+            std::string game_config;
+            FileUtil::ReadFileToString(true, general_config_path, game_config);
+            FileUtil::WriteStringToFile(true, game_config_path, game_config);
+
+            FileUtil::WriteStringToFile(true, general_config_path, general_config);
+            QCoreApplication::quit();
+        });
+    });
+
+    const std::string sdmc_dir = FileUtil::GetUserPath(FileUtil::UserPath::SDMCDir);
     const bool is_application =
         0x0004000000000000 <= program_id && program_id <= 0x00040000FFFFFFFF;
 
-    if (is_application) {
-        context_menu.addAction(QStringLiteral("Start Using Game Settings"), [this, path] {
-            emit Hide();
-
-            QtConcurrent::run([path] {
-                const std::string& config_dir =
-                    FileUtil::GetUserPath(FileUtil::UserPath::ConfigDir);
-                const std::string general_config_path = config_dir + DIR_SEP + "qt-config.ini";
-                const std::string game_config_path = path.toStdString() + ".cv-ini";
-
-                std::string general_config;
-                FileUtil::ReadFileToString(true, general_config_path, general_config);
-
-                if (FileUtil::Exists(game_config_path)) {
-                    FileUtil::Copy(game_config_path, general_config_path);
-                } else {
-                    FileUtil::WriteStringToFile(true, general_config_path, "");
-                }
-
-                QProcess::execute(QCoreApplication::applicationFilePath(), QStringList() << path);
-
-                std::string game_config;
-                FileUtil::ReadFileToString(true, general_config_path, game_config);
-                FileUtil::WriteStringToFile(true, game_config_path, game_config);
-
-                FileUtil::WriteStringToFile(true, general_config_path, general_config);
-                QCoreApplication::quit();
-            });
+    if (is_application && FileUtil::Exists(FileSys::ArchiveSource_SDSaveData::GetSaveDataPathFor(
+                              sdmc_dir, program_id))) {
+        context_menu.addAction(QStringLiteral("Open Save Data Location"), [this, program_id] {
+            emit OpenFolderRequested(program_id, GameListOpenTarget::SAVE_DATA);
         });
     }
 
-    QAction* open_save_location = context_menu.addAction(QStringLiteral("Open Save Data Location"));
-    QAction* open_extdata_location =
-        context_menu.addAction(QStringLiteral("Open Extra Data Location"));
-    QAction* open_application_location =
-        context_menu.addAction(QStringLiteral("Open Application Location"));
-    QAction* open_update_location =
-        context_menu.addAction(QStringLiteral("Open Update Data Location"));
-    QAction* open_texture_dump_location =
-        context_menu.addAction(QStringLiteral("Open Texture Dump Location"));
-    QAction* open_texture_load_location =
-        context_menu.addAction(QStringLiteral("Open Custom Texture Location"));
-
-    const std::string sdmc_dir = FileUtil::GetUserPath(FileUtil::UserPath::SDMCDir);
-    open_save_location->setVisible(
-        is_application && FileUtil::Exists(FileSys::ArchiveSource_SDSaveData::GetSaveDataPathFor(
-                              sdmc_dir, program_id)));
-
-    if (extdata_id) {
-        open_extdata_location->setVisible(
-            is_application &&
-            FileUtil::Exists(FileSys::GetExtDataPathFromId(sdmc_dir, extdata_id)));
-    } else {
-        open_extdata_location->setVisible(false);
+    if (extdata_id && is_application &&
+        FileUtil::Exists(FileSys::GetExtDataPathFromId(sdmc_dir, extdata_id))) {
+        context_menu.addAction(QStringLiteral("Open Extra Data Location"), [this, extdata_id] {
+            emit OpenFolderRequested(extdata_id, GameListOpenTarget::EXT_DATA);
+        });
     }
 
     const Service::FS::MediaType media_type = Service::AM::GetTitleMediaType(program_id);
-    open_application_location->setVisible(path.toStdString() ==
-                                          Service::AM::GetTitleContentPath(media_type, program_id));
-    open_update_location->setVisible(
-        is_application && FileUtil::Exists(Service::AM::GetTitlePath(Service::FS::MediaType::SDMC,
+    const bool is_installed =
+        path.toStdString() == Service::AM::GetTitleContentPath(media_type, program_id);
+
+    if (is_installed) {
+        context_menu.addAction(QStringLiteral("Open Application Location"), [this, program_id] {
+            emit OpenFolderRequested(program_id, GameListOpenTarget::APPLICATION);
+        });
+    }
+
+    if (is_application && FileUtil::Exists(Service::AM::GetTitlePath(Service::FS::MediaType::SDMC,
                                                                      program_id + 0xe00000000) +
-                                           "content/"));
+                                           "content/")) {
+        context_menu.addAction(QStringLiteral("Open Update Data Location"), [this, program_id] {
+            emit OpenFolderRequested(program_id, GameListOpenTarget::UPDATE_DATA);
+        });
+    }
 
-    open_texture_dump_location->setVisible(is_application);
-    open_texture_load_location->setVisible(is_application);
+    if (program_id != 0) {
+        context_menu.addAction(QStringLiteral("Open Texture Dump Location"), [this, program_id] {
+            if (FileUtil::CreateFullPath(
+                    fmt::format("{}textures/{:016X}/",
+                                FileUtil::GetUserPath(FileUtil::UserPath::DumpDir), program_id))) {
+                emit OpenFolderRequested(program_id, GameListOpenTarget::TEXTURE_DUMP);
+            }
+        });
+        context_menu.addAction(QStringLiteral("Open Custom Texture Location"), [this, program_id] {
+            if (FileUtil::CreateFullPath(
+                    fmt::format("{}textures/{:016X}/",
+                                FileUtil::GetUserPath(FileUtil::UserPath::LoadDir), program_id))) {
+                emit OpenFolderRequested(program_id, GameListOpenTarget::TEXTURE_LOAD);
+            }
+        });
+    }
 
-    connect(open_save_location, &QAction::triggered, [this, program_id] {
-        emit OpenFolderRequested(program_id, GameListOpenTarget::SAVE_DATA);
-    });
-    connect(open_extdata_location, &QAction::triggered, [this, extdata_id] {
-        emit OpenFolderRequested(extdata_id, GameListOpenTarget::EXT_DATA);
-    });
-    connect(open_application_location, &QAction::triggered, [this, program_id] {
-        emit OpenFolderRequested(program_id, GameListOpenTarget::APPLICATION);
-    });
-    connect(open_update_location, &QAction::triggered, [this, program_id] {
-        emit OpenFolderRequested(program_id, GameListOpenTarget::UPDATE_DATA);
-    });
-    connect(open_texture_dump_location, &QAction::triggered, [this, program_id] {
-        if (FileUtil::CreateFullPath(fmt::format("{}textures/{:016X}/",
-                                                 FileUtil::GetUserPath(FileUtil::UserPath::DumpDir),
-                                                 program_id))) {
-            emit OpenFolderRequested(program_id, GameListOpenTarget::TEXTURE_DUMP);
-        }
-    });
-    connect(open_texture_load_location, &QAction::triggered, [this, program_id] {
-        if (FileUtil::CreateFullPath(fmt::format("{}textures/{:016X}/",
-                                                 FileUtil::GetUserPath(FileUtil::UserPath::LoadDir),
-                                                 program_id))) {
-            emit OpenFolderRequested(program_id, GameListOpenTarget::TEXTURE_LOAD);
-        }
-    });
+    if (is_installed) {
+        context_menu.addAction(QStringLiteral("Delete Application"), [=] {
+            const bool directory_watcher_was_enabled = watcher != nullptr;
+
+            if (directory_watcher_was_enabled) {
+                SetDirectoryWatcherEnabled(false);
+            }
+
+            FileUtil::DeleteDirRecursively(Service::AM::GetTitlePath(media_type, program_id));
+
+            if (directory_watcher_was_enabled) {
+                SetDirectoryWatcherEnabled(true);
+                PopulateAsync(UISettings::values.game_dirs);
+            }
+        });
+    }
 };
 
 void GameList::AddCustomDirPopup(QMenu& context_menu, QModelIndex selected) {
     UISettings::GameDir& game_dir =
         *selected.data(GameListDir::GameDirRole).value<UISettings::GameDir*>();
 
-    QAction* deep_scan = context_menu.addAction(QStringLiteral("Scan Subfolders"));
-    QAction* delete_dir = context_menu.addAction(QStringLiteral("Remove Game Directory"));
+    QAction* deep_scan =
+        context_menu.addAction(QStringLiteral("Scan Subfolders"), [this, &game_dir] {
+            game_dir.deep_scan = !game_dir.deep_scan;
+            emit SettingsChanged();
+            PopulateAsync(UISettings::values.game_dirs);
+        });
 
     deep_scan->setCheckable(true);
     deep_scan->setChecked(game_dir.deep_scan);
 
-    connect(deep_scan, &QAction::triggered, [this, &game_dir] {
-        game_dir.deep_scan = !game_dir.deep_scan;
-        emit SettingsChanged();
-        PopulateAsync(UISettings::values.game_dirs);
-    });
-    connect(delete_dir, &QAction::triggered, [this, &game_dir, selected] {
+    context_menu.addAction(QStringLiteral("Remove Game Directory"), [this, &game_dir, selected] {
         UISettings::values.game_dirs.removeOne(game_dir);
         emit SettingsChanged();
         item_model->invisibleRootItem()->removeRow(selected.row());
@@ -583,44 +579,40 @@ void GameList::AddPermDirPopup(QMenu& context_menu, QModelIndex selected) {
     UISettings::GameDir& game_dir =
         *selected.data(GameListDir::GameDirRole).value<UISettings::GameDir*>();
 
-    QAction* move_up = context_menu.addAction(u8"\U000025b2 Move Up");
-    QAction* move_down = context_menu.addAction(u8"\U000025bc Move Down ");
-    QAction* open_directory_location =
-        context_menu.addAction(QStringLiteral("Open Directory Location"));
-
     const int row = selected.row();
 
-    move_up->setEnabled(row > 0);
-    move_down->setEnabled(row < item_model->rowCount() - 2);
+    if (row > 0) {
+        context_menu.addAction(u8"\U000025b2 Move Up", [this, selected, row, &game_dir] {
+            // find the indices of the items in settings and swap them
+            std::swap(UISettings::values.game_dirs[UISettings::values.game_dirs.indexOf(game_dir)],
+                      UISettings::values.game_dirs[UISettings::values.game_dirs.indexOf(
+                          *selected.sibling(row - 1, 0)
+                               .data(GameListDir::GameDirRole)
+                               .value<UISettings::GameDir*>())]);
+            // move the treeview items
+            QList<QStandardItem*> item = item_model->takeRow(row);
+            item_model->invisibleRootItem()->insertRow(row - 1, item);
+            tree_view->setExpanded(selected, game_dir.expanded);
+        });
+    }
 
-    connect(move_up, &QAction::triggered, [this, selected, row, &game_dir] {
-        // find the indices of the items in settings and swap them
-        std::swap(UISettings::values.game_dirs[UISettings::values.game_dirs.indexOf(game_dir)],
-                  UISettings::values.game_dirs[UISettings::values.game_dirs.indexOf(
-                      *selected.sibling(row - 1, 0)
-                           .data(GameListDir::GameDirRole)
-                           .value<UISettings::GameDir*>())]);
-        // move the treeview items
-        QList<QStandardItem*> item = item_model->takeRow(row);
-        item_model->invisibleRootItem()->insertRow(row - 1, item);
-        tree_view->setExpanded(selected, game_dir.expanded);
-    });
+    if (row < item_model->rowCount() - 2) {
+        context_menu.addAction(u8"\U000025bc Move Down ", [this, selected, row, &game_dir] {
+            // find the indices of the items in settings and swap them
+            std::swap(UISettings::values.game_dirs[UISettings::values.game_dirs.indexOf(game_dir)],
+                      UISettings::values.game_dirs[UISettings::values.game_dirs.indexOf(
+                          *selected.sibling(row + 1, 0)
+                               .data(GameListDir::GameDirRole)
+                               .value<UISettings::GameDir*>())]);
+            // move the treeview items
+            const QList<QStandardItem*> item = item_model->takeRow(row);
+            item_model->invisibleRootItem()->insertRow(row + 1, item);
+            tree_view->setExpanded(selected, game_dir.expanded);
+        });
+    }
 
-    connect(move_down, &QAction::triggered, [this, selected, row, &game_dir] {
-        // find the indices of the items in settings and swap them
-        std::swap(UISettings::values.game_dirs[UISettings::values.game_dirs.indexOf(game_dir)],
-                  UISettings::values.game_dirs[UISettings::values.game_dirs.indexOf(
-                      *selected.sibling(row + 1, 0)
-                           .data(GameListDir::GameDirRole)
-                           .value<UISettings::GameDir*>())]);
-        // move the treeview items
-        const QList<QStandardItem*> item = item_model->takeRow(row);
-        item_model->invisibleRootItem()->insertRow(row + 1, item);
-        tree_view->setExpanded(selected, game_dir.expanded);
-    });
-
-    connect(open_directory_location, &QAction::triggered,
-            [this, game_dir] { emit OpenDirectory(game_dir.path); });
+    context_menu.addAction(QStringLiteral("Open Directory Location"),
+                           [this, game_dir] { emit OpenDirectory(game_dir.path); });
 }
 
 QStandardItemModel* GameList::GetModel() const {

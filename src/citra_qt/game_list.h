@@ -4,6 +4,7 @@
 
 #pragma once
 
+#include <memory>
 #include <QMenu>
 #include <QString>
 #include <QVector>
@@ -56,7 +57,7 @@ public:
     void clearFilter();
     void setFilterFocus();
     void setFilterVisible(bool visibility);
-    void setDirectoryWatcherEnabled(bool enabled);
+    void SetDirectoryWatcherEnabled(bool enabled);
     bool isEmpty() const;
     void PopulateAsync(QVector<UISettings::GameDir>& game_dirs);
 
@@ -107,7 +108,7 @@ private:
     QTreeView* tree_view = nullptr;
     QStandardItemModel* item_model = nullptr;
     GameListWorker* current_worker = nullptr;
-    QFileSystemWatcher* watcher = nullptr;
+    std::unique_ptr<QFileSystemWatcher> watcher;
 
     friend class GameListSearchField;
 };

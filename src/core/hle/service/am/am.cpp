@@ -482,8 +482,9 @@ std::string GetTitlePath(Service::FS::MediaType media_type, u64 tid) {
     u32 high = static_cast<u32>(tid >> 32);
     u32 low = static_cast<u32>(tid & 0xFFFFFFFF);
 
-    if (media_type == Service::FS::MediaType::NAND || media_type == Service::FS::MediaType::SDMC)
+    if (media_type == Service::FS::MediaType::NAND || media_type == Service::FS::MediaType::SDMC) {
         return fmt::format("{}{:08x}/{:08x}/", GetMediaTitlePath(media_type), high, low);
+    }
 
     if (media_type == Service::FS::MediaType::GameCard) {
         // TODO(shinyquagsire23): get current app path if TID matches?
@@ -763,8 +764,8 @@ void Module::Interface::GetProgramInfos(Kernel::HLERequestContext& ctx) {
 
 void Module::Interface::DeleteUserProgram(Kernel::HLERequestContext& ctx) {
     IPC::RequestParser rp(ctx, 0x0004, 3, 0);
-    Service::FS::MediaType media_type = rp.PopEnum<FS::MediaType>();
-    u64 title_id = rp.Pop<u64>();
+    const Service::FS::MediaType media_type = rp.PopEnum<FS::MediaType>();
+    const u64 title_id = rp.Pop<u64>();
     IPC::RequestBuilder rb = rp.MakeBuilder(1, 0);
     u16 category = static_cast<u16>((title_id >> 32) & 0xFFFF);
     u8 variation = static_cast<u8>(title_id & 0xFF);
@@ -774,19 +775,29 @@ void Module::Interface::DeleteUserProgram(Kernel::HLERequestContext& ctx) {
                            ErrorSummary::InvalidArgument, ErrorLevel::Usage));
         return;
     }
+    u64 current_program_id = title_id;
+    am->system.GetAppLoader().ReadProgramId(current_program_id);
+    if (current_program_id == title_id) {
+        LOG_ERROR(Service_AM,
+                  "Can't delete running program or reading the running program's ID failed");
+        rb.Push(ResultCode(ErrorDescription::NotAuthorized, ErrorModule::FS,
+                           ErrorSummary::InvalidState, ErrorLevel::Permanent));
+        return;
+    }
     LOG_INFO(Service_AM, "Deleting title 0x{:016x}", title_id);
-    std::string path = GetTitlePath(media_type, title_id);
+    const std::string path = GetTitlePath(media_type, title_id);
     if (!FileUtil::Exists(path)) {
         rb.Push(ResultCode(ErrorDescription::NotFound, ErrorModule::AM, ErrorSummary::InvalidState,
                            ErrorLevel::Permanent));
         LOG_ERROR(Service_AM, "Title not found");
         return;
     }
-    bool success = FileUtil::DeleteDirRecursively(path);
+    const bool success = FileUtil::DeleteDirRecursively(path);
     am->ScanForAllTitles();
     rb.Push(RESULT_SUCCESS);
-    if (!success)
+    if (!success) {
         LOG_ERROR(Service_AM, "FileUtil::DeleteDirRecursively unexpectedly failed");
+    }
 }
 
 void Module::Interface::GetProductCode(Kernel::HLERequestContext& ctx) {
@@ -1366,18 +1377,27 @@ void Module::Interface::GetRequiredSizeFromCia(Kernel::HLERequestContext& ctx) {
 
 void Module::Interface::DeleteProgram(Kernel::HLERequestContext& ctx) {
     IPC::RequestParser rp(ctx, 0x0410, 3, 0);
-    Service::FS::MediaType media_type = rp.PopEnum<FS::MediaType>();
-    u64 title_id = rp.Pop<u64>();
-    LOG_INFO(Service_AM, "Deleting title 0x{:016x}", title_id);
-    std::string path = GetTitlePath(media_type, title_id);
+    const Service::FS::MediaType media_type = rp.PopEnum<FS::MediaType>();
+    const u64 title_id = rp.Pop<u64>();
     IPC::RequestBuilder rb = rp.MakeBuilder(1, 0);
+    u64 current_program_id = title_id;
+    am->system.GetAppLoader().ReadProgramId(current_program_id);
+    if (current_program_id == title_id) {
+        LOG_ERROR(Service_AM,
+                  "Can't delete running program or reading the running program's ID failed");
+        rb.Push(ResultCode(ErrorDescription::NotAuthorized, ErrorModule::FS,
+                           ErrorSummary::InvalidState, ErrorLevel::Permanent));
+        return;
+    }
+    LOG_INFO(Service_AM, "Deleting title 0x{:016x}", title_id);
+    const std::string path = GetTitlePath(media_type, title_id);
     if (!FileUtil::Exists(path)) {
         rb.Push(ResultCode(ErrorDescription::NotFound, ErrorModule::AM, ErrorSummary::InvalidState,
                            ErrorLevel::Permanent));
         LOG_ERROR(Service_AM, "Title not found");
         return;
     }
-    bool success = FileUtil::DeleteDirRecursively(path);
+    const bool success = FileUtil::DeleteDirRecursively(path);
     am->ScanForAllTitles();
     rb.Push(RESULT_SUCCESS);
     if (!success) {

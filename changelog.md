@@ -1,7 +1,18 @@
-# Unreleased
+# 9.1.0
+
+## Added
+
+- Qt: Drag and drop support for CIAs
+- Qt: Game list right click context menu option to delete the game if it was installed.
+
+## Fixes
+
+- Deleting titles from [FBI](https://github.com/Steveice10/FBI). before this version, the OS denied access. also, now deleting FBI from FBI will fail. same for anything that tries to self-delete.
+- Qt/GameList: Missing `Open Texture Dump Location` and `Open Custom Texture Location` for system apps (and `Open Using Game Settings` for system apps and homebrew)
 
 ## Minor Changes
 
+- Qt/GameList: Use `QMenu::addAction` with lambdas
 - Externals: Update inih and fmt
 
 # 9.0.0
