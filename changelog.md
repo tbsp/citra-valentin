@@ -8,9 +8,12 @@
 
 - Qt: DirectShow camera implementation. for some reason libdshowcapture only returns DroidCam Source 3 and that one doesn't work for me.
 
+## Fixes
+
+- Top screen bug after changing resolution in LM2/LMDM
+
 ## Minor Changes
 
-- VideoCore: Use jroweboy's LM2/LMDM ghost crash fix. This change fixed the top screen bug after changing resolution in LM2/LMDM.
 - Externals: Convert cpp-httplib and LUrlParser to submodules
 - Externals: Update json, xbyak and cubeb
 
