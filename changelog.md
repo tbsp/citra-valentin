@@ -1,3 +1,9 @@
+# Unreleased
+
+## Minor Changes
+
+- Externals: Update inih and fmt
+
 # 9.0.0
 
 ## Added
