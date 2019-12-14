@@ -12,7 +12,7 @@
 
 - VideoCore: Use jroweboy's LM2/LMDM ghost crash fix. This change fixed the top screen bug after changing resolution in LM2/LMDM.
 - Externals: Convert cpp-httplib and LUrlParser to submodules
-- Externals: Update json and xbyak
+- Externals: Update json, xbyak and cubeb
 
 # 8.2.0
 
