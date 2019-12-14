@@ -29,7 +29,7 @@ public slots:
 
 private:
     enum class CameraPosition { RearRight, Front, RearLeft, RearBoth, Null };
-    static const std::array<std::string, 4> Implementations;
+    static const std::array<std::string, 3> Implementations;
     /// Record the current configuration
     void RecordConfig();
     /// Updates camera mode
