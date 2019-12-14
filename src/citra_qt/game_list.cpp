@@ -23,6 +23,7 @@
 #include <QTreeView>
 #include <QtConcurrent/QtConcurrent>
 #include <fmt/format.h>
+#include "citra_qt/debugger/console.h"
 #include "citra_qt/game_list.h"
 #include "citra_qt/game_list_p.h"
 #include "citra_qt/game_list_worker.h"
@@ -472,7 +473,11 @@ void GameList::AddGamePopup(QMenu& context_menu, const QString& path, u64 progra
                 FileUtil::WriteStringToFile(true, general_config_path, "");
             }
 
+            const bool show_console = UISettings::values.show_console;
+            UISettings::values.show_console = false;
+            Debugger::ToggleConsole();
             QProcess::execute(QCoreApplication::applicationFilePath(), QStringList() << path);
+            UISettings::values.show_console = show_console;
 
             std::string game_config;
             FileUtil::ReadFileToString(true, general_config_path, game_config);

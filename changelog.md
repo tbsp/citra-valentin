@@ -1,3 +1,14 @@
+# 9.1.1
+
+## Fixes
+
+- Qt: Crash when passing a game path
+- Before this version, you needed mf.dll to start CV. now if mf.dll is missing, audio will be missing in some games.
+
+## Minor Changes
+
+- Qt/GameList: Hide parent's console window after clicking `Start Using Game Settings`.
+
 # 9.1.0
 
 ## Added

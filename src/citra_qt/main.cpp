@@ -199,17 +199,26 @@ GMainWindow::GMainWindow()
 
     show();
 
-    game_list->SetDirectoryWatcherEnabled(true);
-    game_list->PopulateAsync(UISettings::values.game_dirs);
-
     // Show one-time "callout" messages to the user
     ShowTelemetryCallout();
     ShowDiscordServerCallout();
 
+    game_list->SetDirectoryWatcherEnabled(true);
+    game_list->PopulateAsync(UISettings::values.game_dirs);
+
     QStringList args = QApplication::arguments();
     if (args.length() >= 2) {
-        BootGame(args[1]);
+        connect(game_list, &GameList::PopulatingCompleted, this,
+                &GMainWindow::BootGameFromArguments);
     }
+}
+
+void GMainWindow::BootGameFromArguments() {
+    QStringList args = QApplication::arguments();
+    BootGame(args[1]);
+
+    disconnect(game_list, &GameList::PopulatingCompleted, this,
+               &GMainWindow::BootGameFromArguments);
 }
 
 GMainWindow::~GMainWindow() {
