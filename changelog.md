@@ -10,6 +10,7 @@
 
 ## Minor Changes
 
+- VideoCore: Use jroweboy's LM2/LMDM ghost crash fix
 - Externals: Convert cpp-httplib and LUrlParser to submodules
 - Externals: Update json and xbyak
 
