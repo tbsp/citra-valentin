@@ -1,9 +1,12 @@
-# Unreleased
+# 9.0.0
+
+## Removed
+
+- Qt: DirectShow camera implementation. for some reason libdshowcapture only returns DroidCam Source 3 and that one doesn't work for me.
 
 ## Minor Changes
 
 - Externals: Convert cpp-httplib and LUrlParser to submodules
-- Externals: libdshowcapture: add `CMakeLists.txt` and use unmodified repository
 - Externals: Update json and xbyak
 
 # 8.2.0

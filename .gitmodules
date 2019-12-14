@@ -58,6 +58,3 @@
 [submodule "LUrlParser"]
 	path = externals/lurlparser/LUrlParser
 	url = https://github.com/corporateshark/LUrlParser.git
-[submodule "libdshowcapture/libdshowcapture"]
-	path = externals/libdshowcapture/libdshowcapture
-	url = https://github.com/obsproject/libdshowcapture.git

@@ -15,11 +15,10 @@
 #include "core/settings.h"
 #include "ui_configure_camera.h"
 
-const std::array<std::string, 4> ConfigureCamera::Implementations = {
+const std::array<std::string, 3> ConfigureCamera::Implementations = {
     "blank", /* Blank */
     "image", /* Image */
     "qt",    /* System Camera */
-    "dshow"  /* DirectShow */
 };
 
 ConfigureCamera::ConfigureCamera(QWidget* parent)

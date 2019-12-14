@@ -177,10 +177,6 @@ add_executable(citra-qt
     util/spinbox.h
     util/util.cpp
     util/util.h
-    $<$<BOOL:${WIN32}>:
-        camera/dshow_camera.cpp
-        camera/dshow_camera.h
-    >
     $<$<BOOL:${CITRA_ENABLE_DISCORD_RP}>:
         discord_rp.cpp
         discord_rp.h
@@ -207,7 +203,7 @@ set_target_properties(citra-qt PROPERTIES OUTPUT_NAME "citra-valentin-qt")
 
 if(WIN32)
     # Compile as a Win32 GUI application instead of a console application
-    target_link_libraries(citra-qt PRIVATE libdshowcapture Qt5::WinMain)
+    target_link_libraries(citra-qt PRIVATE Qt5::WinMain)
     set_target_properties(citra-qt PROPERTIES LINK_FLAGS_RELEASE "/SUBSYSTEM:WINDOWS")
 endif()
 
