@@ -395,6 +395,10 @@ bool GameList::isEmpty() const {
 }
 
 void GameList::DonePopulating(QStringList watch_list) {
+    if (watcher == nullptr) {
+        return;
+    }
+
     emit ShowList(!isEmpty());
 
     item_model->invisibleRootItem()->appendRow(new GameListAddDir());
@@ -638,7 +642,7 @@ void GameList::PopulateAsync(QVector<UISettings::GameDir>& game_dirs) {
     connect(worker, &GameListWorker::DirEntryReady, this, &GameList::AddDirEntry,
             Qt::QueuedConnection);
     connect(worker, &GameListWorker::Finished, this, &GameList::DonePopulating,
-            Qt::QueuedConnection);
+            Qt::BlockingQueuedConnection);
     // Use DirectConnection here because worker->Cancel() is thread-safe and we want it to
     // cancel without delay.
     connect(this, &GameList::ShouldCancelWorker, worker, &GameListWorker::Cancel,

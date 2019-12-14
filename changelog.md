@@ -1,3 +1,13 @@
+# 9.1.2
+
+## Fixes
+
+- Qt: Crash after restarting the game and saving settings
+
+## Minor Changes
+
+- Externals: Update fmt
+
 # 9.1.1
 
 ## Fixes
