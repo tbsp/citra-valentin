@@ -203,14 +203,14 @@ GMainWindow::GMainWindow()
     ShowTelemetryCallout();
     ShowDiscordServerCallout();
 
-    game_list->SetDirectoryWatcherEnabled(true);
-    game_list->PopulateAsync(UISettings::values.game_dirs);
-
     QStringList args = QApplication::arguments();
     if (args.length() >= 2) {
         connect(game_list, &GameList::PopulatingCompleted, this,
                 &GMainWindow::BootGameFromArguments);
     }
+
+    game_list->SetDirectoryWatcherEnabled(true);
+    game_list->PopulateAsync(UISettings::values.game_dirs);
 }
 
 void GMainWindow::BootGameFromArguments() {
