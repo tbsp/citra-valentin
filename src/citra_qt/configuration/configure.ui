@@ -51,11 +51,6 @@
          <string>Custom Layout</string>
         </attribute>
        </widget>
-       <widget class="ConfigureReleases" name="releasesTab">
-        <attribute name="title">
-         <string>Releases</string>
-        </attribute>
-       </widget>
        <widget class="ConfigureAudio" name="audioTab">
         <attribute name="title">
          <string>Audio</string>
@@ -165,12 +160,6 @@
    <class>ConfigureCustomLayout</class>
    <extends>QWidget</extends>
    <header>configuration/configure_custom_layout.h</header>
-   <container>1</container>
-  </customwidget>
-  <customwidget>
-   <class>ConfigureReleases</class>
-   <extends>QWidget</extends>
-   <header>configuration/configure_releases.h</header>
    <container>1</container>
   </customwidget>
  </customwidgets>

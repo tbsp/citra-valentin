@@ -87,7 +87,7 @@ Q_IMPORT_PLUGIN(QWindowsIntegrationPlugin);
 
 #ifdef _WIN32
 extern "C" {
-// tells Nvidia drivers to use the dedicated GPU by default on laptops with switchable graphics
+// Tells Nvidia drivers to use the dedicated GPU by default on laptops with switchable graphics
 __declspec(dllexport) unsigned long NvOptimusEnablement = 0x00000001;
 }
 #endif
@@ -129,7 +129,9 @@ void GMainWindow::ShowDiscordServerCallout() {
     config->Save();
 
     if (QMessageBox::question(this, QStringLiteral("Discord Server"),
-                              QStringLiteral("Would you like to join our Discord server?")) ==
+                              QStringLiteral("Would you like to join our Discord server?<br>You "
+                                             "can download new versions, see the changelogs and "
+                                             "send logs and screenshots to it.")) ==
         QMessageBox::Yes) {
         QDesktopServices::openUrl(QUrl(QStringLiteral("https://discord.gg/fPmDUaY")));
     }
@@ -865,6 +867,11 @@ void GMainWindow::ConnectMenuEvents() {
     connect(ui.action_Exit, &QAction::triggered, this, &QMainWindow::close);
     connect(ui.action_Load_Amiibo, &QAction::triggered, this, &GMainWindow::OnLoadAmiibo);
     connect(ui.action_Remove_Amiibo, &QAction::triggered, this, &GMainWindow::OnRemoveAmiibo);
+    connect(ui.action_Open_Citra_Folder, &QAction::triggered, this,
+            &GMainWindow::OnOpenCitraFolder);
+    connect(ui.action_Open_Executable_Location, &QAction::triggered, this, [] {
+        QDesktopServices::openUrl(QUrl::fromLocalFile(QCoreApplication::applicationDirPath()));
+    });
 
     // Emulation
     connect(ui.action_Start, &QAction::triggered, this, &GMainWindow::OnStartGame);
@@ -954,22 +961,9 @@ void GMainWindow::ConnectMenuEvents() {
     });
 
     // Help
-    connect(ui.action_Open_Citra_Folder, &QAction::triggered, this,
-            &GMainWindow::OnOpenCitraFolder);
-
     connect(ui.action_About, &QAction::triggered, this, &GMainWindow::OnMenuAboutCitraValentin);
-
-    connect(ui.action_Changelog, &QAction::triggered, this, [] {
-        QDesktopServices::openUrl(
-            QUrl(QStringLiteral("https://github.com/vvanelslande/citra/blob/"
-                                "master/changelog.md#%1")
-                     .arg(QString::fromStdString(Version::citra_valentin.to_string())
-                              .remove(QLatin1Char{'.'}))));
-    });
-
-    connect(ui.action_Open_Executable_Location, &QAction::triggered, this, [] {
-        QDesktopServices::openUrl(QUrl::fromLocalFile(QCoreApplication::applicationDirPath()));
-    });
+    connect(ui.action_Discord_Server, &QAction::triggered, this,
+            [] { QDesktopServices::openUrl(QUrl(QStringLiteral("https://discord.gg/fPmDUaY"))); });
 }
 
 void GMainWindow::OnDisplayTitleBars(bool show) {

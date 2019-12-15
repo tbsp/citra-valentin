@@ -166,8 +166,9 @@
     <property name="title">
      <string>Help</string>
     </property>
+    <addaction name="action_Discord_Server"/>
+    <addaction name="separator"/>
     <addaction name="action_About"/>
-    <addaction name="action_Changelog"/>
    </widget>
    <widget class="QMenu" name="menu_Debugging">
     <property name="title">
@@ -452,11 +453,6 @@
     <string>Useful to paste user folder</string>
    </property>
   </action>
-  <action name="action_Changelog">
-   <property name="text">
-    <string>Changelog</string>
-   </property>
-  </action>
   <action name="action_Capture_Screenshot_Save_To_File">
    <property name="enabled">
     <bool>false</bool>
@@ -500,6 +496,11 @@ This feature is only for Discord members.</string>
    <property name="toolTip">
     <string>Sends the log to #logs-from-cv in the Discord server after the emulation stops.
 This feature is only for Discord members.</string>
+   </property>
+  </action>
+  <action name="action_Discord_Server">
+   <property name="text">
+    <string>Discord Server</string>
    </property>
   </action>
  </widget>

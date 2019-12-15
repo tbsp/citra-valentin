@@ -88,9 +88,6 @@ add_executable(citra-qt
     configuration/configure_ui.cpp
     configuration/configure_ui.h
     configuration/configure_ui.ui
-    configuration/configure_releases.cpp
-    configuration/configure_releases.h
-    configuration/configure_releases.ui
     configuration/configure_web.cpp
     configuration/configure_web.h
     configuration/configure_web.ui
