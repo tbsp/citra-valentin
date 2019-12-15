@@ -202,9 +202,6 @@ ConfigureInput::ConfigureInput(QWidget* parent)
     ui->button_decrease_volume->setProperty("params", UISettings::values.decrease_volume_button);
     SetupMenuForButton(ui->button_decrease_volume, true, 2);
 
-    ui->button_pause->setProperty("params", UISettings::values.pause_button);
-    SetupMenuForButton(ui->button_pause, true, 3);
-
     for (int button_id = 0; button_id < Settings::NativeButton::NumButtons; button_id++) {
         if (!button_map[button_id]) {
             continue;
@@ -329,7 +326,6 @@ void ConfigureInput::ApplyQtButtonsConfiguration() {
         ui->button_increase_volume->property("params").toString();
     UISettings::values.decrease_volume_button =
         ui->button_decrease_volume->property("params").toString();
-    UISettings::values.pause_button = ui->button_pause->property("params").toString();
 }
 
 void ConfigureInput::ApplyProfile() {
@@ -379,14 +375,6 @@ QList<QKeySequence> ConfigureInput::GetUsedKeyboardKeys() {
     {
         const Common::ParamPackage params(
             ui->button_decrease_volume->property("params").toString().toStdString());
-        if (params.Get("engine", "") == "keyboard") {
-            list << QKeySequence(params.Get("code", 0));
-        }
-    }
-
-    {
-        const Common::ParamPackage params(
-            ui->button_pause->property("params").toString().toStdString());
         if (params.Get("engine", "") == "keyboard") {
             list << QKeySequence(params.Get("code", 0));
         }
@@ -453,9 +441,6 @@ void ConfigureInput::UpdateButtonLabels() {
 
     ui->button_decrease_volume->setText(ButtonToText(Common::ParamPackage(
         ui->button_decrease_volume->property("params").toString().toStdString())));
-
-    ui->button_pause->setText(ButtonToText(
-        Common::ParamPackage(ui->button_pause->property("params").toString().toStdString())));
 
     for (int analog_id = 0; analog_id < Settings::NativeAnalog::NumAnalogs; analog_id++) {
         for (int sub_button_id = 0; sub_button_id < ANALOG_SUB_BUTTONS_NUM; sub_button_id++) {

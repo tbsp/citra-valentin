@@ -16,8 +16,6 @@ struct ADPCMState {
     // required for ADPCM decoding
     s16 yn1; ///< y[n-1]
     s16 yn2; ///< y[n-2]
-
-    std::size_t biggest_sample_count;
 };
 
 /**
@@ -27,7 +25,7 @@ struct ADPCMState {
  * @param state ADPCM state, this is updated with new state
  * @return Decoded stereo signed PCM16 data, sample_count in length
  */
-StereoBuffer16 DecodeADPCM(const u8* const data, std::size_t sample_count,
+StereoBuffer16 DecodeADPCM(const u8* const data, const std::size_t sample_count,
                            const std::array<s16, 16>& adpcm_coeff, ADPCMState& state);
 
 /**

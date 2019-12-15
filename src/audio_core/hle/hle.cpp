@@ -119,16 +119,6 @@ DspHle::Impl::Impl(DspHle& parent_, Memory::MemorySystem& memory) : parent(paren
 DspHle::Impl::~Impl() {
     Core::Timing& timing = Core::System::GetInstance().CoreTiming();
     timing.UnscheduleEvent(tick_event, 0);
-
-    std::size_t biggest_adpcm_sample_count = 0;
-    for (const HLE::Source& source : sources) {
-        const std::size_t source_biggest_adpcm_sample_count = source.GetBiggestAdpcmSampleCount();
-        if (source_biggest_adpcm_sample_count > biggest_adpcm_sample_count) {
-            biggest_adpcm_sample_count = source_biggest_adpcm_sample_count;
-        }
-    }
-
-    LOG_INFO(Audio_DSP, "Biggest ADPCM sample count: {}", biggest_adpcm_sample_count);
 }
 
 DspState DspHle::Impl::GetDspState() const {

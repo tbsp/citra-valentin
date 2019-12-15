@@ -115,9 +115,6 @@ void Config::ReadControlsValues() {
     UISettings::values.decrease_volume_button =
         ReadSetting(QStringLiteral("decrease_volume_button"), QStringLiteral("[empty]")).toString();
 
-    UISettings::values.pause_button =
-        ReadSetting(QStringLiteral("pause_button"), QStringLiteral("[empty]")).toString();
-
     qt_config->endGroup();
 }
 
@@ -165,7 +162,5 @@ void Config::SaveControlsValues() {
                  UISettings::values.increase_volume_button, QStringLiteral("[empty]"));
     WriteSetting(QStringLiteral("decrease_volume_button"),
                  UISettings::values.decrease_volume_button, QStringLiteral("[empty]"));
-    WriteSetting(QStringLiteral("pause_button"), UISettings::values.pause_button,
-                 QStringLiteral("[empty]"));
     qt_config->endGroup();
 }

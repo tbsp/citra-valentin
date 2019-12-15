@@ -2,6 +2,14 @@
 <ui version="4.0">
  <class>ConfigureInput</class>
  <widget class="QWidget" name="ConfigureInput">
+  <property name="geometry">
+   <rect>
+    <x>0</x>
+    <y>0</y>
+    <width>438</width>
+    <height>601</height>
+   </rect>
+  </property>
   <property name="windowTitle">
    <string>ConfigureInput</string>
   </property>
@@ -9,7 +17,7 @@
    <item>
     <widget class="QTabWidget" name="tabWidget">
      <property name="currentIndex">
-      <number>0</number>
+      <number>1</number>
      </property>
      <widget class="QWidget" name="tab">
       <attribute name="title">
@@ -801,24 +809,6 @@
            <property name="toolTip">
             <string>Decrease Volume</string>
            </property>
-           <property name="text">
-            <string/>
-           </property>
-          </widget>
-         </item>
-        </layout>
-       </item>
-       <item>
-        <layout class="QHBoxLayout" name="horizontalLayout_5">
-         <item>
-          <widget class="QLabel" name="label_9">
-           <property name="text">
-            <string>Pause:</string>
-           </property>
-          </widget>
-         </item>
-         <item>
-          <widget class="QPushButton" name="button_pause">
            <property name="text">
             <string/>
            </property>

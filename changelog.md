@@ -1,3 +1,21 @@
+# 10.0.0
+
+## Added
+
+- Qt: Continue/Pause Emulation hotkey
+
+## Removed
+
+- Qt: Pause key/button because it caused high CPU usage.
+
+## Fixes
+
+- Crash when creating a public room
+
+## Minor Changes
+
+- AudioCore/HLE: Use jroweboy's LM2/LMDM freeze fix
+
 # 9.1.2
 
 ## Fixes

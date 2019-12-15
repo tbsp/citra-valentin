@@ -454,6 +454,18 @@ void GMainWindow::InitializeHotkeys() {
             &QShortcut::activated, ui.action_Exit, &QAction::trigger);
 
     connect(hotkey_registry.GetHotkey(QStringLiteral("Main Window"),
+                                      QStringLiteral("Continue/Pause Emulation"), this),
+            &QShortcut::activated, this, [this] {
+                if (emulation_running) {
+                    if (emu_thread->IsRunning()) {
+                        OnPauseGame();
+                    } else {
+                        OnStartGame();
+                    }
+                }
+            });
+
+    connect(hotkey_registry.GetHotkey(QStringLiteral("Main Window"),
                                       QStringLiteral("Restart Emulation"), this),
             &QShortcut::activated, this, [this] {
                 if (!Core::System::GetInstance().IsPoweredOn()) {

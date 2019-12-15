@@ -60,8 +60,6 @@ public:
      */
     void MixInto(QuadFrame32& dest, std::size_t intermediate_mix_id) const;
 
-    std::size_t GetBiggestAdpcmSampleCount() const;
-
 private:
     const std::size_t source_id;
     Memory::MemorySystem* memory_system;

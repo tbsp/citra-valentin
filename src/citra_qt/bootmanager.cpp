@@ -59,7 +59,7 @@ void EmuThread::run() {
     bool was_active = false;
 
     while (!stop_run) {
-        if (running && !pause_button->GetStatus()) {
+        if (running) {
             if (!was_active) {
                 emit DebugModeLeft();
             }
@@ -117,8 +117,6 @@ void EmuThread::UpdateQtButtons() {
         UISettings::values.increase_volume_button.toStdString());
     decrease_volume_button = Input::CreateDevice<Input::ButtonDevice>(
         UISettings::values.decrease_volume_button.toStdString());
-    pause_button =
-        Input::CreateDevice<Input::ButtonDevice>(UISettings::values.pause_button.toStdString());
 }
 
 OpenGLWindow::OpenGLWindow(QWindow* parent, QWidget* event_handler, QOpenGLContext* shared_context)
