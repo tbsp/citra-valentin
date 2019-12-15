@@ -392,11 +392,7 @@ void GRenderWindow::resizeEvent(QResizeEvent* event) {
 }
 
 void GRenderWindow::InitRenderTarget() {
-    // Destroy the previous run's child_widget which should also destroy the child_window
-    if (child_widget) {
-        layout()->removeWidget(child_widget);
-        delete child_widget;
-    }
+    ReleaseRenderTarget();
 
     GMainWindow* parent = GetMainWindow();
     QWindow* parent_win_handle = parent ? parent->windowHandle() : nullptr;
@@ -410,6 +406,14 @@ void GRenderWindow::InitRenderTarget() {
     resize(Core::kScreenTopWidth, Core::kScreenTopHeight + Core::kScreenBottomHeight);
     OnMinimalClientAreaChangeRequest(GetActiveConfig().min_client_area_size);
     BackupGeometry();
+}
+
+void GRenderWindow::ReleaseRenderTarget() {
+    if (child_widget) {
+        layout()->removeWidget(child_widget);
+        delete child_widget;
+        child_widget = nullptr;
+    }
 }
 
 void GRenderWindow::OnMinimalClientAreaChangeRequest(std::pair<u32, u32> minimal_size) {

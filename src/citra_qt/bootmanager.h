@@ -190,6 +190,9 @@ public:
     void InitRenderTarget();
     OpenGLWindow* GetOpenGLWindow();
 
+    /// Destroy the previous run's child_widget which should also destroy the child_window
+    void ReleaseRenderTarget();
+
 public slots:
     void OnEmulationStarting(EmuThread* emu_thread);
     void OnEmulationStopping();

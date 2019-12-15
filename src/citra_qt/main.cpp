@@ -1271,6 +1271,9 @@ void GMainWindow::ShutdownGame() {
 #ifdef CITRA_ENABLE_DISCORD_RP
     discord_rp.Update();
 #endif
+
+    // When closing the game, destroy the GLWindow to clear the context after the game is closed
+    render_window->ReleaseRenderTarget();
 }
 
 void GMainWindow::StoreRecentFile(const QString& filename) {
