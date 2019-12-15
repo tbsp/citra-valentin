@@ -334,6 +334,4 @@ jobs:
           target: $(Build.SourceVersion)
           tagSource: userSpecifiedTag
           tag: $(CITRA_VERSION)
-          releaseNotesSource: inline
-          releaseNotesInline: '[Changelog](https://github.com/vvanelslande/citra/blob/master/changelog.md#$(CITRA_VERSION_NUMBER))'
           addChangeLog: false
