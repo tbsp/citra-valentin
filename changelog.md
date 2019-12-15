@@ -2,7 +2,8 @@
 
 ## Minor Changes
 
-- Externals: Update cpp-jwt and json
+- Qt: Change default Controls tab to 3DS Controls
+- Externals: Update cpp-jwt, json and cpp-httplib
 
 # 10.0.0
 
