@@ -1,3 +1,9 @@
+# Unreleased
+
+## Minor Changes
+
+- Externals: Update cpp-jwt and json
+
 # 10.0.0
 
 ## Added
