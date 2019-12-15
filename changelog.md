@@ -5,7 +5,7 @@
 - Qt: Change default Controls tab to 3DS Controls
 - Externals: Update cpp-jwt, json and cpp-httplib
 
-# 10.0.0
+# [10.0.0](https://github.com/vvanelslande/citra/releases/tag/10.0.0)
 
 ## Added
 
@@ -23,7 +23,7 @@
 
 - AudioCore/HLE: Use jroweboy's LM2/LMDM freeze fix
 
-# 9.1.2
+# [9.1.2](https://github.com/vvanelslande/citra/releases/tag/9.1.2)
 
 ## Fixes
 
@@ -33,7 +33,7 @@
 
 - Externals: Update fmt
 
-# 9.1.1
+# [9.1.1](https://github.com/vvanelslande/citra/releases/tag/9.1.1)
 
 ## Fixes
 
@@ -44,7 +44,7 @@
 
 - Qt/GameList: Hide parent's console window after clicking `Start Using Game Settings`.
 
-# 9.1.0
+# [9.1.0](https://github.com/vvanelslande/citra/releases/tag/9.1.0)
 
 ## Added
 
@@ -61,7 +61,7 @@
 - Qt/GameList: Use `QMenu::addAction` with lambdas
 - Externals: Update inih and fmt
 
-# 9.0.0
+# [9.0.0](https://github.com/vvanelslande/citra/releases/tag/9.0.0)
 
 ## Added
 
@@ -80,7 +80,7 @@
 - Externals: Convert cpp-httplib and LUrlParser to submodules
 - Externals: Update json, xbyak and cubeb
 
-# 8.2.0
+# [8.2.0](https://github.com/vvanelslande/citra/releases/tag/8.2.0)
 
 ## Discord related changes in the Qt frontend (Discord Logger and Capture Screenshot Then Send To Discord Server)
 
@@ -95,7 +95,7 @@
 - SDL Analogs: Remove `multiply_input` because it didn't work
 - Lots of code style changes
 
-# 8.1.0
+# [8.1.0](https://github.com/vvanelslande/citra/releases/tag/8.1.0)
 
 ## Features
 
@@ -103,7 +103,7 @@
 - Qt: Key/controller buttons for changing the volume
 - Qt/GameList: Configuration file for each game (Start Using Game Settings right click context menu option)
 
-# 8.0.2
+# [8.0.2](https://github.com/vvanelslande/citra/releases/tag/8.0.2)
 
 ## Fixes
 
@@ -119,20 +119,20 @@
 - Qt/ConfigureWeb: Add more usages of the Citra account
 - Update externals
 
-# 8.0.1
+# [8.0.1](https://github.com/vvanelslande/citra/releases/tag/8.0.1)
 
 ## Fixes
 
 - Qt: Crashes in Discord Logger and after pressing the Capture Screenshot Then Send To Discord Server key/button when using a Citra account created very recently.
 - Qt/GameList: Configuration not saved if CV crashes
 
-# 8.0.0
+# [8.0.0](https://github.com/vvanelslande/citra/releases/tag/8.0.0)
 
 ## Breaking Changes
 
 - OpenGL disk shader cache: Add -cv suffix to transferable and precompiled folders.
 
-# 7.1.0
+# [7.1.0](https://github.com/vvanelslande/citra/releases/tag/7.1.0)
 
 ## Features
 
@@ -140,14 +140,14 @@
 - Qt: Custom profiler. MicroProfile was removed.
 - Qt: Discord logger
 
-# 7.0.0
+# [7.0.0](https://github.com/vvanelslande/citra/releases/tag/7.0.0)
 
 ## Breaking Changes
 
 - Disk shader cache was removed because it causes very high memory usage in LM2/LMDM.
 - vvanelslande-shaders folder renamed to shaders
 
-# 6.0.0
+# [6.0.0](https://github.com/vvanelslande/citra/releases/tag/6.0.0)
 
 ## Breaking Changes
 
@@ -157,7 +157,7 @@
 
 - Qt: Capture Screenshot Then Send To Discord Server: Always include game name
 
-# 5.0.1
+# [5.0.1](https://github.com/vvanelslande/citra/releases/tag/5.0.1)
 
 ## Fixes
 
@@ -167,7 +167,7 @@
 
 - Update externals
 
-# 5.0.0
+# [5.0.0](https://github.com/vvanelslande/citra/releases/tag/5.0.0)
 
 ## Breaking Changes
 
@@ -190,7 +190,7 @@
 - Capture Screenshot Then Copy To Clipboard: Ctrl+B
 - Capture Screenshot Then Send To Discord Server: Ctrl+I
 
-# 4.7.0
+# [4.7.0](https://github.com/vvanelslande/citra/releases/tag/4.7.0)
 
 ## Features
 
@@ -206,13 +206,13 @@
 - Qt: Add Discord server invite callout
 - Qt: Rename Versions tab to Releases
 
-# 4.6.0
+# [4.6.0](https://github.com/vvanelslande/citra/releases/tag/4.6.0)
 
 ## Features
 
 - Qt/ConfigureVersions/Recent Releases: Change double click to right click and add Open Changelog and options to download builds for Linux and Windows
 
-# 4.5.0
+# [4.5.0](https://github.com/vvanelslande/citra/releases/tag/4.5.0)
 
 ## Features
 
@@ -227,14 +227,14 @@
 - Common: LinearDiskCache removed, it wasn't used.
 - Externals: Update fmt, [commits](https://github.com/fmtlib/fmt/compare/d22e4ad85b477b4f2b4ffb034d1212cc9afcfe49...1219b65f2167fabe58ce77f4bd7447da5fa02611)
 
-# 4.4.1
+# [4.4.1](https://github.com/vvanelslande/citra/releases/tag/4.4.1)
 
 ## Fixes
 
 - Discord server invite updated
 - Qt/ConfigureWeb/Telemetry: DSP LLE not saved
 
-# 4.4.0
+# [4.4.0](https://github.com/vvanelslande/citra/releases/tag/4.4.0)
 
 ## Features
 
@@ -250,13 +250,13 @@
 - CMakeLists: Remove `if (ENABLE_QT_TRANSLATION)`
 - Externals: Update fmt, zstd and cubeb
 
-# 4.3.1
+# [4.3.1](https://github.com/vvanelslande/citra/releases/tag/4.3.1)
 
 ## Fixes
 
 - [LLE audio required, otherwise your PC will freeze] Luigi's Mansion 2 / Dark Moon ghost capture crash
 
-# 4.3.0
+# [4.3.0](https://github.com/vvanelslande/citra/releases/tag/4.3.0)
 
 ## Features
 
@@ -271,7 +271,7 @@
 - [Externals: Bump `zstd` from `d3ec368` to `e8faa09` (Citra Valentin PR 71)](https://github.com/vvanelslande/citra/pull/71)
 - [Externals: Bump `teakra` from `549796e` to `bcb0ade` (Citra Valentin PR 72)](https://github.com/vvanelslande/citra/pull/72)
 
-# 4.2.0
+# [4.2.0](https://github.com/vvanelslande/citra/releases/tag/4.2.0)
 
 ## Features
 
@@ -282,7 +282,7 @@
 - OpenGL disk shader cache: change entry count log messages
 - [Qt: Remove high dpi scaling flag as it needs more work first](https://github.com/citra-emu/citra/pull/4940/commits/9ae3eb4a3038c6664b0be7c88b5beb1cc735cf6d)
 
-# 4.1.0
+# [4.1.0](https://github.com/vvanelslande/citra/releases/tag/4.1.0)
 
 ## Features
 
@@ -292,13 +292,13 @@
 
 - Externals: Bump `fmt` from `4ca6821` to `5981588`
 
-# 4.0.2
+# [4.0.2](https://github.com/vvanelslande/citra/releases/tag/4.0.2)
 
 ## Fixes
 
 - Azure Pipelines: a commit changelog was added to the release descriptions
 
-# 4.0.1
+# [4.0.1](https://github.com/vvanelslande/citra/releases/tag/4.0.1)
 
 ## Fixes
 
@@ -311,7 +311,7 @@
 - SDL: Remove `is_fullscreen` hack because it's not needed
 - Add `.prettierrc.json`
 
-# 4.0.0
+# [4.0.0](https://github.com/vvanelslande/citra/releases/tag/4.0.0)
 
 ## Breaking Changes
 
@@ -328,7 +328,7 @@
 - Qt: Add `QStringLiteral()` to hotkey strings in `citra_qt/main.cpp`
 - Qt: Add a menu option to open the changelog of this version in the Help menu
 
-# 3.0.2
+# [3.0.2](https://github.com/vvanelslande/citra/releases/tag/3.0.2)
 
 ## Fixes
 
@@ -343,7 +343,7 @@
 - [SDL/DefaultINI: Add comment for Ignore Format Reinterpretation (`ignore_format_reinterpretation`)](https://github.com/vvanelslande/citra/commit/c3c68f38a8dd149417c8a024990bbe69666fc6ec)
 - [Externals: Bump `fmt` from ef7369c to 3bc28fc (Citra Valentin PR 67)](https://github.com/vvanelslande/citra/pull/67)
 
-# 3.0.1
+# [3.0.1](https://github.com/vvanelslande/citra/releases/tag/3.0.1)
 
 ## Fixes
 
@@ -354,7 +354,7 @@
 - [Externals: Bump `fmt` from 1200a34 to ef7369c (Citra Valentin PR 67)](https://github.com/vvanelslande/citra/pull/65)
 - [Externals: Bump `xbyak` from f32836d to 20ee4c2 (Citra Valentin PR 66)](https://github.com/vvanelslande/citra/pull/66)
 
-# 3.0.0
+# [3.0.0](https://github.com/vvanelslande/citra/releases/tag/3.0.0)
 
 ## Breaking Changes
 
@@ -390,13 +390,13 @@
 - [Externals: Bump `catch` from a537cca to 9a89631 (Citra Valentin PR 52)](https://github.com/vvanelslande/citra/pull/52)
 - [Externals: Bump `lodepng` from e1d431b to dc3f19b (Citra Valentin PR 48)](https://github.com/vvanelslande/citra/pull/48)
 
-# 2.11.2
+# [2.11.2](https://github.com/vvanelslande/citra/releases/tag/2.11.2)
 
 ## Fixes
 
 - [SDL: Use screen size in fullscreen (no display option)](https://github.com/vvanelslande/citra/commit/a271702448fe4cf22887ad45bd9e77b370a6c02e)
 
-# 2.11.1
+# [2.11.1](https://github.com/vvanelslande/citra/releases/tag/2.11.1)
 
 ## Fixes
 
@@ -406,7 +406,7 @@
 
 - [Qt: GameList & Multiplayer: Specify string conversions explicitly (Citra PR 4992)](https://github.com/citra-emu/citra/pull/4992)
 
-# 2.11.0
+# [2.11.0](https://github.com/vvanelslande/citra/releases/tag/2.11.0)
 
 ## Features
 
@@ -421,20 +421,20 @@
 - [Externals: Bump `zstd` from 7d85f35 to 4b1ac69 (Citra Valentin PR 40)](https://github.com/vvanelslande/citra/pull/40)
 - [Externals: Bump `lodepng` from 4d4a406 to e1d431b (Citra Valentin PR 41)](https://github.com/vvanelslande/citra/pull/41)
 
-# 2.10.5
+# [2.10.5](https://github.com/vvanelslande/citra/releases/tag/2.10.5)
 
 ## Minor Changes
 
 - [Qt: Move Discord RP update from OnStopGame to ShutdownGame](https://github.com/vvanelslande/citra/commit/3b9d7c127f0c720c3d7d21883404dde81204c330)
 - [Externals: Bump `zstd` from cabbb1e to 7d85f35 (Citra Valentin PR 35)](https://github.com/vvanelslande/citra/pull/35)
 
-# 2.10.4
+# [2.10.4](https://github.com/vvanelslande/citra/releases/tag/2.10.4)
 
 ## Minor Changes
 
 - [Revert some shader type cast fixes for OpenGL ES but this fork will never support Android](https://github.com/vvanelslande/citra/commit/a8301259614894fe0be37c82b2d8af20634cc730) ([Citra PR 4859 fixed the shader type casts](https://github.com/citra-emu/citra/pull/4859))
 
-# 2.10.3
+# [2.10.3](https://github.com/vvanelslande/citra/releases/tag/2.10.3)
 
 ## Fixes
 
@@ -445,13 +445,13 @@
 - [Bump `zstd` from 2ed5344 to cabbb1e (Citra Valentin PR 33)](https://github.com/vvanelslande/citra/pull/33)
 - [Bump `lodepng` from 015f021 to 4610888 (Citra Valentin PR 34)](https://github.com/vvanelslande/citra/pull/34)
 
-# 2.10.2
+# [2.10.2](https://github.com/vvanelslande/citra/releases/tag/2.10.2)
 
 ## Fixes
 
 - [Azure Pipelines: missing Windows tar](https://github.com/vvanelslande/citra/commit/b99103d5cf6f6b3e75aaa3e9a37da869e7218021)
 
-# 2.10.1
+# [2.10.1](https://github.com/vvanelslande/citra/releases/tag/2.10.1)
 
 ## Features
 
