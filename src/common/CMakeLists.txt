@@ -23,7 +23,6 @@ add_library(common STATIC
     logging/text_formatter.cpp
     logging/text_formatter.h
     math_util.h
-    profiler.h
     misc.cpp
     param_package.cpp
     param_package.h

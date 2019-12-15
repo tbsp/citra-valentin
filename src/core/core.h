@@ -56,10 +56,6 @@ class Backend;
 
 class RendererBase;
 
-namespace Common {
-class Profiler;
-} // namespace Common
-
 namespace Core {
 
 class Timing;
@@ -223,7 +219,6 @@ public:
     /// Gets a const reference to the video dumper backend
     const VideoDumper::Backend& VideoDumper() const;
 
-    std::shared_ptr<Common::Profiler> profiler;
     std::unique_ptr<PerfStats> perf_stats;
     FrameLimiter frame_limiter;
 

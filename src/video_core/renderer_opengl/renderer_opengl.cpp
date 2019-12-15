@@ -15,7 +15,6 @@
 #include "common/assert.h"
 #include "common/bit_field.h"
 #include "common/logging/log.h"
-#include "common/profiler.h"
 #include "core/core.h"
 #include "core/core_timing.h"
 #include "core/dumping/backend.h"
@@ -298,8 +297,6 @@ void RendererOpenGL::SwapBuffers() {
 
     Frontend::Frame* frame;
     {
-        Common::Profiler::Scope scope(Core::System::GetInstance().profiler, "OpenGL",
-                                      "Wait Present");
 
         frame = render_window.mailbox->GetRenderFrame();
 
@@ -326,8 +323,6 @@ void RendererOpenGL::SwapBuffers() {
     }
 
     {
-        Common::Profiler::Scope scope(Core::System::GetInstance().profiler, "OpenGL",
-                                      "Render Frame");
 
         // Recreate the frame if the size of the window has changed
         if (layout.width != frame->width || layout.height != frame->height) {

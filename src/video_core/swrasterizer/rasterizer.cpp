@@ -11,7 +11,6 @@
 #include "common/color.h"
 #include "common/common_types.h"
 #include "common/logging/log.h"
-#include "common/profiler.h"
 #include "common/quaternion.h"
 #include "common/vector_math.h"
 #include "core/core.h"
@@ -125,8 +124,6 @@ static std::tuple<float24, float24, float24, PAddr> ConvertCubeCoord(float24 u, 
 static void ProcessTriangleInternal(const Vertex& v0, const Vertex& v1, const Vertex& v2,
                                     bool reversed = false) {
     const Pica::Regs& regs = g_state.regs;
-    Common::Profiler::Scope scope(Core::System::GetInstance().profiler, "Software Rasterizer",
-                                  "Triangle Processing");
 
     // Vertex positions in rasterizer coordinates
     static auto FloatToFix = [](float24 flt) {

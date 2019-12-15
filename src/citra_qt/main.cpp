@@ -41,7 +41,6 @@
 #include "citra_qt/debugger/graphics/graphics_vertex_shader.h"
 #include "citra_qt/debugger/ipc/recorder.h"
 #include "citra_qt/debugger/lle_service_modules.h"
-#include "citra_qt/debugger/profiler.h"
 #include "citra_qt/debugger/registers.h"
 #include "citra_qt/debugger/wait_tree.h"
 #include "citra_qt/game_list.h"
@@ -316,36 +315,6 @@ void GMainWindow::InitializeDebugWidgets() {
             Log::RemoveBackend("discord");
         }
     });
-
-    profiler_action = ui.menu_Debugging->addAction(QStringLiteral("Profiler"), [this] {
-        if (Core::System::GetInstance().profiler == nullptr) {
-            std::shared_ptr<QtProfiler> profiler = std::make_shared<QtProfiler>();
-            profiler->show();
-
-            connect(render_window->GetOpenGLWindow(), &OpenGLWindow::Presented, profiler.get(),
-                    &QtProfiler::Update);
-
-            Core::System::GetInstance().profiler = profiler;
-        } else {
-            std::shared_ptr<QtProfiler> profiler =
-                std::static_pointer_cast<QtProfiler>(Core::System::GetInstance().profiler);
-
-            connect(profiler.get(), &QtProfiler::Stopped, this, [this] {
-                std::shared_ptr<QtProfiler> profiler =
-                    std::static_pointer_cast<QtProfiler>(Core::System::GetInstance().profiler);
-
-                disconnect(render_window->GetOpenGLWindow(), &OpenGLWindow::Presented,
-                           profiler.get(), &QtProfiler::Update);
-
-                profiler->close();
-                Core::System::GetInstance().profiler.reset();
-            });
-
-            profiler->Stop();
-        }
-    });
-    profiler_action->setCheckable(true);
-    profiler_action->setEnabled(false);
 
     registers_widget = new RegistersWidget(this);
     addDockWidget(Qt::RightDockWidgetArea, registers_widget);
@@ -1163,7 +1132,6 @@ void GMainWindow::BootGame(const QString& filename) {
             &WaitTreeWidget::OnDebugModeLeft, Qt::BlockingQueuedConnection);
 
     // Update the GUI
-    profiler_action->setEnabled(true);
     registers_widget->OnDebugModeEntered();
     if (ui.action_Single_Window_Mode->isChecked()) {
         game_list->hide();
@@ -1267,27 +1235,6 @@ void GMainWindow::ShutdownGame() {
     ui.action_Capture_Screenshot_Copy_To_Clipboard->setEnabled(false);
     ui.action_Capture_Screenshot_Send_To_Discord_Server->setEnabled(false);
     ui.menu_Capture_Screenshot->setEnabled(false);
-
-    if (Core::System::GetInstance().profiler != nullptr) {
-        std::shared_ptr<QtProfiler> profiler =
-            std::static_pointer_cast<QtProfiler>(Core::System::GetInstance().profiler);
-
-        connect(profiler.get(), &QtProfiler::Stopped, this, [this] {
-            std::shared_ptr<QtProfiler> profiler =
-                std::static_pointer_cast<QtProfiler>(Core::System::GetInstance().profiler);
-
-            disconnect(render_window->GetOpenGLWindow(), &OpenGLWindow::Presented, profiler.get(),
-                       &QtProfiler::Update);
-
-            profiler->close();
-            Core::System::GetInstance().profiler.reset();
-        });
-
-        profiler->Stop();
-    }
-
-    profiler_action->setEnabled(false);
-    profiler_action->setChecked(false);
 
     render_window->hide();
     if (game_list->isEmpty()) {

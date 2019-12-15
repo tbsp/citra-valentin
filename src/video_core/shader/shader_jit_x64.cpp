@@ -2,7 +2,6 @@
 // Licensed under GPLv2 or any later version
 // Refer to the license.txt file included.
 
-#include "common/profiler.h"
 #include "core/core.h"
 #include "video_core/shader/shader.h"
 #include "video_core/shader/shader_jit_x64.h"
@@ -34,8 +33,6 @@ void JitX64Engine::SetupBatch(ShaderSetup& setup, unsigned int entry_point) {
 
 void JitX64Engine::Run(const ShaderSetup& setup, UnitState& state) const {
     ASSERT(setup.engine_data.cached_shader != nullptr);
-
-    Common::Profiler::Scope scope(Core::System::GetInstance().profiler, "Shader JIT", "Execute");
 
     const JitShader* shader = static_cast<const JitShader*>(setup.engine_data.cached_shader);
     shader->Run(setup, state, setup.engine_data.entry_point);

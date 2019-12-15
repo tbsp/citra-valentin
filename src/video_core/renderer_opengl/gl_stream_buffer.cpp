@@ -6,7 +6,6 @@
 #include <vector>
 #include "common/alignment.h"
 #include "common/assert.h"
-#include "common/profiler.h"
 #include "core/core.h"
 #include "video_core/renderer_opengl/gl_state.h"
 #include "video_core/renderer_opengl/gl_stream_buffer.h"
@@ -78,8 +77,6 @@ std::tuple<u8*, GLintptr, bool> OGLStreamBuffer::Map(GLsizeiptr size, GLintptr a
     }
 
     if (invalidate || !persistent) {
-        Common::Profiler::Scope scope(Core::System::GetInstance().profiler, "OpenGL",
-                                      "Stream Buffer");
         GLbitfield flags = GL_MAP_WRITE_BIT | (persistent ? GL_MAP_PERSISTENT_BIT : 0) |
                            (coherent ? GL_MAP_COHERENT_BIT : GL_MAP_FLUSH_EXPLICIT_BIT) |
                            (invalidate ? GL_MAP_INVALIDATE_BUFFER_BIT : GL_MAP_UNSYNCHRONIZED_BIT);

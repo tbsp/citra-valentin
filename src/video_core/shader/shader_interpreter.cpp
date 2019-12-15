@@ -12,7 +12,6 @@
 #include "common/assert.h"
 #include "common/common_types.h"
 #include "common/logging/log.h"
-#include "common/profiler.h"
 #include "common/vector_math.h"
 #include "core/core.h"
 #include "video_core/pica_state.h"
@@ -675,9 +674,6 @@ void InterpreterEngine::SetupBatch(ShaderSetup& setup, unsigned int entry_point)
 }
 
 void InterpreterEngine::Run(const ShaderSetup& setup, UnitState& state) const {
-
-    Common::Profiler::Scope scope(Core::System::GetInstance().profiler, "Shader Interpreter",
-                                  "Execute");
 
     DebugData<false> dummy_debug_data;
     RunInterpreter(setup, state, dummy_debug_data, setup.engine_data.entry_point);

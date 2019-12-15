@@ -4,7 +4,6 @@
 
 #include <vector>
 #include "common/bit_field.h"
-#include "common/profiler.h"
 #include "common/swap.h"
 #include "core/core.h"
 #include "core/hle/ipc.h"
@@ -484,8 +483,6 @@ static void ExecuteCommand(const Command& command, u32 thread_id) {
     case CommandId::REQUEST_DMA: {
         Core::System& system = Core::System::GetInstance();
         Memory::MemorySystem& memory = system.Memory();
-
-        Common::Profiler::Scope scope(system.profiler, "GPU", "GSP DMA");
 
         // TODO: Consider attempting rasterizer-accelerated surface blit if that usage is ever
         // possible/likely

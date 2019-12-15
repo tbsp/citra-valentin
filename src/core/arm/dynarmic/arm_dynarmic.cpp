@@ -6,7 +6,6 @@
 #include <dynarmic/A32/a32.h>
 #include <dynarmic/A32/context.h>
 #include "common/assert.h"
-#include "common/profiler.h"
 #include "core/arm/dynarmic/arm_dynarmic.h"
 #include "core/arm/dynarmic/arm_dynarmic_cp15.h"
 #include "core/arm/dyncom/arm_dyncom_interpreter.h"
@@ -202,7 +201,6 @@ ARM_Dynarmic::~ARM_Dynarmic() = default;
 void ARM_Dynarmic::Run() {
     ASSERT(memory.GetCurrentPageTable() == current_page_table);
 
-    Common::Profiler::Scope scope(system.profiler, "ARM JIT", "Execute");
     jit->Run();
 }
 

@@ -7,7 +7,6 @@
 #include <map>
 #include <fmt/format.h>
 #include "common/logging/log.h"
-#include "common/profiler.h"
 #include "common/scope_exit.h"
 #include "core/arm/arm_interface.h"
 #include "core/core.h"
@@ -1591,8 +1590,6 @@ const SVC::FunctionDef* SVC::GetSVCInfo(u32 func_num) {
 }
 
 void SVC::CallSVC(u32 immediate) {
-    Common::Profiler::Scope scope(system.profiler, "Kernel", "SVC");
-
     // Lock the global kernel mutex when we enter the kernel HLE.
     std::lock_guard<std::recursive_mutex> lock(HLE::g_hle_lock);
 

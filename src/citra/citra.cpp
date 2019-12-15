@@ -25,7 +25,6 @@
 #include "common/logging/backend.h"
 #include "common/logging/filter.h"
 #include "common/logging/log.h"
-#include "common/profiler.h"
 #include "common/scope_exit.h"
 #include "common/string_util.h"
 #include "common/version.h"

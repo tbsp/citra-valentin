@@ -6,7 +6,6 @@
 #include <cstring>
 #include "common/bit_set.h"
 #include "common/logging/log.h"
-#include "common/profiler.h"
 #include "video_core/pica_state.h"
 #include "video_core/regs_rasterizer.h"
 #include "video_core/regs_shader.h"

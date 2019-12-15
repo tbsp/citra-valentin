@@ -9,7 +9,6 @@
 #include <utility>
 #include "common/assert.h"
 #include "common/logging/log.h"
-#include "common/profiler.h"
 #include "common/thread_pool.h"
 #include "common/vector_math.h"
 #include "core/core.h"
@@ -214,8 +213,6 @@ static void WritePicaReg(u32 id, u32 value, u32 mask) {
                 if (immediate_attribute_id < regs.pipeline.max_input_attrib_index) {
                     immediate_attribute_id += 1;
                 } else {
-                    Common::Profiler::Scope scope(Core::System::GetInstance().profiler, "GPU",
-                                                  "Drawing");
                     immediate_attribute_id = 0;
 
                     Shader::OutputVertex::ValidateSemantics(regs.rasterizer);
@@ -276,8 +273,6 @@ static void WritePicaReg(u32 id, u32 value, u32 mask) {
     // It seems like these trigger vertex rendering
     case PICA_REG_INDEX(pipeline.trigger_draw):
     case PICA_REG_INDEX(pipeline.trigger_draw_indexed): {
-        Common::Profiler::Scope scope(Core::System::GetInstance().profiler, "GPU", "Drawing");
-
 #if PICA_LOG_TEV
         DebugUtils::DumpTevStageConfig(regs.GetTevStages());
 #endif

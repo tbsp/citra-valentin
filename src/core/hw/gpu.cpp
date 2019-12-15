@@ -9,7 +9,6 @@
 #include "common/color.h"
 #include "common/common_types.h"
 #include "common/logging/log.h"
-#include "common/profiler.h"
 #include "common/vector_math.h"
 #include "core/core.h"
 #include "core/core_timing.h"
@@ -427,9 +426,6 @@ inline void Write(u32 addr, const T data) {
     }
 
     case GPU_REG_INDEX(display_transfer_config.trigger): {
-        Common::Profiler::Scope scope(Core::System::GetInstance().profiler, "GPU",
-                                      "Display Transfer");
-
         const GPU::Regs::DisplayTransferConfig& config = g_regs.display_transfer_config;
         if (config.trigger & 1) {
 
@@ -467,9 +463,6 @@ inline void Write(u32 addr, const T data) {
     case GPU_REG_INDEX(command_processor_config.trigger): {
         const GPU::Regs::CommandProcessorConfig& config = g_regs.command_processor_config;
         if (config.trigger & 1) {
-            Common::Profiler::Scope scope(Core::System::GetInstance().profiler, "GPU",
-                                          "Command Processor");
-
             u32* buffer = (u32*)g_memory->GetPhysicalPointer(config.GetPhysicalAddress());
 
             if (Pica::g_debug_context && Pica::g_debug_context->recorder) {
