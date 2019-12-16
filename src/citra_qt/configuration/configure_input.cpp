@@ -430,10 +430,11 @@ void ConfigureInput::UpdateButtonLabels() {
             button_map[button]->setText(ButtonToText(buttons_param[button]));
     }
 
-    ui->button_capture_screenshot_then_send_to_discord_server->setText(ButtonToText(
-        Common::ParamPackage(ui->button_capture_screenshot_then_send_to_discord_server->property("params")
-                                 .toString()
-                                 .toStdString())));
+    ui->button_capture_screenshot_then_send_to_discord_server->setText(
+        ButtonToText(Common::ParamPackage(
+            ui->button_capture_screenshot_then_send_to_discord_server->property("params")
+                .toString()
+                .toStdString())));
 
     ui->button_increase_volume->setText(ButtonToText(Common::ParamPackage(
         ui->button_increase_volume->property("params").toString().toStdString())));

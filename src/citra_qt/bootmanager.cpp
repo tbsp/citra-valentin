@@ -111,8 +111,9 @@ void EmuThread::run() {
 }
 
 void EmuThread::UpdateQtButtons() {
-    capture_screenshot_then_send_to_discord_server_button = Input::CreateDevice<Input::ButtonDevice>(
-        UISettings::values.capture_screenshot_then_send_to_discord_server_button.toStdString());
+    capture_screenshot_then_send_to_discord_server_button =
+        Input::CreateDevice<Input::ButtonDevice>(
+            UISettings::values.capture_screenshot_then_send_to_discord_server_button.toStdString());
     increase_volume_button = Input::CreateDevice<Input::ButtonDevice>(
         UISettings::values.increase_volume_button.toStdString());
     decrease_volume_button = Input::CreateDevice<Input::ButtonDevice>(
