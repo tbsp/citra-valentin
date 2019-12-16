@@ -123,6 +123,7 @@ void LogSettings() {
     LogSetting("use_custom_cpu_ticks", Settings::values.use_custom_cpu_ticks);
     LogSetting("custom_cpu_ticks", Settings::values.custom_cpu_ticks);
     LogSetting("cpu_clock_percentage", Settings::values.cpu_clock_percentage);
+    LogSetting("use_vsync_new", Settings::values.use_vsync_new);
 }
 
 void LoadProfile(int index) {
