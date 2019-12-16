@@ -80,13 +80,6 @@
       <item>
        <layout class="QHBoxLayout" name="horizontalLayout_2">
         <item>
-         <widget class="QCheckBox" name="toggle_console">
-          <property name="text">
-           <string>Show Log Console (Windows Only)</string>
-          </property>
-         </widget>
-        </item>
-        <item>
          <widget class="QPushButton" name="open_log_button">
           <property name="text">
            <string>Open Log Location</string>
@@ -94,6 +87,22 @@
          </widget>
         </item>
        </layout>
+      </item>
+      <item>
+       <widget class="QGroupBox" name="groupBox_4">
+        <property name="title">
+         <string>Windows Only</string>
+        </property>
+        <layout class="QVBoxLayout" name="verticalLayout_5">
+         <item>
+          <widget class="QCheckBox" name="toggle_console">
+           <property name="text">
+            <string>Show Log Console</string>
+           </property>
+          </widget>
+         </item>
+        </layout>
+       </widget>
       </item>
      </layout>
     </widget>

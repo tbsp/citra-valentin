@@ -99,7 +99,7 @@ struct Values {
     std::string discord_token;
 
     // Qt frontend only buttons
-    QString send_screenshot_to_discord_server_button;
+    QString capture_screenshot_then_send_to_discord_server_button;
     QString increase_volume_button;
     QString decrease_volume_button;
 

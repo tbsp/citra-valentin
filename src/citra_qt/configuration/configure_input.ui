@@ -764,12 +764,12 @@
          <item>
           <widget class="QLabel" name="label_6">
            <property name="text">
-            <string>Send Screenshot To Discord Server</string>
+            <string>Capture Screenshot Then Send To Discord Server</string>
            </property>
           </widget>
          </item>
          <item>
-          <widget class="QPushButton" name="button_send_screenshot_to_discord_server">
+          <widget class="QPushButton" name="button_capture_screenshot_then_send_to_discord_server">
            <property name="text">
             <string/>
            </property>

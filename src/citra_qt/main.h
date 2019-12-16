@@ -74,7 +74,7 @@ public slots:
     void OnAppFocusStateChanged(Qt::ApplicationState state);
 
     // Screenshots
-    void SendScreenshotToDiscordServer();
+    void CaptureScreenshotThenSendToDiscordServer();
 
 signals:
 
