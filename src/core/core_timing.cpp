@@ -48,8 +48,9 @@ u64 Timing::GetTicks() const {
 }
 
 void Timing::AddTicks(u64 ticks) {
-    ticks = 30000;
-    downcount -= static_cast<u64>(ticks * 100.0 / Settings::values.cpu_clock_percentage);
+    downcount -= static_cast<u64>(
+        (Settings::values.use_custom_cpu_ticks ? Settings::values.custom_cpu_ticks : ticks) *
+        100.0 / Settings::values.cpu_clock_percentage);
 }
 
 u64 Timing::GetIdleTicks() const {
