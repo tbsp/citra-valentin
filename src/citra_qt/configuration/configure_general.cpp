@@ -38,7 +38,7 @@ ConfigureGeneral::ConfigureGeneral(QWidget* parent)
     });
 
     connect(ui->slider_clock_speed, &QSlider::valueChanged, [&](int value) {
-        ui->clock_display_label->setText(QString("%1%").arg(SliderToSettings(value)));
+        ui->clock_display_label->setText(QStringLiteral("%1%").arg(SliderToSettings(value)));
     });
 }
 
