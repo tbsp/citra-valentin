@@ -123,8 +123,8 @@ OpenGLWindow::OpenGLWindow(QWindow* parent, QWidget* event_handler, QOpenGLConte
     : QWindow(parent), event_handler(event_handler),
       context(new QOpenGLContext(shared_context->parent())) {
 
-    // disable vsync for any shared contexts
-    auto format = shared_context->format();
+    // Disable VSync for any shared contexts
+    QSurfaceFormat format = shared_context->format();
     format.setSwapInterval(Settings::values.use_vsync_new ? 1 : 0);
     this->setFormat(format);
 
