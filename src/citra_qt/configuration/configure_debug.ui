@@ -82,7 +82,7 @@
         <item>
          <widget class="QCheckBox" name="toggle_console">
           <property name="text">
-           <string>Show Log Console (Windows Only)</string>
+           <string>Show Console (Windows Only)</string>
           </property>
          </widget>
         </item>
