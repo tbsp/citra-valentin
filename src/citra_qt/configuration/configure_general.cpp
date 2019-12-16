@@ -33,7 +33,8 @@ ConfigureGeneral::ConfigureGeneral(QWidget* parent)
             &ConfigureGeneral::ResetDefaults);
 
     connect(ui->button_open_configuration_location, &QPushButton::clicked, this, [] {
-        QString path = QString::fromStdString(FileUtil::GetUserPath(FileUtil::UserPath::ConfigDir));
+        const QString path =
+            QString::fromStdString(FileUtil::GetUserPath(FileUtil::UserPath::ConfigDir));
         QDesktopServices::openUrl(QUrl::fromLocalFile(path));
     });
 
@@ -53,6 +54,8 @@ void ConfigureGeneral::SetConfiguration() {
     ui->frame_limit->setValue(Settings::values.frame_limit);
     ui->toggle_check_exit->setChecked(UISettings::values.confirm_before_closing);
     ui->toggle_background_pause->setChecked(UISettings::values.pause_when_in_background);
+    ui->use_custom_cpu_ticks->setChecked(Settings::values.use_custom_cpu_ticks);
+    ui->custom_cpu_ticks->setValue(Settings::values.custom_cpu_ticks);
     ui->slider_clock_speed->setValue(SettingsToSlider(Settings::values.cpu_clock_percentage));
     ui->clock_display_label->setText(QString("%1%").arg(Settings::values.cpu_clock_percentage));
 }
@@ -78,6 +81,7 @@ void ConfigureGeneral::ApplyConfiguration() {
     Settings::values.region_value = ui->region_combobox->currentIndex() - 1;
     Settings::values.use_frame_limit = ui->toggle_frame_limit->isChecked();
     Settings::values.frame_limit = ui->frame_limit->value();
-
+    Settings::values.use_custom_cpu_ticks = ui->use_custom_cpu_ticks->isChecked();
+    Settings::values.custom_cpu_ticks = ui->custom_cpu_ticks->value();
     Settings::values.cpu_clock_percentage = SliderToSettings(ui->slider_clock_speed->value());
 }

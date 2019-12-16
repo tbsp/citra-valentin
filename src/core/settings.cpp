@@ -120,6 +120,9 @@ void LogSettings() {
     LogSetting("ignore_format_reinterpretation", Settings::values.ignore_format_reinterpretation);
     LogSetting("custom_screen_refresh_rate", Settings::values.custom_screen_refresh_rate);
     LogSetting("screen_refresh_rate", static_cast<int>(Settings::values.screen_refresh_rate));
+    LogSetting("use_custom_cpu_ticks", Settings::values.use_custom_cpu_ticks);
+    LogSetting("custom_cpu_ticks", Settings::values.custom_cpu_ticks);
+    LogSetting("cpu_clock_percentage", Settings::values.cpu_clock_percentage);
 }
 
 void LoadProfile(int index) {

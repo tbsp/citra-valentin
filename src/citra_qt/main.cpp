@@ -389,13 +389,11 @@ void GMainWindow::InitializeRecentFileMenuActions() {
         ui.menu_recent_files->addAction(actions_recent_files[i]);
     }
     ui.menu_recent_files->addSeparator();
-    QAction* action_clear_recent_files = new QAction(this);
-    action_clear_recent_files->setText(QStringLiteral("Clear Recent Files"));
-    connect(action_clear_recent_files, &QAction::triggered, this, [this] {
+    ui.menu_recent_files->addAction(QStringLiteral("Clear Recent Files"), [this] {
         UISettings::values.recent_files.clear();
+        config->Save();
         UpdateRecentFiles();
     });
-    ui.menu_recent_files->addAction(action_clear_recent_files);
 
     UpdateRecentFiles();
 }
@@ -474,6 +472,7 @@ void GMainWindow::InitializeHotkeys() {
                                       QStringLiteral("Toggle Speed Limit"), this),
             &QShortcut::activated, this, [&] {
                 Settings::values.use_frame_limit = !Settings::values.use_frame_limit;
+                config->Save();
                 Settings::LogSettings();
                 UpdateStatusBar();
             });
@@ -482,6 +481,7 @@ void GMainWindow::InitializeHotkeys() {
                                       QStringLiteral("Toggle Texture Dumping"), this),
             &QShortcut::activated, this, [&] {
                 Settings::values.dump_textures = !Settings::values.dump_textures;
+                config->Save();
                 Settings::LogSettings();
             });
 
@@ -494,6 +494,7 @@ void GMainWindow::InitializeHotkeys() {
             &QShortcut::activated, this, [&] {
                 if (Settings::values.frame_limit < 9999 - SPEED_LIMIT_STEP) {
                     Settings::values.frame_limit += SPEED_LIMIT_STEP;
+                    config->Save();
                     Settings::LogSettings();
                     UpdateStatusBar();
                 }
@@ -504,6 +505,7 @@ void GMainWindow::InitializeHotkeys() {
             &QShortcut::activated, this, [&] {
                 if (Settings::values.frame_limit > SPEED_LIMIT_STEP) {
                     Settings::values.frame_limit -= SPEED_LIMIT_STEP;
+                    config->Save();
                     Settings::LogSettings();
                     UpdateStatusBar();
                 }
@@ -557,6 +559,7 @@ void GMainWindow::InitializeHotkeys() {
 
                 if (original != 0) {
                     Settings::values.resolution_factor = 0;
+                    config->Save();
                     Settings::LogSettings();
                     statusBar()->showMessage(QStringLiteral("Internal Resolution: Auto"));
                 }
@@ -569,6 +572,7 @@ void GMainWindow::InitializeHotkeys() {
 
                 if (original != 1) {
                     Settings::values.resolution_factor = 1;
+                    config->Save();
                     Settings::LogSettings();
                     statusBar()->showMessage(QStringLiteral("Internal Resolution: Native"));
                 }
@@ -581,6 +585,7 @@ void GMainWindow::InitializeHotkeys() {
 
                 if (original != 2) {
                     Settings::values.resolution_factor = 2;
+                    config->Save();
                     Settings::LogSettings();
                     statusBar()->showMessage(QStringLiteral("Internal Resolution: 2x Native"));
                 }
@@ -593,6 +598,7 @@ void GMainWindow::InitializeHotkeys() {
 
                 if (original != 3) {
                     Settings::values.resolution_factor = 3;
+                    config->Save();
                     Settings::LogSettings();
                     statusBar()->showMessage(QStringLiteral("Internal Resolution: 3x Native"));
                 }
@@ -605,6 +611,7 @@ void GMainWindow::InitializeHotkeys() {
 
                 if (original != 4) {
                     Settings::values.resolution_factor = 4;
+                    config->Save();
                     Settings::LogSettings();
                     statusBar()->showMessage(QStringLiteral("Internal Resolution: 4x Native"));
                 }
@@ -617,6 +624,7 @@ void GMainWindow::InitializeHotkeys() {
 
                 if (original != 5) {
                     Settings::values.resolution_factor = 5;
+                    config->Save();
                     Settings::LogSettings();
                     statusBar()->showMessage(QStringLiteral("Internal Resolution: 5x Native"));
                 }
@@ -629,6 +637,7 @@ void GMainWindow::InitializeHotkeys() {
 
                 if (original != 6) {
                     Settings::values.resolution_factor = 6;
+                    config->Save();
                     Settings::LogSettings();
                     statusBar()->showMessage(QStringLiteral("Internal Resolution: 6x Native"));
                 }
@@ -641,6 +650,7 @@ void GMainWindow::InitializeHotkeys() {
 
                 if (original != 7) {
                     Settings::values.resolution_factor = 7;
+                    config->Save();
                     Settings::LogSettings();
                     statusBar()->showMessage(QStringLiteral("Internal Resolution: 7x Native"));
                 }
@@ -653,6 +663,7 @@ void GMainWindow::InitializeHotkeys() {
 
                 if (original != 8) {
                     Settings::values.resolution_factor = 8;
+                    config->Save();
                     Settings::LogSettings();
                     statusBar()->showMessage(QStringLiteral("Internal Resolution: 8x Native"));
                 }
@@ -665,6 +676,7 @@ void GMainWindow::InitializeHotkeys() {
 
                 if (original != 9) {
                     Settings::values.resolution_factor = 9;
+                    config->Save();
                     Settings::LogSettings();
                     statusBar()->showMessage(QStringLiteral("Internal Resolution: 9x Native"));
                 }
@@ -677,6 +689,7 @@ void GMainWindow::InitializeHotkeys() {
 
                 if (original != 10) {
                     Settings::values.resolution_factor = 10;
+                    config->Save();
                     Settings::LogSettings();
                     statusBar()->showMessage(QStringLiteral("Internal Resolution: 10x Native"));
                 }
@@ -686,6 +699,7 @@ void GMainWindow::InitializeHotkeys() {
                                       QStringLiteral("Toggle Hardware Shader"), this),
             &QShortcut::activated, this, [this] {
                 Settings::values.use_hw_shader = !Settings::values.use_hw_shader;
+                config->Save();
                 Settings::Apply();
                 Settings::LogSettings();
 
@@ -698,6 +712,7 @@ void GMainWindow::InitializeHotkeys() {
                                       QStringLiteral("Toggle Custom Layout"), this),
             &QShortcut::activated, this, [this] {
                 Settings::values.custom_layout = !Settings::values.custom_layout;
+                config->Save();
                 Settings::Apply();
                 Settings::LogSettings();
 
@@ -711,6 +726,7 @@ void GMainWindow::InitializeHotkeys() {
             &QShortcut::activated, this, [this] {
                 Settings::values.custom_screen_refresh_rate =
                     !Settings::values.custom_screen_refresh_rate;
+                config->Save();
                 Settings::Apply();
                 Settings::LogSettings();
 
@@ -731,10 +747,22 @@ void GMainWindow::InitializeHotkeys() {
                         Qt::WindowSystemMenuHint | Qt::WindowTitleHint | Qt::WindowCloseButtonHint);
                     if (ok) {
                         Settings::values.screen_refresh_rate = new_value;
+                        config->Save();
                         Settings::Apply();
                         Settings::LogSettings();
                     }
                 }
+            });
+
+    connect(hotkey_registry.GetHotkey(QStringLiteral("Main Window"),
+                                      QStringLiteral("Toggle Custom CPU Ticks"), this),
+            &QShortcut::activated, this, [this] {
+                Settings::values.use_custom_cpu_ticks = !Settings::values.use_custom_cpu_ticks;
+                config->Save();
+                Settings::LogSettings();
+                statusBar()->showMessage(Settings::values.use_custom_cpu_ticks
+                                             ? QStringLiteral("Custom CPU Ticks: On")
+                                             : QStringLiteral("Custom CPU Ticks: Off"));
             });
 }
 
@@ -1575,6 +1603,8 @@ void GMainWindow::ShowFullscreen() {
         UISettings::values.renderwindow_geometry = render_window->saveGeometry();
         render_window->showFullScreen();
     }
+
+    config->Save();
 }
 
 void GMainWindow::HideFullscreen() {

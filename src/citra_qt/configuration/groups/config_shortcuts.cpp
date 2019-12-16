@@ -7,7 +7,7 @@
 #include "citra_qt/uisettings.h"
 
 // clang-format off
-const std::array<UISettings::Shortcut, 37> default_hotkeys{
+const std::array<UISettings::Shortcut, 38> default_hotkeys{
     {{QStringLiteral("2x Native Internal Resolution"),             QStringLiteral("Main Window"), {QStringLiteral("Alt+2"), Qt::ApplicationShortcut}},
      {QStringLiteral("3x Native Internal Resolution"),             QStringLiteral("Main Window"), {QStringLiteral("Alt+3"), Qt::ApplicationShortcut}},
      {QStringLiteral("4x Native Internal Resolution"),             QStringLiteral("Main Window"), {QStringLiteral("Alt+4"), Qt::ApplicationShortcut}},
@@ -43,7 +43,8 @@ const std::array<UISettings::Shortcut, 37> default_hotkeys{
      {QStringLiteral("Toggle Hardware Shader"),                    QStringLiteral("Main Window"), {QStringLiteral("Ctrl+H"), Qt::ApplicationShortcut}},
      {QStringLiteral("Toggle Custom Layout"),                      QStringLiteral("Main Window"), {QStringLiteral("Ctrl+C"), Qt::ApplicationShortcut}},
      {QStringLiteral("Toggle Custom Screen Refresh Rate"),         QStringLiteral("Main Window"), {QStringLiteral("Ctrl+R"), Qt::ApplicationShortcut}},
-     {QStringLiteral("Change Custom Screen Refresh Rate"),         QStringLiteral("Main Window"), {QStringLiteral("Ctrl+Alt+R"), Qt::ApplicationShortcut}}}};
+     {QStringLiteral("Change Custom Screen Refresh Rate"),         QStringLiteral("Main Window"), {QStringLiteral("Ctrl+Alt+R"), Qt::ApplicationShortcut}},
+     {QStringLiteral("Toggle Custom CPU Ticks"),                   QStringLiteral("Main Window"), {QStringLiteral("Ctrl+T"), Qt::ApplicationShortcut}}}};
 // clang-format on
 
 void Config::ReadShortcutsValues() {
