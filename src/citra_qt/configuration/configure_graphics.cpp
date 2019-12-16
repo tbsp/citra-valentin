@@ -14,11 +14,12 @@ ConfigureGraphics::ConfigureGraphics(QWidget* parent)
     ui->setupUi(this);
     SetConfiguration();
 
+    ui->toggle_vsync_new->setDisabled(Core::System::GetInstance().IsPoweredOn());
+    ui->sharper_distant_objects->setDisabled(Core::System::GetInstance().IsPoweredOn());
+
     ui->hw_renderer_group->setVisible(ui->toggle_hw_renderer->isChecked());
     connect(ui->toggle_hw_renderer, &QCheckBox::toggled, ui->hw_renderer_group,
             &QWidget::setVisible);
-
-    ui->sharper_distant_objects->setDisabled(Core::System::GetInstance().IsPoweredOn());
 
     ui->custom_screen_refresh_rate->setVisible(ui->toggle_custom_screen_refresh_rate->isChecked());
     connect(ui->toggle_custom_screen_refresh_rate, &QCheckBox::toggled,

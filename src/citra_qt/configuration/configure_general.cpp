@@ -43,7 +43,7 @@ ConfigureGeneral::ConfigureGeneral(QWidget* parent)
     });
 
     connect(ui->use_custom_cpu_ticks, &QCheckBox::toggled, ui->custom_cpu_ticks,
-            &QSpinBox::setEnabled);
+            &QSpinBox::setVisible);
 }
 
 ConfigureGeneral::~ConfigureGeneral() = default;
@@ -58,7 +58,7 @@ void ConfigureGeneral::SetConfiguration() {
     ui->toggle_check_exit->setChecked(UISettings::values.confirm_before_closing);
     ui->toggle_background_pause->setChecked(UISettings::values.pause_when_in_background);
     ui->use_custom_cpu_ticks->setChecked(Settings::values.use_custom_cpu_ticks);
-    ui->custom_cpu_ticks->setEnabled(Settings::values.use_custom_cpu_ticks);
+    ui->custom_cpu_ticks->setVisible(Settings::values.use_custom_cpu_ticks);
     ui->custom_cpu_ticks->setValue(Settings::values.custom_cpu_ticks);
     ui->slider_clock_speed->setValue(SettingsToSlider(Settings::values.cpu_clock_percentage));
     ui->clock_display_label->setText(QString("%1%").arg(Settings::values.cpu_clock_percentage));
