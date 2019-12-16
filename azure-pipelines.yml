@@ -276,13 +276,7 @@ jobs:
           sudo apt-get install -qq -y clang-format-6.0
         displayName: Install ClangFormat
       - bash: |
-          if [ "$(Build.Reason)" = "PullRequest" ]; then
-              # Get list of every file modified in this pull request
-              files_to_lint="$(git diff --name-only --diff-filter=ACMRTUXB $TRAVIS_COMMIT_RANGE | grep '^src/[^.]*[.]\(cpp\|h\)$' || true)"
-          else
-              # Check everything for branch pushes
-              files_to_lint="$(find src/ -name '*.cpp' -or -name '*.h')"
-          fi
+          files_to_lint="$(find src/ -name '*.cpp' -or -name '*.h')"
 
           # Turn off tracing for this because it's too verbose
           set +x
