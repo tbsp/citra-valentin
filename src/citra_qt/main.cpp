@@ -934,7 +934,7 @@ void GMainWindow::ConnectMenuEvents() {
             &GMainWindow::CaptureScreenshotToClipboard);
 
     connect(ui.action_Capture_Screenshot_Send_To_Discord_Server, &QAction::triggered, this,
-            &GMainWindow::CaptureScreenshotThenSendToDiscordServer);
+            &GMainWindow::SendScreenshotToDiscordServer);
 
 #ifndef ENABLE_FFMPEG_VIDEO_DUMPER
     ui.action_Dump_Video->setEnabled(false);
@@ -1183,8 +1183,8 @@ void GMainWindow::BootGame(const QString& filename) {
     connect(emu_thread.get(), &EmuThread::DiskShaderCacheLoadingProgress, this,
             &GMainWindow::OnDiskShaderCacheLoadingProgress);
 
-    connect(emu_thread.get(), &EmuThread::CaptureScreenshotThenSendToDiscordServerRequested, this,
-            &GMainWindow::CaptureScreenshotThenSendToDiscordServer);
+    connect(emu_thread.get(), &EmuThread::SendScreenshotToDiscordServerRequested, this,
+            &GMainWindow::SendScreenshotToDiscordServer);
 
 #ifdef CITRA_ENABLE_DISCORD_RP
     discord_rp.Update();
@@ -2492,7 +2492,7 @@ void GMainWindow::CaptureScreenshotToClipboard() {
         layout);
 }
 
-void GMainWindow::CaptureScreenshotThenSendToDiscordServer() {
+void GMainWindow::SendScreenshotToDiscordServer() {
     QMutexLocker screenshot_image_mutex_locker(&screenshot_image_mutex);
     if (screenshot_image != nullptr || VideoCore::g_renderer_screenshot_requested) {
         return;

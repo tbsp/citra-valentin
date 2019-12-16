@@ -64,8 +64,8 @@ void EmuThread::run() {
                 emit DebugModeLeft();
             }
 
-            if (capture_screenshot_then_send_to_discord_server_button->GetStatus()) {
-                emit CaptureScreenshotThenSendToDiscordServerRequested();
+            if (send_screenshot_to_discord_server_button->GetStatus()) {
+                emit SendScreenshotToDiscordServerRequested();
             } else if (increase_volume_button->GetStatus() && Settings::values.volume < 1.0f) {
                 Settings::values.volume += 0.01f;
             } else if (decrease_volume_button->GetStatus() && Settings::values.volume >= 0.01f) {
@@ -110,9 +110,9 @@ void EmuThread::run() {
 }
 
 void EmuThread::UpdateQtButtons() {
-    capture_screenshot_then_send_to_discord_server_button =
+    send_screenshot_to_discord_server_button =
         Input::CreateDevice<Input::ButtonDevice>(
-            UISettings::values.capture_screenshot_then_send_to_discord_server_button.toStdString());
+            UISettings::values.send_screenshot_to_discord_server_button.toStdString());
     increase_volume_button = Input::CreateDevice<Input::ButtonDevice>(
         UISettings::values.increase_volume_button.toStdString());
     decrease_volume_button = Input::CreateDevice<Input::ButtonDevice>(

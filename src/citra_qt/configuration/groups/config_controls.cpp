@@ -104,8 +104,8 @@ void Config::ReadControlsValues() {
 
     Settings::LoadProfile(Settings::values.current_input_profile_index);
 
-    UISettings::values.capture_screenshot_then_send_to_discord_server_button =
-        ReadSetting(QStringLiteral("capture_screenshot_then_send_to_discord_server_button"),
+    UISettings::values.send_screenshot_to_discord_server_button =
+        ReadSetting(QStringLiteral("send_screenshot_to_discord_server_button"),
                     QStringLiteral("[empty]"))
             .toString();
 
@@ -155,8 +155,8 @@ void Config::SaveControlsValues() {
     }
     qt_config->endArray();
 
-    WriteSetting(QStringLiteral("capture_screenshot_then_send_to_discord_server_button"),
-                 UISettings::values.capture_screenshot_then_send_to_discord_server_button,
+    WriteSetting(QStringLiteral("send_screenshot_to_discord_server_button"),
+                 UISettings::values.send_screenshot_to_discord_server_button,
                  QStringLiteral("[empty]"));
     WriteSetting(QStringLiteral("increase_volume_button"),
                  UISettings::values.increase_volume_button, QStringLiteral("[empty]"));

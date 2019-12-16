@@ -192,9 +192,9 @@ ConfigureInput::ConfigureInput(QWidget* parent)
         });
     };
 
-    ui->button_capture_screenshot_then_send_to_discord_server->setProperty(
-        "params", UISettings::values.capture_screenshot_then_send_to_discord_server_button);
-    SetupMenuForButton(ui->button_capture_screenshot_then_send_to_discord_server, true, 0);
+    ui->button_send_screenshot_to_discord_server->setProperty(
+        "params", UISettings::values.send_screenshot_to_discord_server_button);
+    SetupMenuForButton(ui->button_send_screenshot_to_discord_server, true, 0);
 
     ui->button_increase_volume->setProperty("params", UISettings::values.increase_volume_button);
     SetupMenuForButton(ui->button_increase_volume, true, 1);
@@ -320,8 +320,8 @@ void ConfigureInput::ApplyConfiguration() {
 }
 
 void ConfigureInput::ApplyQtButtonsConfiguration() {
-    UISettings::values.capture_screenshot_then_send_to_discord_server_button =
-        ui->button_capture_screenshot_then_send_to_discord_server->property("params").toString();
+    UISettings::values.send_screenshot_to_discord_server_button =
+        ui->button_send_screenshot_to_discord_server->property("params").toString();
     UISettings::values.increase_volume_button =
         ui->button_increase_volume->property("params").toString();
     UISettings::values.decrease_volume_button =
@@ -356,7 +356,7 @@ QList<QKeySequence> ConfigureInput::GetUsedKeyboardKeys() {
 
     {
         const Common::ParamPackage params(
-            ui->button_capture_screenshot_then_send_to_discord_server->property("params")
+            ui->button_send_screenshot_to_discord_server->property("params")
                 .toString()
                 .toStdString());
         if (params.Get("engine", "") == "keyboard") {
@@ -430,9 +430,9 @@ void ConfigureInput::UpdateButtonLabels() {
             button_map[button]->setText(ButtonToText(buttons_param[button]));
     }
 
-    ui->button_capture_screenshot_then_send_to_discord_server->setText(
+    ui->button_send_screenshot_to_discord_server->setText(
         ButtonToText(Common::ParamPackage(
-            ui->button_capture_screenshot_then_send_to_discord_server->property("params")
+            ui->button_send_screenshot_to_discord_server->property("params")
                 .toString()
                 .toStdString())));
 

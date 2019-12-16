@@ -26,11 +26,6 @@ namespace Ui {
 class ConfigureInput;
 } // namespace Ui
 
-namespace QtButtons {
-// Button IDs
-constexpr int CaptureScreenshotThenSendToDiscordServer = 0;
-} // namespace QtButtons
-
 class ConfigureInput : public QWidget {
     Q_OBJECT
 
