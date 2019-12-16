@@ -41,7 +41,7 @@ void ConfigureGraphics::SetConfiguration() {
     ui->toggle_custom_screen_refresh_rate->setChecked(Settings::values.custom_screen_refresh_rate);
     ui->custom_screen_refresh_rate->setValue(Settings::values.screen_refresh_rate);
     ui->min_vertices_per_thread->setValue(Settings::values.min_vertices_per_thread);
-    ui->toggle_vsync_new->setEnabled(Settings::values.use_vsync_new);
+    ui->toggle_vsync_new->setChecked(Settings::values.use_vsync_new);
 }
 
 void ConfigureGraphics::ApplyConfiguration() {
