@@ -25,8 +25,6 @@ ConfigureDebug::ConfigureDebug(QWidget* parent) : QWidget(parent), ui(new Ui::Co
     });
 
     ui->toggle_cpu_jit->setEnabled(!Core::System::GetInstance().IsPoweredOn());
-    ui->cpu_jit_group->setVisible(ui->toggle_cpu_jit->isChecked());
-    connect(ui->toggle_cpu_jit, &QCheckBox::toggled, ui->cpu_jit_group, &QGroupBox::setVisible);
 }
 
 ConfigureDebug::~ConfigureDebug() = default;
