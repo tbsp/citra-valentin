@@ -2243,7 +2243,8 @@ bool GMainWindow::ConfirmChangeGame() {
     }
 
     const QMessageBox::StandardButton answer = QMessageBox::question(
-        this, "Citra", "The game is still running. Would you like to stop emulation?",
+        this, QStringLiteral("Citra Valentin"),
+        QStringLiteral("The game is still running. Would you like to stop emulation?"),
         QMessageBox::Yes | QMessageBox::No, QMessageBox::No);
     return answer != QMessageBox::No;
 }

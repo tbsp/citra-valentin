@@ -17,6 +17,7 @@
 #include "citra_qt/bootmanager.h"
 #include "citra_qt/main.h"
 #include "citra_qt/uisettings.h"
+#include "common/version.h"
 #include "core/3ds.h"
 #include "core/core.h"
 #include "core/frontend/scope_acquire_context.h"
@@ -110,9 +111,8 @@ void EmuThread::run() {
 }
 
 void EmuThread::UpdateQtButtons() {
-    send_screenshot_to_discord_server_button =
-        Input::CreateDevice<Input::ButtonDevice>(
-            UISettings::values.send_screenshot_to_discord_server_button.toStdString());
+    send_screenshot_to_discord_server_button = Input::CreateDevice<Input::ButtonDevice>(
+        UISettings::values.send_screenshot_to_discord_server_button.toStdString());
     increase_volume_button = Input::CreateDevice<Input::ButtonDevice>(
         UISettings::values.increase_volume_button.toStdString());
     decrease_volume_button = Input::CreateDevice<Input::ButtonDevice>(
@@ -211,7 +211,8 @@ void OpenGLWindow::exposeEvent(QExposeEvent* event) {
 GRenderWindow::GRenderWindow(QWidget* parent, EmuThread* emu_thread)
     : QWidget(parent), emu_thread(emu_thread) {
 
-    setWindowTitle("Citra");
+    setWindowTitle(QStringLiteral("Citra Valentin %1")
+                       .arg(QString::fromStdString(Version::citra_valentin.to_string())));
     setAttribute(Qt::WA_AcceptTouchEvents);
     QHBoxLayout* layout = new QHBoxLayout(this);
     layout->setMargin(0);

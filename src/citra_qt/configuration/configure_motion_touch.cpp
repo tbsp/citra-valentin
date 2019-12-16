@@ -237,7 +237,7 @@ void ConfigureMotionTouch::ShowUDPTestResult(bool result) {
 bool ConfigureMotionTouch::CanCloseDialog() {
     if (udp_test_in_progress) {
         QMessageBox::warning(
-            this, QStringLiteral("Citra"),
+            this, QStringLiteral("Citra Valentin"),
             QStringLiteral("UDP Test or calibration configuration is in progress.<br>Please "
                            "wait for them to finish."));
         return false;
