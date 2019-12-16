@@ -7,7 +7,7 @@
 #include "citra_qt/uisettings.h"
 
 // clang-format off
-const std::array<UISettings::Shortcut, 38> default_hotkeys{
+const std::array<UISettings::Shortcut, 37> default_hotkeys{
     {{QStringLiteral("2x Native Internal Resolution"),             QStringLiteral("Main Window"), {QStringLiteral("Alt+2"), Qt::ApplicationShortcut}},
      {QStringLiteral("3x Native Internal Resolution"),             QStringLiteral("Main Window"), {QStringLiteral("Alt+3"), Qt::ApplicationShortcut}},
      {QStringLiteral("4x Native Internal Resolution"),             QStringLiteral("Main Window"), {QStringLiteral("Alt+4"), Qt::ApplicationShortcut}},
@@ -35,7 +35,6 @@ const std::array<UISettings::Shortcut, 38> default_hotkeys{
      {QStringLiteral("Stop Emulation"),                            QStringLiteral("Main Window"), {QStringLiteral("F5"), Qt::WindowShortcut}},
      {QStringLiteral("Swap Screens"),                              QStringLiteral("Main Window"), {QStringLiteral("F9"), Qt::WindowShortcut}},
      {QStringLiteral("Toggle Filter Bar"),                         QStringLiteral("Main Window"), {QStringLiteral("Ctrl+F"), Qt::WindowShortcut}},
-     {QStringLiteral("Toggle Custom Ticks"),                       QStringLiteral("Main Window"), {QStringLiteral("Ctrl+T"), Qt::ApplicationShortcut}},
      {QStringLiteral("Toggle Frame Advancing"),                    QStringLiteral("Main Window"), {QStringLiteral("Ctrl+A"), Qt::ApplicationShortcut}},
      {QStringLiteral("Toggle Screen Layout"),                      QStringLiteral("Main Window"), {QStringLiteral("F10"), Qt::WindowShortcut}},
      {QStringLiteral("Toggle Speed Limit"),                        QStringLiteral("Main Window"), {QStringLiteral("Ctrl+Z"), Qt::ApplicationShortcut}},

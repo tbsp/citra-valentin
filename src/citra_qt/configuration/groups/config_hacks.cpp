@@ -7,9 +7,6 @@
 
 void Config::ReadHacksValues() {
     qt_config->beginGroup(QStringLiteral("Hacks"));
-    Settings::values.custom_ticks = ReadSetting(QStringLiteral("custom_ticks"), false).toBool();
-    Settings::values.ticks = ReadSetting(QStringLiteral("ticks"), 77).toULongLong();
-
     Settings::values.custom_screen_refresh_rate =
         ReadSetting(QStringLiteral("custom_screen_refresh_rate"), false).toBool();
     Settings::values.screen_refresh_rate =
@@ -24,9 +21,6 @@ void Config::ReadHacksValues() {
 
 void Config::SaveHacksValues() {
     qt_config->beginGroup(QStringLiteral("Hacks"));
-    WriteSetting(QStringLiteral("custom_ticks"), Settings::values.custom_ticks, false);
-    WriteSetting(QStringLiteral("ticks"), static_cast<qulonglong>(Settings::values.ticks), 77);
-
     WriteSetting(QStringLiteral("custom_screen_refresh_rate"),
                  Settings::values.custom_screen_refresh_rate, false);
     WriteSetting(QStringLiteral("screen_refresh_rate"), Settings::values.screen_refresh_rate,

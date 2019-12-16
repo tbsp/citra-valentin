@@ -551,16 +551,6 @@ void GMainWindow::InitializeHotkeys() {
             });
 
     connect(hotkey_registry.GetHotkey(QStringLiteral("Main Window"),
-                                      QStringLiteral("Toggle Custom Ticks"), this),
-            &QShortcut::activated, this, [this] {
-                Settings::values.custom_ticks = !Settings::values.custom_ticks;
-                Settings::LogSettings();
-                statusBar()->showMessage(Settings::values.custom_ticks
-                                             ? QStringLiteral("Custom Ticks: On")
-                                             : QStringLiteral("Custom Ticks: Off"));
-            });
-
-    connect(hotkey_registry.GetHotkey(QStringLiteral("Main Window"),
                                       QStringLiteral("Auto Internal Resolution"), this),
             &QShortcut::activated, this, [this] {
                 const u16 original = Settings::values.resolution_factor;

@@ -104,6 +104,8 @@ void Config::ReadValues() {
 
     // Core
     Settings::values.use_cpu_jit = sdl2_config->GetBoolean("Core", "use_cpu_jit", true);
+    Settings::values.cpu_clock_percentage =
+        sdl2_config->GetInteger("Core", "cpu_clock_percentage", 100);
 
     // Renderer
     Settings::values.use_hw_renderer = sdl2_config->GetBoolean("Renderer", "use_hw_renderer", true);
@@ -252,8 +254,6 @@ void Config::ReadValues() {
     Settings::values.citra_token = sdl2_config->GetString("WebService", "citra_token", "");
 
     // Hacks
-    Settings::values.custom_ticks = sdl2_config->GetBoolean("Hacks", "custom_ticks", false);
-    Settings::values.ticks = static_cast<u64>(sdl2_config->GetInteger("Hacks", "ticks", 77));
     Settings::values.custom_screen_refresh_rate =
         sdl2_config->GetBoolean("Hacks", "custom_screen_refresh_rate", false);
     Settings::values.screen_refresh_rate = sdl2_config->GetReal("Hacks", "screen_refresh_rate", 60);

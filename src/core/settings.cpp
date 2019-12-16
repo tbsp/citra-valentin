@@ -116,8 +116,6 @@ void LogSettings() {
     LogSetting("region_value", Settings::values.region_value);
     LogSetting("use_gdbstub", Settings::values.use_gdbstub);
     LogSetting("gdbstub_port", Settings::values.gdbstub_port);
-    LogSetting("custom_ticks", Settings::values.custom_ticks);
-    LogSetting("ticks", Settings::values.ticks);
     LogSetting("sharper_distant_objects", Settings::values.sharper_distant_objects);
     LogSetting("ignore_format_reinterpretation", Settings::values.ignore_format_reinterpretation);
     LogSetting("custom_screen_refresh_rate", Settings::values.custom_screen_refresh_rate);

@@ -14,7 +14,6 @@
 #include "core/gdbstub/gdbstub.h"
 #include "core/hle/kernel/svc.h"
 #include "core/memory.h"
-#include "core/settings.h"
 
 class DynarmicThreadContext final : public ARM_Interface::ThreadContext {
 public:
@@ -175,7 +174,7 @@ public:
     }
 
     void AddTicks(u64 ticks) override {
-        timing.AddTicks(Settings::values.custom_ticks ? Settings::values.ticks : ticks);
+        timing.AddTicks(ticks);
     }
 
     u64 GetTicksRemaining() override {

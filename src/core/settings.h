@@ -129,6 +129,7 @@ struct Values {
 
     // Core
     bool use_cpu_jit;
+    int cpu_clock_percentage;
 
     // Data Storage
     bool use_virtual_sd;
@@ -205,9 +206,6 @@ struct Values {
     std::string citra_token;
 
     // Hacks
-    bool custom_ticks;
-    u64 ticks;
-
     bool custom_screen_refresh_rate;
     double screen_refresh_rate;
 

@@ -26,9 +26,7 @@ ConfigureDebug::ConfigureDebug(QWidget* parent) : QWidget(parent), ui(new Ui::Co
 
     ui->toggle_cpu_jit->setEnabled(!Core::System::GetInstance().IsPoweredOn());
     ui->cpu_jit_group->setVisible(ui->toggle_cpu_jit->isChecked());
-    ui->custom_ticks->setVisible(ui->toggle_custom_ticks->isChecked());
     connect(ui->toggle_cpu_jit, &QCheckBox::toggled, ui->cpu_jit_group, &QGroupBox::setVisible);
-    connect(ui->toggle_custom_ticks, &QCheckBox::toggled, ui->custom_ticks, &QSpinBox::setVisible);
 }
 
 ConfigureDebug::~ConfigureDebug() = default;
@@ -41,8 +39,6 @@ void ConfigureDebug::SetConfiguration() {
     ui->toggle_console->setChecked(UISettings::values.show_console);
     ui->log_filter_edit->setText(QString::fromStdString(Settings::values.log_filter));
     ui->toggle_cpu_jit->setChecked(Settings::values.use_cpu_jit);
-    ui->toggle_custom_ticks->setChecked(Settings::values.custom_ticks);
-    ui->custom_ticks->setValue(Settings::values.ticks);
 }
 
 void ConfigureDebug::ApplyConfiguration() {
@@ -50,8 +46,6 @@ void ConfigureDebug::ApplyConfiguration() {
     Settings::values.gdbstub_port = ui->gdbport_spinbox->value();
     UISettings::values.show_console = ui->toggle_console->isChecked();
     Settings::values.log_filter = ui->log_filter_edit->text().toStdString();
-    Settings::values.custom_ticks = ui->toggle_custom_ticks->isChecked();
-    Settings::values.ticks = ui->custom_ticks->value();
 
     Debugger::ToggleConsole();
     Log::Filter filter;
