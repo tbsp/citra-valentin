@@ -66,7 +66,9 @@ void ConfigureGeneral::SetConfiguration() {
 
 void ConfigureGeneral::ResetDefaults() {
     const QMessageBox::StandardButton answer = QMessageBox::question(
-        this, "Citra", "Are you sure you want to <b>reset your settings</b> and close Citra?",
+        this, QStringLiteral("Citra Valentin"),
+        QStringLiteral(
+            "Are you sure you want to <b>reset your settings</b> and close Citra Valentin?"),
         QMessageBox::Yes | QMessageBox::No, QMessageBox::No);
 
     if (answer == QMessageBox::No) {
