@@ -12,6 +12,7 @@
 #include "citra_qt/hotkeys.h"
 #include "common/announce_multiplayer_room.h"
 #include "core/core.h"
+#include "core/frontend/framebuffer_layout.h"
 #include "core/hle/service/am/am.h"
 #include "ui_main.h"
 #include "video_core/rasterizer_interface.h"
@@ -72,9 +73,6 @@ public:
 
 public slots:
     void OnAppFocusStateChanged(Qt::ApplicationState state);
-
-    // Screenshots
-    void CaptureScreenshotThenSendToDiscordServer();
 
 signals:
 
@@ -156,8 +154,11 @@ private:
     void ShowDiscordServerCallout();
 
     // Screenshots
-    void CaptureScreenshotToFile();
-    void CaptureScreenshotToClipboard();
+    Layout::FramebufferLayout CreateTopScreenLayout();
+    Layout::FramebufferLayout CreateBottomScreenLayout();
+    void CaptureScreenshotToFile(const Layout::FramebufferLayout& layout);
+    void CaptureScreenshotToClipboard(const Layout::FramebufferLayout& layout);
+    void CaptureScreenshotThenSendToDiscordServer(const Layout::FramebufferLayout& layout);
 
     bool ValidateMovie(const QString& path, u64 program_id = 0);
     Q_INVOKABLE void OnMoviePlaybackCompleted();

@@ -7,7 +7,7 @@
 #include "citra_qt/uisettings.h"
 
 // clang-format off
-const std::array<UISettings::Shortcut, 39> default_hotkeys{
+const std::array<UISettings::Shortcut, 41> default_hotkeys{
     {{QStringLiteral("2x Native Internal Resolution"),                           QStringLiteral("Main Window"), {QStringLiteral("Alt+2"), Qt::ApplicationShortcut}},
      {QStringLiteral("3x Native Internal Resolution"),                           QStringLiteral("Main Window"), {QStringLiteral("Alt+3"), Qt::ApplicationShortcut}},
      {QStringLiteral("4x Native Internal Resolution"),                           QStringLiteral("Main Window"), {QStringLiteral("Alt+4"), Qt::ApplicationShortcut}},
@@ -20,6 +20,8 @@ const std::array<UISettings::Shortcut, 39> default_hotkeys{
      {QStringLiteral("Advance Frame"),                                           QStringLiteral("Main Window"), {QStringLiteral("\\"), Qt::ApplicationShortcut}},
      {QStringLiteral("Auto Internal Resolution"),                                QStringLiteral("Main Window"), {QStringLiteral("Alt+A"), Qt::ApplicationShortcut}},
      {QStringLiteral("Capture Screenshot Then Save To File"),                    QStringLiteral("Main Window"), {QStringLiteral("Ctrl+P"), Qt::ApplicationShortcut}},
+     {QStringLiteral("Capture Top Screen Screenshot Then Save To File"),         QStringLiteral("Main Window"), {QStringLiteral("Ctrl+Alt+N"), Qt::ApplicationShortcut}},
+     {QStringLiteral("Capture Bottom Screen Screenshot Then Save To File"),      QStringLiteral("Main Window"), {QStringLiteral("Ctrl+Alt+M"), Qt::ApplicationShortcut}},
      {QStringLiteral("Capture Screenshot Then Copy To Clipboard"),               QStringLiteral("Main Window"), {QStringLiteral("Ctrl+B"), Qt::ApplicationShortcut}},
      {QStringLiteral("Capture Top Screen Screenshot Then Copy To Clipboard"),    QStringLiteral("Main Window"), {QStringLiteral("Ctrl+N"), Qt::ApplicationShortcut}},
      {QStringLiteral("Capture Bottom Screen Screenshot Then Copy To Clipboard"), QStringLiteral("Main Window"), {QStringLiteral("Ctrl+M"), Qt::ApplicationShortcut}},

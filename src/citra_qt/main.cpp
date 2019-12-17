@@ -519,7 +519,28 @@ void GMainWindow::InitializeHotkeys() {
                                       QStringLiteral("Capture Screenshot Then Save To File"), this),
             &QShortcut::activated, this, [&] {
                 if (emulation_running) {
-                    CaptureScreenshotToFile();
+                    CaptureScreenshotToFile(Layout::FrameLayoutFromResolutionScale(
+                        UISettings::values.screenshot_resolution_factor == 0
+                            ? VideoCore::GetResolutionScaleFactor()
+                            : UISettings::values.screenshot_resolution_factor));
+                }
+            });
+
+    connect(hotkey_registry.GetHotkey(
+                QStringLiteral("Main Window"),
+                QStringLiteral("Capture Top Screen Screenshot Then Save To File"), this),
+            &QShortcut::activated, this, [&] {
+                if (emulation_running) {
+                    CaptureScreenshotToFile(CreateTopScreenLayout());
+                }
+            });
+
+    connect(hotkey_registry.GetHotkey(
+                QStringLiteral("Main Window"),
+                QStringLiteral("Capture Bottom Screen Screenshot Then Save To File"), this),
+            &QShortcut::activated, this, [&] {
+                if (emulation_running) {
+                    CaptureScreenshotToFile(CreateBottomScreenLayout());
                 }
             });
 
@@ -528,7 +549,10 @@ void GMainWindow::InitializeHotkeys() {
                                       this),
             &QShortcut::activated, this, [&] {
                 if (emulation_running) {
-                    CaptureScreenshotToClipboard();
+                    CaptureScreenshotToClipboard(Layout::FrameLayoutFromResolutionScale(
+                        UISettings::values.screenshot_resolution_factor == 0
+                            ? VideoCore::GetResolutionScaleFactor()
+                            : UISettings::values.screenshot_resolution_factor));
                 }
             });
 
@@ -537,31 +561,7 @@ void GMainWindow::InitializeHotkeys() {
                 QStringLiteral("Capture Top Screen Screenshot Then Copy To Clipboard"), this),
             &QShortcut::activated, this, [&] {
                 if (emulation_running) {
-                    QMutexLocker screenshot_image_mutex_locker(&screenshot_image_mutex);
-                    if (screenshot_image != nullptr || VideoCore::g_renderer_screenshot_requested) {
-                        return;
-                    }
-
-                    const u16 resolution_scale =
-                        UISettings::values.screenshot_resolution_factor == 0
-                            ? VideoCore::GetResolutionScaleFactor()
-                            : UISettings::values.screenshot_resolution_factor;
-                    const Layout::FramebufferLayout layout =
-                        Layout::SingleFrameLayout(Core::kScreenTopWidth * resolution_scale,
-                                                  Core::kScreenTopHeight * resolution_scale, false);
-                    screenshot_image = std::make_unique<QImage>(QSize(layout.width, layout.height),
-                                                                QImage::Format_RGB32);
-                    VideoCore::RequestScreenshot(
-                        screenshot_image->bits(),
-                        [this] {
-                            QTimer::singleShot(0, qApp, [this] {
-                                QMutexLocker screenshot_image_mutex_locker(&screenshot_image_mutex);
-                                QApplication::clipboard()->setImage(
-                                    screenshot_image->mirrored(false, true));
-                                screenshot_image.reset();
-                            });
-                        },
-                        layout);
+                    CaptureScreenshotToClipboard(CreateTopScreenLayout());
                 }
             });
 
@@ -570,31 +570,7 @@ void GMainWindow::InitializeHotkeys() {
                 QStringLiteral("Capture Bottom Screen Screenshot Then Copy To Clipboard"), this),
             &QShortcut::activated, this, [&] {
                 if (emulation_running) {
-                    QMutexLocker screenshot_image_mutex_locker(&screenshot_image_mutex);
-                    if (screenshot_image != nullptr || VideoCore::g_renderer_screenshot_requested) {
-                        return;
-                    }
-
-                    const u16 resolution_scale =
-                        UISettings::values.screenshot_resolution_factor == 0
-                            ? VideoCore::GetResolutionScaleFactor()
-                            : UISettings::values.screenshot_resolution_factor;
-                    const Layout::FramebufferLayout layout = Layout::SingleFrameLayout(
-                        Core::kScreenBottomWidth * resolution_scale,
-                        Core::kScreenBottomHeight * resolution_scale, true);
-                    screenshot_image = std::make_unique<QImage>(QSize(layout.width, layout.height),
-                                                                QImage::Format_RGB32);
-                    VideoCore::RequestScreenshot(
-                        screenshot_image->bits(),
-                        [this] {
-                            QTimer::singleShot(0, qApp, [this] {
-                                QMutexLocker screenshot_image_mutex_locker(&screenshot_image_mutex);
-                                QApplication::clipboard()->setImage(
-                                    screenshot_image->mirrored(false, true));
-                                screenshot_image.reset();
-                            });
-                        },
-                        layout);
+                    CaptureScreenshotToClipboard(CreateBottomScreenLayout());
                 }
             });
 
@@ -973,14 +949,47 @@ void GMainWindow::ConnectMenuEvents() {
         }
     });
 
-    connect(ui.action_Capture_Screenshot_Save_To_File, &QAction::triggered, this,
-            &GMainWindow::CaptureScreenshotToFile);
+    connect(ui.action_Capture_Screenshot_Save_To_File_Current_Layout, &QAction::triggered, this,
+            [this] {
+                CaptureScreenshotToFile(Layout::FrameLayoutFromResolutionScale(
+                    UISettings::values.screenshot_resolution_factor == 0
+                        ? VideoCore::GetResolutionScaleFactor()
+                        : UISettings::values.screenshot_resolution_factor));
+            });
 
-    connect(ui.action_Capture_Screenshot_Copy_To_Clipboard, &QAction::triggered, this,
-            &GMainWindow::CaptureScreenshotToClipboard);
+    connect(ui.action_Capture_Screenshot_Save_To_File_Top_Screen, &QAction::triggered, this,
+            [this] { CaptureScreenshotToFile(CreateTopScreenLayout()); });
 
-    connect(ui.action_Capture_Screenshot_Send_To_Discord_Server, &QAction::triggered, this,
-            &GMainWindow::CaptureScreenshotThenSendToDiscordServer);
+    connect(ui.action_Capture_Screenshot_Save_To_File_Bottom_Screen, &QAction::triggered, this,
+            [this] { CaptureScreenshotToFile(CreateBottomScreenLayout()); });
+
+    connect(ui.action_Capture_Screenshot_Copy_To_Clipboard_Current_Layout, &QAction::triggered,
+            this, [this] {
+                CaptureScreenshotToClipboard(Layout::FrameLayoutFromResolutionScale(
+                    UISettings::values.screenshot_resolution_factor == 0
+                        ? VideoCore::GetResolutionScaleFactor()
+                        : UISettings::values.screenshot_resolution_factor));
+            });
+
+    connect(ui.action_Capture_Screenshot_Copy_To_Clipboard_Top_Screen, &QAction::triggered, this,
+            [this] { CaptureScreenshotToClipboard(CreateTopScreenLayout()); });
+
+    connect(ui.action_Capture_Screenshot_Copy_To_Clipboard_Bottom_Screen, &QAction::triggered, this,
+            [this] { CaptureScreenshotToClipboard(CreateBottomScreenLayout()); });
+
+    connect(ui.action_Capture_Screenshot_Send_To_Discord_Server_Current_Layout, &QAction::triggered,
+            this, [this] {
+                CaptureScreenshotThenSendToDiscordServer(Layout::FrameLayoutFromResolutionScale(
+                    UISettings::values.screenshot_resolution_factor == 0
+                        ? VideoCore::GetResolutionScaleFactor()
+                        : UISettings::values.screenshot_resolution_factor));
+            });
+
+    connect(ui.action_Capture_Screenshot_Send_To_Discord_Server_Top_Screen, &QAction::triggered,
+            this, [this] { CaptureScreenshotThenSendToDiscordServer(CreateTopScreenLayout()); });
+
+    connect(ui.action_Capture_Screenshot_Send_To_Discord_Server_Bottom_Screen, &QAction::triggered,
+            this, [this] { CaptureScreenshotThenSendToDiscordServer(CreateBottomScreenLayout()); });
 
 #ifndef ENABLE_FFMPEG_VIDEO_DUMPER
     ui.action_Dump_Video->setEnabled(false);
@@ -1229,8 +1238,8 @@ void GMainWindow::BootGame(const QString& filename) {
     connect(emu_thread.get(), &EmuThread::DiskShaderCacheLoadingProgress, this,
             &GMainWindow::OnDiskShaderCacheLoadingProgress);
 
-    connect(emu_thread.get(), &EmuThread::CaptureScreenshotThenSendToDiscordServerRequested, this,
-            &GMainWindow::CaptureScreenshotThenSendToDiscordServer);
+    connect(emu_thread.get(), &EmuThread::CaptureScreenshotThenSendToDiscordServerRequested,
+            ui.action_Capture_Screenshot_Send_To_Discord_Server_Current_Layout, &QAction::trigger);
 
 #ifdef CITRA_ENABLE_DISCORD_RP
     discord_rp.Update();
@@ -1295,9 +1304,15 @@ void GMainWindow::ShutdownGame() {
     ui.action_Enable_Frame_Advancing->setEnabled(false);
     ui.action_Enable_Frame_Advancing->setChecked(false);
     ui.action_Advance_Frame->setEnabled(false);
-    ui.action_Capture_Screenshot_Save_To_File->setEnabled(false);
-    ui.action_Capture_Screenshot_Copy_To_Clipboard->setEnabled(false);
-    ui.action_Capture_Screenshot_Send_To_Discord_Server->setEnabled(false);
+    ui.action_Capture_Screenshot_Save_To_File_Current_Layout->setEnabled(false);
+    ui.action_Capture_Screenshot_Save_To_File_Top_Screen->setEnabled(false);
+    ui.action_Capture_Screenshot_Save_To_File_Bottom_Screen->setEnabled(false);
+    ui.action_Capture_Screenshot_Copy_To_Clipboard_Current_Layout->setEnabled(false);
+    ui.action_Capture_Screenshot_Copy_To_Clipboard_Top_Screen->setEnabled(false);
+    ui.action_Capture_Screenshot_Copy_To_Clipboard_Bottom_Screen->setEnabled(false);
+    ui.action_Capture_Screenshot_Send_To_Discord_Server_Current_Layout->setEnabled(false);
+    ui.action_Capture_Screenshot_Send_To_Discord_Server_Top_Screen->setEnabled(false);
+    ui.action_Capture_Screenshot_Send_To_Discord_Server_Bottom_Screen->setEnabled(false);
     ui.menu_Capture_Screenshot->setEnabled(false);
 
     render_window->hide();
@@ -1606,9 +1621,15 @@ void GMainWindow::OnStartGame() {
     ui.action_Cheats->setEnabled(true);
     ui.action_Load_Amiibo->setEnabled(true);
     ui.action_Enable_Frame_Advancing->setEnabled(true);
-    ui.action_Capture_Screenshot_Save_To_File->setEnabled(true);
-    ui.action_Capture_Screenshot_Copy_To_Clipboard->setEnabled(true);
-    ui.action_Capture_Screenshot_Send_To_Discord_Server->setEnabled(true);
+    ui.action_Capture_Screenshot_Save_To_File_Current_Layout->setEnabled(true);
+    ui.action_Capture_Screenshot_Save_To_File_Top_Screen->setEnabled(true);
+    ui.action_Capture_Screenshot_Save_To_File_Bottom_Screen->setEnabled(true);
+    ui.action_Capture_Screenshot_Copy_To_Clipboard_Current_Layout->setEnabled(true);
+    ui.action_Capture_Screenshot_Copy_To_Clipboard_Top_Screen->setEnabled(true);
+    ui.action_Capture_Screenshot_Copy_To_Clipboard_Bottom_Screen->setEnabled(true);
+    ui.action_Capture_Screenshot_Send_To_Discord_Server_Current_Layout->setEnabled(true);
+    ui.action_Capture_Screenshot_Send_To_Discord_Server_Top_Screen->setEnabled(true);
+    ui.action_Capture_Screenshot_Send_To_Discord_Server_Bottom_Screen->setEnabled(true);
     ui.menu_Capture_Screenshot->setEnabled(true);
 }
 
@@ -2354,14 +2375,30 @@ void GMainWindow::SyncMenuUISettings() {
     ui.action_Screen_Layout_Swap_Screens->setChecked(Settings::values.swap_screen);
 }
 
-void GMainWindow::CaptureScreenshotToFile() {
+Layout::FramebufferLayout GMainWindow::CreateTopScreenLayout() {
+    const u16 resolution_scale = UISettings::values.screenshot_resolution_factor == 0
+                                     ? VideoCore::GetResolutionScaleFactor()
+                                     : UISettings::values.screenshot_resolution_factor;
+    return Layout::SingleFrameLayout(Core::kScreenTopWidth * resolution_scale,
+                                     Core::kScreenTopHeight * resolution_scale, false);
+}
+
+Layout::FramebufferLayout GMainWindow::CreateBottomScreenLayout() {
+    const u16 resolution_scale = UISettings::values.screenshot_resolution_factor == 0
+                                     ? VideoCore::GetResolutionScaleFactor()
+                                     : UISettings::values.screenshot_resolution_factor;
+    return Layout::SingleFrameLayout(Core::kScreenBottomWidth * resolution_scale,
+                                     Core::kScreenBottomHeight * resolution_scale, true);
+}
+
+void GMainWindow::CaptureScreenshotToFile(const Layout::FramebufferLayout& layout) {
     QMutexLocker screenshot_image_mutex_locker(&screenshot_image_mutex);
     if (screenshot_image != nullptr || VideoCore::g_renderer_screenshot_requested) {
         return;
     }
 
-    QFileDialog png_dialog(this, tr("Capture Screenshot"), UISettings::values.screenshot_path,
-                           tr("PNG Image (*.png)"));
+    QFileDialog png_dialog(this, QStringLiteral("Capture Screenshot"),
+                           UISettings::values.screenshot_path, QStringLiteral("PNG Image (*.png)"));
     png_dialog.setAcceptMode(QFileDialog::AcceptSave);
     png_dialog.setDefaultSuffix("png");
     const bool was_running = emu_thread->IsRunning();
@@ -2381,10 +2418,6 @@ void GMainWindow::CaptureScreenshotToFile() {
                 config->Save();
             }
 
-            const Layout::FramebufferLayout layout = Layout::FrameLayoutFromResolutionScale(
-                UISettings::values.screenshot_resolution_factor == 0
-                    ? VideoCore::GetResolutionScaleFactor()
-                    : UISettings::values.screenshot_resolution_factor);
             screenshot_image =
                 std::make_unique<QImage>(QSize(layout.width, layout.height), QImage::Format_RGB32);
             VideoCore::RequestScreenshot(
@@ -2405,16 +2438,12 @@ void GMainWindow::CaptureScreenshotToFile() {
     }
 }
 
-void GMainWindow::CaptureScreenshotToClipboard() {
+void GMainWindow::CaptureScreenshotToClipboard(const Layout::FramebufferLayout& layout) {
     QMutexLocker screenshot_image_mutex_locker(&screenshot_image_mutex);
     if (screenshot_image != nullptr || VideoCore::g_renderer_screenshot_requested) {
         return;
     }
 
-    const Layout::FramebufferLayout layout = Layout::FrameLayoutFromResolutionScale(
-        UISettings::values.screenshot_resolution_factor == 0
-            ? VideoCore::GetResolutionScaleFactor()
-            : UISettings::values.screenshot_resolution_factor);
     screenshot_image =
         std::make_unique<QImage>(QSize(layout.width, layout.height), QImage::Format_RGB32);
     VideoCore::RequestScreenshot(
@@ -2429,7 +2458,8 @@ void GMainWindow::CaptureScreenshotToClipboard() {
         layout);
 }
 
-void GMainWindow::CaptureScreenshotThenSendToDiscordServer() {
+void GMainWindow::CaptureScreenshotThenSendToDiscordServer(
+    const Layout::FramebufferLayout& layout) {
     QMutexLocker screenshot_image_mutex_locker(&screenshot_image_mutex);
     if (screenshot_image != nullptr || VideoCore::g_renderer_screenshot_requested) {
         return;
@@ -2446,10 +2476,6 @@ void GMainWindow::CaptureScreenshotThenSendToDiscordServer() {
 
     const bool was_running = emu_thread->IsRunning();
 
-    const Layout::FramebufferLayout layout = Layout::FrameLayoutFromResolutionScale(
-        UISettings::values.screenshot_resolution_factor == 0
-            ? VideoCore::GetResolutionScaleFactor()
-            : UISettings::values.screenshot_resolution_factor);
     screenshot_image =
         std::make_unique<QImage>(QSize(layout.width, layout.height), QImage::Format_RGB32);
     VideoCore::RequestScreenshot(

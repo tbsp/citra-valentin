@@ -6,7 +6,7 @@
 
 namespace Version {
 // Citra Valentin version
-const semver::version citra_valentin{13, 0, 0};
+const semver::version citra_valentin{13, 1, 0};
 
 const u32 network = 4;
 const u8 movie = 1;
