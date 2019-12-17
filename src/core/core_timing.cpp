@@ -22,7 +22,7 @@ bool Timing::Event::operator<(const Event& right) const {
 
 Timing::Timing(const int cpu_clock_percentage) : cpu_clock_scale(100.0 / cpu_clock_percentage) {}
 
-void Timing::UpdateClockSpeed(const int cpu_clock_percentage) {
+void Timing::UpdateClockSpeed(int cpu_clock_percentage) {
     this->cpu_clock_scale = 100.0 / cpu_clock_percentage;
 }
 

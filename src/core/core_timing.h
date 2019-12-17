@@ -140,7 +140,7 @@ public:
     /**
      * Updates the value of the CPU clock scaling to the new percentage.
      */
-    void UpdateClockSpeed(const int cpu_clock_percentage);
+    void UpdateClockSpeed(int cpu_clock_percentage);
 
     /**
      * This should only be called from the emu thread, if you are calling it any other thread, you
