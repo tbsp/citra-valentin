@@ -45,29 +45,6 @@ ConfigureWeb::ConfigureWeb(QWidget* parent)
     connect(ui->button_verify_login, &QPushButton::clicked, this, &ConfigureWeb::VerifyLogin);
     connect(&verify_watcher, &QFutureWatcher<bool>::finished, this, &ConfigureWeb::OnLoginVerified);
 
-    const auto SetAllTelemetry = [this](const bool checked) {
-        ui->telemetry_os_version->setChecked(checked);
-        ui->telemetry_cpu_string->setChecked(checked);
-        ui->telemetry_gpu_information->setChecked(checked);
-        ui->telemetry_citra_valentin_version->setChecked(checked);
-        ui->telemetry_citra_account_username->setChecked(checked);
-        ui->telemetry_game_name->setChecked(checked);
-        ui->telemetry_use_cpu_jit->setChecked(checked);
-        ui->telemetry_gdb_stub_enabled->setChecked(checked);
-        ui->telemetry_gdb_stub_port->setChecked(checked);
-        ui->telemetry_use_hardware_shader->setChecked(checked);
-        ui->telemetry_use_hardware_shader_accurate_multiplication->setChecked(checked);
-        ui->telemetry_use_shader_jit->setChecked(checked);
-        ui->telemetry_use_dsp_lle->setChecked(checked);
-        ui->telemetry_use_dsp_lle_multi_core->setChecked(checked);
-        ui->telemetry_log_filter->setChecked(checked);
-    };
-
-    connect(ui->telemetry_enable_all, &QPushButton::clicked, this,
-            [SetAllTelemetry] { SetAllTelemetry(true); });
-    connect(ui->telemetry_disable_all, &QPushButton::clicked, this,
-            [SetAllTelemetry] { SetAllTelemetry(false); });
-
 #ifndef CITRA_ENABLE_DISCORD_RP
     ui->enable_discord_rp->hide();
 #endif
@@ -86,26 +63,6 @@ void ConfigureWeb::SetConfiguration() {
     connect(ui->enable_discord_rp, &QCheckBox::toggled, ui->discord_rp_show_settings,
             &QWidget::setVisible);
 #endif
-
-    ui->telemetry_os_version->setChecked(UISettings::values.telemetry_send_os_version);
-    ui->telemetry_cpu_string->setChecked(UISettings::values.telemetry_send_cpu_string);
-    ui->telemetry_gpu_information->setChecked(UISettings::values.telemetry_send_gpu_information);
-    ui->telemetry_citra_valentin_version->setChecked(UISettings::values.telemetry_send_version);
-    ui->telemetry_citra_account_username->setChecked(
-        UISettings::values.telemetry_send_citra_account_username);
-    ui->telemetry_game_name->setChecked(UISettings::values.telemetry_send_game_name);
-    ui->telemetry_use_cpu_jit->setChecked(UISettings::values.telemetry_send_use_cpu_jit);
-    ui->telemetry_gdb_stub_enabled->setChecked(UISettings::values.telemetry_send_use_gdbstub);
-    ui->telemetry_gdb_stub_port->setChecked(UISettings::values.telemetry_send_gdbstub_port);
-    ui->telemetry_use_hardware_shader->setChecked(
-        UISettings::values.telemetry_send_enable_hardware_shader);
-    ui->telemetry_use_hardware_shader_accurate_multiplication->setChecked(
-        UISettings::values.telemetry_send_hardware_shader_accurate_multiplication);
-    ui->telemetry_use_shader_jit->setChecked(UISettings::values.telemetry_send_use_shader_jit);
-    ui->telemetry_use_dsp_lle->setChecked(UISettings::values.telemetry_send_enable_dsp_lle);
-    ui->telemetry_use_dsp_lle_multi_core->setChecked(
-        UISettings::values.telemetry_send_enable_dsp_lle_multithread);
-    ui->telemetry_log_filter->setChecked(UISettings::values.telemetry_send_log_filter);
 
     ui->web_credentials_disclaimer->setWordWrap(true);
 
@@ -139,26 +96,6 @@ void ConfigureWeb::ApplyConfiguration() {
     UISettings::values.discord_rp_show_room_information =
         ui->discord_rp_show_room_information->isChecked();
 #endif
-
-    UISettings::values.telemetry_send_os_version = ui->telemetry_os_version->isChecked();
-    UISettings::values.telemetry_send_cpu_string = ui->telemetry_cpu_string->isChecked();
-    UISettings::values.telemetry_send_gpu_information = ui->telemetry_gpu_information->isChecked();
-    UISettings::values.telemetry_send_version = ui->telemetry_citra_valentin_version->isChecked();
-    UISettings::values.telemetry_send_citra_account_username =
-        ui->telemetry_citra_account_username->isChecked();
-    UISettings::values.telemetry_send_game_name = ui->telemetry_game_name->isChecked();
-    UISettings::values.telemetry_send_use_cpu_jit = ui->telemetry_use_cpu_jit->isChecked();
-    UISettings::values.telemetry_send_use_gdbstub = ui->telemetry_gdb_stub_enabled->isChecked();
-    UISettings::values.telemetry_send_gdbstub_port = ui->telemetry_gdb_stub_port->isChecked();
-    UISettings::values.telemetry_send_enable_hardware_shader =
-        ui->telemetry_use_hardware_shader->isChecked();
-    UISettings::values.telemetry_send_hardware_shader_accurate_multiplication =
-        ui->telemetry_use_hardware_shader_accurate_multiplication->isChecked();
-    UISettings::values.telemetry_send_use_shader_jit = ui->telemetry_use_shader_jit->isChecked();
-    UISettings::values.telemetry_send_enable_dsp_lle = ui->telemetry_use_dsp_lle->isChecked();
-    UISettings::values.telemetry_send_enable_dsp_lle_multithread =
-        ui->telemetry_use_dsp_lle_multi_core->isChecked();
-    UISettings::values.telemetry_send_log_filter = ui->telemetry_log_filter->isChecked();
 
     if (user_verified) {
         Settings::values.citra_username =

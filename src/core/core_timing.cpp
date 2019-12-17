@@ -8,6 +8,7 @@
 #include "common/assert.h"
 #include "common/logging/log.h"
 #include "core/core_timing.h"
+#include "core/settings.h"
 
 namespace Core {
 

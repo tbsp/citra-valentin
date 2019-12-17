@@ -152,10 +152,7 @@ private:
     bool ConfirmChangeGame();
     void closeEvent(QCloseEvent* event) override;
 
-    void SendTelemetry() const;
-
     // Callouts (one-time messages)
-    void ShowTelemetryCallout();
     void ShowDiscordServerCallout();
 
     // Screenshots
