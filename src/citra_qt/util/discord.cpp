@@ -6,6 +6,7 @@
 #include <QString>
 #include <QUrl>
 #include <httplib.h>
+#include "citra_qt/uisettings.h"
 #include "citra_qt/util/discord.h"
 #include "common/logging/log.h"
 
@@ -32,7 +33,8 @@ BaseJson GetBaseJson() {
         nlohmann::json api_input_json;
         api_input_json["code"] = code;
 
-        httplib::SSLClient api_client("cv-aadb.glitch.me");
+        httplib::SSLClient api_client(
+            QUrl(UISettings::values.cv_web_api_url).host().toStdString().c_str());
         base_json.first =
             api_client.Post("/discord/user", std::move(api_input_json).dump(), "application/json");
         if (base_json.first == nullptr) {

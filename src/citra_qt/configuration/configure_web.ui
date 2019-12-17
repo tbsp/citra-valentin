@@ -362,24 +362,6 @@
          </layout>
         </item>
         <item>
-         <layout class="QHBoxLayout" name="horizontalLayout_2">
-          <item>
-           <widget class="QLabel" name="label">
-            <property name="text">
-             <string>Citra Valentin API URL</string>
-            </property>
-           </widget>
-          </item>
-          <item>
-           <widget class="QLineEdit" name="cv_web_api_url">
-            <property name="text">
-             <string>https://cv-aadb.glitch.me</string>
-            </property>
-           </widget>
-          </item>
-         </layout>
-        </item>
-        <item>
          <layout class="QHBoxLayout" name="horizontalLayout">
           <item>
            <widget class="QPushButton" name="telemetry_enable_all">
@@ -404,6 +386,24 @@
    </item>
    <item>
     <layout class="QVBoxLayout" name="verticalLayout_2">
+     <item>
+      <layout class="QHBoxLayout" name="horizontalLayout_2">
+       <item>
+        <widget class="QLabel" name="label">
+         <property name="text">
+          <string>Citra Valentin API URL</string>
+         </property>
+        </widget>
+       </item>
+       <item>
+        <widget class="QLineEdit" name="cv_web_api_url">
+         <property name="text">
+          <string>https://cv-aadb.glitch.me</string>
+         </property>
+        </widget>
+       </item>
+      </layout>
+     </item>
      <item>
       <widget class="QCheckBox" name="enable_discord_rp">
        <property name="text">
