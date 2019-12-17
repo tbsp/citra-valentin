@@ -307,20 +307,20 @@ jobs:
       CITRA_VERSION_NUMBER: $[ dependencies.LinuxRelease.outputs['getCitraVersionStep.CITRA_VERSION_NUMBER'] ]
     steps:
       - task: DownloadPipelineArtifact@2
-        condition: and(succeeded(), eq(variables['Build.SourceBranch'], 'refs/heads/master'), not(contains(variables['Build.SourceVersionMessage'], '[skip release]')))
+        condition: and(succeeded(), eq(variables['Build.SourceBranch'], 'refs/heads/master'))
         inputs:
           buildType: current
           artifactName: linux-release
           targetPath: $(Build.ArtifactStagingDirectory)
       - task: DownloadPipelineArtifact@2
-        condition: and(succeeded(), eq(variables['Build.SourceBranch'], 'refs/heads/master'), not(contains(variables['Build.SourceVersionMessage'], '[skip release]')))
+        condition: and(succeeded(), eq(variables['Build.SourceBranch'], 'refs/heads/master'))
         inputs:
           buildType: current
           artifactName: windows-release
           itemPattern: windows-release/citra-valentin-windows-$(CITRA_VERSION).7z
           targetPath: $(Build.ArtifactStagingDirectory)
       - task: GitHubRelease@1
-        condition: and(succeeded(), eq(variables['Build.SourceBranch'], 'refs/heads/master'), not(contains(variables['Build.SourceVersionMessage'], '[skip release]')))
+        condition: and(succeeded(), eq(variables['Build.SourceBranch'], 'refs/heads/master'))
         inputs:
           gitHubConnection: GitHub Releases
           repositoryName: $(Build.Repository.Name)
