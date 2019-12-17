@@ -75,7 +75,6 @@ public:
         std::scoped_lock lock(swap_chain_lock);
         std::queue<Frontend::Frame*>().swap(free_queue);
         present_queue.clear();
-        free_cv.notify_all();
         present_cv.notify_all();
     }
 
@@ -124,10 +123,6 @@ public:
 
     Frontend::Frame* GetRenderFrame() override {
         std::unique_lock<std::mutex> lock(swap_chain_lock);
-        // Wait for new entries in the free_queue
-        // we want to break at some point to prevent a softlock on close if the presentation thread
-        // stops consuming buffers
-        free_cv.wait_for(lock, std::chrono::milliseconds(100), [&] { return !free_queue.empty(); });
 
         // If theres no free frames, we will reuse the oldest render frame
         if (free_queue.empty()) {
@@ -160,7 +155,6 @@ public:
         // free the previous frame and add it back to the free queue
         if (previous_frame) {
             free_queue.push(previous_frame);
-            free_cv.notify_one();
         }
 
         // The newest entries are pushed to the front of the queue
@@ -170,7 +164,6 @@ public:
         for (Frontend::Frame* f : present_queue) {
             free_queue.push(f);
         }
-        free_cv.notify_one();
         present_queue.clear();
         previous_frame = frame;
         return frame;
