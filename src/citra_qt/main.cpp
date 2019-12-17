@@ -64,6 +64,7 @@
 #include "common/x64/cpu_detect.h"
 #endif
 #include "citra_qt/game_list_p.h"
+#include "core/3ds.h"
 #include "core/core.h"
 #include "core/dumping/backend.h"
 #include "core/file_sys/archive_extsavedata.h"
@@ -549,6 +550,72 @@ void GMainWindow::InitializeHotkeys() {
             &QShortcut::activated, this, [&] {
                 if (emulation_running) {
                     CaptureScreenshotToClipboard();
+                }
+            });
+
+    connect(hotkey_registry.GetHotkey(
+                QStringLiteral("Main Window"),
+                QStringLiteral("Capture Top Screen Screenshot Then Copy To Clipboard"), this),
+            &QShortcut::activated, this, [&] {
+                if (emulation_running) {
+                    QMutexLocker screenshot_image_mutex_locker(&screenshot_image_mutex);
+                    if (screenshot_image != nullptr || VideoCore::g_renderer_screenshot_requested) {
+                        return;
+                    }
+
+                    const u16 resolution_scale =
+                        UISettings::values.screenshot_resolution_factor == 0
+                            ? VideoCore::GetResolutionScaleFactor()
+                            : UISettings::values.screenshot_resolution_factor;
+                    const Layout::FramebufferLayout layout =
+                        Layout::SingleFrameLayout(Core::kScreenTopWidth * resolution_scale,
+                                                  Core::kScreenTopHeight * resolution_scale, false);
+                    screenshot_image = std::make_unique<QImage>(QSize(layout.width, layout.height),
+                                                                QImage::Format_RGB32);
+                    VideoCore::RequestScreenshot(
+                        screenshot_image->bits(),
+                        [this] {
+                            QTimer::singleShot(0, qApp, [this] {
+                                QMutexLocker screenshot_image_mutex_locker(&screenshot_image_mutex);
+                                QApplication::clipboard()->setImage(
+                                    screenshot_image->mirrored(false, true));
+                                screenshot_image.reset();
+                            });
+                        },
+                        layout);
+                }
+            });
+
+    connect(hotkey_registry.GetHotkey(
+                QStringLiteral("Main Window"),
+                QStringLiteral("Capture Bottom Screen Screenshot Then Copy To Clipboard"), this),
+            &QShortcut::activated, this, [&] {
+                if (emulation_running) {
+                    QMutexLocker screenshot_image_mutex_locker(&screenshot_image_mutex);
+                    if (screenshot_image != nullptr || VideoCore::g_renderer_screenshot_requested) {
+                        return;
+                    }
+
+                    const u16 resolution_scale =
+                        UISettings::values.screenshot_resolution_factor == 0
+                            ? VideoCore::GetResolutionScaleFactor()
+                            : UISettings::values.screenshot_resolution_factor;
+                    const Layout::FramebufferLayout layout = Layout::SingleFrameLayout(
+                        Core::kScreenBottomWidth * resolution_scale,
+                        Core::kScreenBottomHeight * resolution_scale, true);
+                    screenshot_image = std::make_unique<QImage>(QSize(layout.width, layout.height),
+                                                                QImage::Format_RGB32);
+                    VideoCore::RequestScreenshot(
+                        screenshot_image->bits(),
+                        [this] {
+                            QTimer::singleShot(0, qApp, [this] {
+                                QMutexLocker screenshot_image_mutex_locker(&screenshot_image_mutex);
+                                QApplication::clipboard()->setImage(
+                                    screenshot_image->mirrored(false, true));
+                                screenshot_image.reset();
+                            });
+                        },
+                        layout);
                 }
             });
 
