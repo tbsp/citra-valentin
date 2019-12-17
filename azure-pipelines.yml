@@ -48,8 +48,8 @@ jobs:
         inputs:
           rootFolderOrFile: build/citra-valentin-linux-$(getCitraVersionStep.CITRA_VERSION)
           includeRootFolder: true
-          archiveType: tar
-          archiveFile: $(Build.ArtifactStagingDirectory)/citra-valentin-linux-$(getCitraVersionStep.CITRA_VERSION).tar.gz
+          archiveType: 7z
+          archiveFile: $(Build.ArtifactStagingDirectory)/citra-valentin-linux-$(getCitraVersionStep.CITRA_VERSION).7z
           replaceExistingArchive: true
       - task: PublishBuildArtifacts@1
         inputs:
@@ -109,8 +109,8 @@ jobs:
         inputs:
           rootFolderOrFile: build/citra-valentin-linux-$(getCitraVersionStep.CITRA_VERSION)
           includeRootFolder: true
-          archiveType: tar
-          archiveFile: $(Build.ArtifactStagingDirectory)/citra-valentin-linux-$(getCitraVersionStep.CITRA_VERSION).tar.gz
+          archiveType: 7z
+          archiveFile: $(Build.ArtifactStagingDirectory)/citra-valentin-linux-$(getCitraVersionStep.CITRA_VERSION).7z
           replaceExistingArchive: true
       - task: PublishBuildArtifacts@1
         inputs:
@@ -176,15 +176,15 @@ jobs:
         inputs:
           rootFolderOrFile: build/bin/citra-valentin-windows-$(getCitraVersionStep.CITRA_VERSION)
           includeRootFolder: true
-          archiveType: tar
-          archiveFile: $(Build.ArtifactStagingDirectory)/citra-valentin-windows-$(getCitraVersionStep.CITRA_VERSION).tar.gz
+          archiveType: 7z
+          archiveFile: $(Build.ArtifactStagingDirectory)/citra-valentin-windows-$(getCitraVersionStep.CITRA_VERSION).7z
           replaceExistingArchive: true
       - task: ArchiveFiles@2
         inputs:
           rootFolderOrFile: build/bin/pdbs
           includeRootFolder: true
-          archiveType: tar
-          archiveFile: $(Build.ArtifactStagingDirectory)/citra-valentin-windows-$(getCitraVersionStep.CITRA_VERSION)-pdbs.tar.gz
+          archiveType: 7z
+          archiveFile: $(Build.ArtifactStagingDirectory)/citra-valentin-windows-$(getCitraVersionStep.CITRA_VERSION)-pdbs.7z
           replaceExistingArchive: true
       - task: PublishBuildArtifacts@1
         inputs:
@@ -250,15 +250,15 @@ jobs:
         inputs:
           rootFolderOrFile: build/bin/citra-valentin-windows-$(getCitraVersionStep.CITRA_VERSION)
           includeRootFolder: true
-          archiveType: tar
-          archiveFile: $(Build.ArtifactStagingDirectory)/citra-valentin-windows-$(getCitraVersionStep.CITRA_VERSION).tar.gz
+          archiveType: 7z
+          archiveFile: $(Build.ArtifactStagingDirectory)/citra-valentin-windows-$(getCitraVersionStep.CITRA_VERSION).7z
           replaceExistingArchive: true
       - task: ArchiveFiles@2
         inputs:
           rootFolderOrFile: build/bin/pdbs
           includeRootFolder: true
-          archiveType: tar
-          archiveFile: $(Build.ArtifactStagingDirectory)/citra-valentin-windows-$(getCitraVersionStep.CITRA_VERSION)-pdbs.tar.gz
+          archiveType: 7z
+          archiveFile: $(Build.ArtifactStagingDirectory)/citra-valentin-windows-$(getCitraVersionStep.CITRA_VERSION)-pdbs.7z
           replaceExistingArchive: true
       - task: PublishBuildArtifacts@1
         inputs:
@@ -317,7 +317,7 @@ jobs:
         inputs:
           buildType: current
           artifactName: windows-release
-          itemPattern: windows-release/citra-valentin-windows-$(CITRA_VERSION).tar.gz
+          itemPattern: windows-release/citra-valentin-windows-$(CITRA_VERSION).7z
           targetPath: $(Build.ArtifactStagingDirectory)
       - task: GitHubRelease@1
         condition: and(succeeded(), eq(variables['Build.SourceBranch'], 'refs/heads/master'), not(contains(variables['Build.SourceVersionMessage'], '[skip release]')))
