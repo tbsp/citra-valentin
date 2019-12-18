@@ -495,6 +495,9 @@ Loader::ResultStatus NCCHContainer::LoadSectionExeFS(const char* name, std::vect
     // Iterate through the ExeFs archive until we find a section with the specified name...
     for (unsigned section_number = 0; section_number < kMaxSections; section_number++) {
         const ExeFs_SectionHeader& section = exefs_header.section[section_number];
+        if (section.size == 0) {
+            return Loader::ResultStatus::ErrorInvalidFormat;
+        }
 
         // Load the specified section...
         if (strcmp(section.name, name) == 0) {
