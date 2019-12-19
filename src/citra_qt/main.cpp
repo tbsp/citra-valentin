@@ -853,7 +853,13 @@ void GMainWindow::ConnectWidgetEvents() {
     connect(game_list, &GameList::PopulatingCompleted,
             [this] { multiplayer_state->UpdateGameList(game_list->GetModel()); });
     connect(game_list, &GameList::SettingsChanged, [this] { config->Save(); });
-    connect(game_list, &GameList::Hide, [this] { hide(); });
+    connect(game_list, &GameList::StartUsingGameSettingsClicked, [this] {
+        hide();
+#ifdef CITRA_ENABLE_DISCORD_RP
+        UISettings::values.enable_discord_rp = false;
+        discord_rp.Update();
+#endif
+    });
 
     connect(this, &GMainWindow::EmulationStarting, render_window,
             &GRenderWindow::OnEmulationStarting);

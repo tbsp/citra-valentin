@@ -461,7 +461,7 @@ void GameList::PopupContextMenu(const QPoint& menu_location) {
 void GameList::AddGamePopup(QMenu& context_menu, const QString& path, u64 program_id,
                             u64 extdata_id) {
     context_menu.addAction(QStringLiteral("Start Using Game Settings"), [this, path] {
-        emit Hide();
+        emit StartUsingGameSettingsClicked();
 
         QtConcurrent::run([path] {
             const std::string& config_dir = FileUtil::GetUserPath(FileUtil::UserPath::ConfigDir);

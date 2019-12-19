@@ -11,25 +11,11 @@
 #include "network/network.h"
 
 DiscordRP::DiscordRP(Core::System& system) : system(system) {
-    if (UISettings::values.enable_discord_rp) {
-        start_timestamp = std::chrono::duration_cast<std::chrono::seconds>(
-                              std::chrono::system_clock::now().time_since_epoch())
-                              .count();
-        version = fmt::format("Citra Valentin Nintendo 3DS emulator version {}",
-                              Version::citra_valentin.to_string());
-
-        Discord_Initialize("633487273413050418", NULL, 0, NULL);
-        discord_initialized = true;
-
-        Update();
-    }
+    Update();
 }
 
 DiscordRP::~DiscordRP() {
-    if (discord_initialized) {
-        Discord_Shutdown();
-        discord_initialized = false;
-    }
+    Update();
 }
 
 void DiscordRP::Update() {
@@ -37,7 +23,7 @@ void DiscordRP::Update() {
         start_timestamp = std::chrono::duration_cast<std::chrono::seconds>(
                               std::chrono::system_clock::now().time_since_epoch())
                               .count();
-        version = fmt::format("Citra Valentin Nintendo 3DS Emulator version {}",
+        version = fmt::format("Citra Valentin Nintendo 3DS emulator version {}",
                               Version::citra_valentin.to_string());
 
         Discord_Initialize("633487273413050418", NULL, 0, NULL);
@@ -48,6 +34,10 @@ void DiscordRP::Update() {
         Discord_Shutdown();
         discord_initialized = false;
 
+        return;
+    }
+
+    if (!discord_initialized) {
         return;
     }
 
