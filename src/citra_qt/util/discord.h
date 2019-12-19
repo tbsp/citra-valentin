@@ -5,8 +5,6 @@
 #pragma once
 
 #include <memory>
-#include <utility>
-#include <json.hpp>
 
 namespace httplib {
 struct Response;
@@ -14,8 +12,6 @@ struct Response;
 
 namespace DiscordUtil {
 
-using BaseJson = std::pair<std::shared_ptr<httplib::Response>, nlohmann::json>;
-
-BaseJson GetBaseJson();
+std::shared_ptr<httplib::Response> GetToken();
 
 } // namespace DiscordUtil

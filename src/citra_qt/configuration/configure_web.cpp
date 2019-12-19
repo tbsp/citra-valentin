@@ -5,8 +5,10 @@
 #include <QIcon>
 #include <QMessageBox>
 #include <QtConcurrent/QtConcurrentRun>
+#include <httplib.h>
 #include "citra_qt/configuration/configure_web.h"
 #include "citra_qt/uisettings.h"
+#include "citra_qt/util/discord.h"
 #include "core/settings.h"
 #include "ui_configure_web.h"
 #include "web_service/verify_login.h"
@@ -42,8 +44,60 @@ ConfigureWeb::ConfigureWeb(QWidget* parent)
 
     SetConfiguration();
 
-    connect(ui->button_verify_login, &QPushButton::clicked, this, &ConfigureWeb::VerifyLogin);
-    connect(&verify_watcher, &QFutureWatcher<bool>::finished, this, &ConfigureWeb::OnLoginVerified);
+    connect(ui->button_verify_login, &QPushButton::clicked, this, [=] {
+        ui->button_verify_login->setDisabled(true);
+        ui->button_verify_login->setText(QStringLiteral("Verifying..."));
+        citra_account_verify_watcher.setFuture(QtConcurrent::run(
+            [username = UsernameFromDisplayToken(ui->edit_token->text().toStdString()),
+             token = TokenFromDisplayToken(ui->edit_token->text().toStdString())] {
+                return WebService::VerifyLogin(Settings::values.web_api_url, username, token);
+            }));
+    });
+
+    connect(&citra_account_verify_watcher, &QFutureWatcher<bool>::finished, this, [=] {
+        ui->button_verify_login->setEnabled(true);
+        ui->button_verify_login->setText(QStringLiteral("Verify"));
+        if (citra_account_verify_watcher.result()) {
+            citra_account_verified = true;
+
+            const QPixmap pixmap = QIcon::fromTheme(QStringLiteral("checked")).pixmap(16);
+            ui->label_token_verified->setPixmap(pixmap);
+            ui->username->setText(QString::fromStdString(
+                UsernameFromDisplayToken(ui->edit_token->text().toStdString())));
+        } else {
+            const QPixmap pixmap = QIcon::fromTheme(QStringLiteral("failed")).pixmap(16);
+            ui->label_token_verified->setPixmap(pixmap);
+            ui->username->setText(QStringLiteral("Unspecified"));
+            QMessageBox::critical(
+                this, QStringLiteral("Verification failed"),
+                QStringLiteral("Verification failed. Check that you have entered your token "
+                               "correctly, and that your internet connection is working."));
+        }
+    });
+
+    // Discord connection
+    if (!UISettings::values.cv_discord_send_jwt.empty()) {
+        ui->connect_discord->setText(QStringLiteral("Reconnect Discord to Citra Valentin"));
+    }
+
+    connect(ui->connect_discord, &QPushButton::clicked, [=] {
+        std::shared_ptr<httplib::Response> response = DiscordUtil::GetToken();
+        if (response == nullptr) {
+            QMessageBox::critical(
+                this, QStringLiteral("Error"),
+                QStringLiteral("Unknown error while connecting Discord to Citra Valentin"));
+        } else if (response->status != 200) {
+            QMessageBox::critical(
+                this, QStringLiteral("Error"),
+                QStringLiteral(
+                    "Error while connecting Discord to Citra Valentin (status code %1):<br>%2")
+                    .arg(QString::number(response->status),
+                         QString::fromStdString(response->body)));
+        } else {
+            UISettings::values.cv_discord_send_jwt = response->body;
+            ui->connect_discord->setText(QStringLiteral("Reconnect Discord to Citra Valentin"));
+        }
+    });
 
 #ifndef CITRA_ENABLE_DISCORD_RP
     ui->enable_discord_rp->hide();
@@ -84,9 +138,22 @@ void ConfigureWeb::SetConfiguration() {
     ui->edit_token->setText(QString::fromStdString(
         GenerateDisplayToken(Settings::values.citra_username, Settings::values.citra_token)));
 
-    // Connect after setting the values, to avoid calling OnLoginChanged now
-    connect(ui->edit_token, &QLineEdit::textChanged, this, &ConfigureWeb::OnLoginChanged);
-    user_verified = true;
+    // Connect after setting the values
+    connect(ui->edit_token, &QLineEdit::textChanged, this, [=] {
+        if (ui->edit_token->text().isEmpty()) {
+            citra_account_verified = true;
+
+            const QPixmap pixmap = QIcon::fromTheme(QStringLiteral("checked")).pixmap(16);
+            ui->label_token_verified->setPixmap(pixmap);
+        } else {
+            citra_account_verified = false;
+
+            const QPixmap pixmap = QIcon::fromTheme(QStringLiteral("failed")).pixmap(16);
+            ui->label_token_verified->setPixmap(pixmap);
+        }
+    });
+
+    citra_account_verified = true;
 }
 
 void ConfigureWeb::ApplyConfiguration() {
@@ -97,7 +164,7 @@ void ConfigureWeb::ApplyConfiguration() {
         ui->discord_rp_show_room_information->isChecked();
 #endif
 
-    if (user_verified) {
+    if (citra_account_verified) {
         Settings::values.citra_username =
             UsernameFromDisplayToken(ui->edit_token->text().toStdString());
         Settings::values.citra_token = TokenFromDisplayToken(ui->edit_token->text().toStdString());
@@ -105,51 +172,6 @@ void ConfigureWeb::ApplyConfiguration() {
         QMessageBox::warning(
             this, QStringLiteral("Token not verified"),
             QStringLiteral("Token was not verified. The change to your token has not been saved."));
-    }
-}
-
-void ConfigureWeb::OnLoginChanged() {
-    if (ui->edit_token->text().isEmpty()) {
-        user_verified = true;
-
-        const QPixmap pixmap = QIcon::fromTheme(QStringLiteral("checked")).pixmap(16);
-        ui->label_token_verified->setPixmap(pixmap);
-    } else {
-        user_verified = false;
-
-        const QPixmap pixmap = QIcon::fromTheme(QStringLiteral("failed")).pixmap(16);
-        ui->label_token_verified->setPixmap(pixmap);
-    }
-}
-
-void ConfigureWeb::VerifyLogin() {
-    ui->button_verify_login->setDisabled(true);
-    ui->button_verify_login->setText(tr("Verifying..."));
-    verify_watcher.setFuture(QtConcurrent::run(
-        [username = UsernameFromDisplayToken(ui->edit_token->text().toStdString()),
-         token = TokenFromDisplayToken(ui->edit_token->text().toStdString())] {
-            return WebService::VerifyLogin(Settings::values.web_api_url, username, token);
-        }));
-}
-
-void ConfigureWeb::OnLoginVerified() {
-    ui->button_verify_login->setEnabled(true);
-    ui->button_verify_login->setText(QStringLiteral("Verify"));
-    if (verify_watcher.result()) {
-        user_verified = true;
-
-        const QPixmap pixmap = QIcon::fromTheme(QStringLiteral("checked")).pixmap(16);
-        ui->label_token_verified->setPixmap(pixmap);
-        ui->username->setText(
-            QString::fromStdString(UsernameFromDisplayToken(ui->edit_token->text().toStdString())));
-    } else {
-        const QPixmap pixmap = QIcon::fromTheme(QStringLiteral("failed")).pixmap(16);
-        ui->label_token_verified->setPixmap(pixmap);
-        ui->username->setText(QStringLiteral("Unspecified"));
-        QMessageBox::critical(
-            this, QStringLiteral("Verification failed"),
-            QStringLiteral("Verification failed. Check that you have entered your token "
-                           "correctly, and that your internet connection is working."));
     }
 }
 

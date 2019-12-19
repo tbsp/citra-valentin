@@ -1341,8 +1341,22 @@ void GMainWindow::ShutdownGame() {
     game_path.clear();
 
     if (ui.action_Enable_Discord_Logger->isChecked()) {
-        Log::DiscordBackend* logger = static_cast<Log::DiscordBackend*>(Log::GetBackend("discord"));
-        logger->Send();
+        if (UISettings::values.cv_discord_send_jwt.empty()) {
+            QTimer::singleShot(0, qApp, [=] {
+                if (QMessageBox::question(
+                        this, QStringLiteral("Connect Discord"),
+                        QStringLiteral(
+                            "You need to connect your Discord account to Citra Valentin to "
+                            "send logs to Citra Valentin's Discord server.<br>Clicking Yes "
+                            "will open the Web configuration tab.")) == QMessageBox::Yes) {
+                    OnConfigure(true);
+                }
+            });
+        } else {
+            Log::DiscordBackend* logger =
+                static_cast<Log::DiscordBackend*>(Log::GetBackend("discord"));
+            logger->Send();
+        }
     }
 
 #ifdef CITRA_ENABLE_DISCORD_RP
@@ -2465,6 +2479,24 @@ void GMainWindow::CaptureScreenshotThenSendToDiscordServer(
         return;
     }
 
+    screenshot_image =
+        std::make_unique<QImage>(QSize(layout.width, layout.height), QImage::Format_RGB32);
+
+    if (UISettings::values.cv_discord_send_jwt.empty()) {
+        QTimer::singleShot(0, qApp, [=] {
+            if (QMessageBox::question(
+                    this, QStringLiteral("Connect Discord"),
+                    QStringLiteral(
+                        "You need to connect your Discord account to Citra Valentin to send "
+                        "screenshots to Citra Valentin's Discord server.<br>Clicking Yes "
+                        "will open the Web configuration tab.")) == QMessageBox::Yes) {
+                OnConfigure(true);
+            }
+            screenshot_image.reset();
+        });
+        return;
+    }
+
     if (progress_dialog == nullptr) {
         progress_dialog =
             std::make_unique<QProgressDialog>(QStringLiteral("Sending Screenshot"), QString(), 0, 0,
@@ -2476,8 +2508,6 @@ void GMainWindow::CaptureScreenshotThenSendToDiscordServer(
 
     const bool was_running = emu_thread->IsRunning();
 
-    screenshot_image =
-        std::make_unique<QImage>(QSize(layout.width, layout.height), QImage::Format_RGB32);
     VideoCore::RequestScreenshot(
         screenshot_image->bits(),
         [=] {
@@ -2487,96 +2517,41 @@ void GMainWindow::CaptureScreenshotThenSendToDiscordServer(
                 }
             });
 
-            auto [base_json_response, json] = DiscordUtil::GetBaseJson();
-            if (json.empty()) {
-                QTimer::singleShot(0, qApp, [this, base_json_response = base_json_response] {
-                    if (base_json_response == nullptr) {
-                        QMessageBox::critical(this, QStringLiteral("Error"),
-                                              QStringLiteral("Base JSON request failed."));
+            QImage mirrored;
+
+            {
+                QMutexLocker screenshot_image_mutex_locker(&screenshot_image_mutex);
+                mirrored = screenshot_image->mirrored(false, true);
+                screenshot_image.reset();
+            }
+
+            QBuffer buffer;
+            buffer.open(QIODevice::WriteOnly);
+            mirrored.save(&buffer, "PNG");
+
+            httplib::SSLClient client(
+                QUrl(UISettings::values.cv_web_api_url).host().toStdString().c_str());
+            httplib::Headers headers;
+            headers.emplace("Authorization",
+                            fmt::format("Bearer {}", UISettings::values.cv_discord_send_jwt));
+            headers.emplace("x-game", game_title.toStdString());
+            std::shared_ptr<httplib::Response> response =
+                client.Post("/discord/send/screenshot", headers,
+                            std::string(buffer.buffer().data(), buffer.size()), "image/png");
+            if (response == nullptr || response->status != 200) {
+                QTimer::singleShot(0, qApp, [=] {
+                    if (response == nullptr) {
+                        QMessageBox::critical(nullptr, QStringLiteral("Error"),
+                                              QStringLiteral("Sending the screenshot failed."));
                     } else {
                         QMessageBox::critical(
-                            this, QStringLiteral("Error"),
+                            nullptr, QStringLiteral("Error"),
                             QStringLiteral(
-                                "Base JSON request failed.\nStatus code: %1\n\nBody:\n%2")
-                                .arg(QString::number(base_json_response->status),
-                                     QString::fromStdString(base_json_response->body)));
+                                "Sending the screenshot failed.\nStatus code: %1\n\nBody:\n%2")
+                                .arg(QString::number(response->status),
+                                     QString::fromStdString(response->body)));
                     }
                 });
-
-                screenshot_image.reset();
-            } else {
-                QImage mirrored;
-
-                {
-                    QMutexLocker screenshot_image_mutex_locker(&screenshot_image_mutex);
-                    mirrored = screenshot_image->mirrored(false, true);
-                    screenshot_image.reset();
-                }
-
-                json["file"] = "unknown.png";
-                if (!game_title.isEmpty()) {
-                    json["username"] = json["username"].get<std::string>().append(
-                        fmt::format(" playing {}", game_title.toStdString()));
-                }
-
-                QBuffer buffer;
-                buffer.open(QIODevice::WriteOnly);
-                mirrored.save(&buffer, "PNG");
-
-                const std::string boundary = httplib::detail::make_multipart_data_boundary();
-
-                std::string body;
-                httplib::MultipartFormDataItems items;
-
-                httplib::MultipartFormData json_item;
-                json_item.name = "payload_json";
-                json_item.content = std::move(json).dump();
-                json_item.content_type = "application/json";
-                items.push_back(std::move(json_item));
-
-                httplib::MultipartFormData screenshot_item;
-                screenshot_item.name = "screenshot";
-                screenshot_item.filename = "unknown.png";
-                screenshot_item.content = std::string(buffer.buffer().data(), buffer.size());
-                screenshot_item.content_type = "image/png";
-                items.push_back(std::move(screenshot_item));
-
-                for (const httplib::MultipartFormData& item : items) {
-                    body += "--" + boundary + "\r\n";
-                    body += "Content-Disposition: form-data; name=\"" + item.name + "\"";
-                    if (!item.filename.empty()) {
-                        body += "; filename=\"" + item.filename + "\"";
-                    }
-                    body += "\r\n";
-                    if (!item.content_type.empty()) {
-                        body += "Content-Type: " + item.content_type + "\r\n";
-                    }
-                    body += "\r\n";
-                    body += item.content + "\r\n";
-                }
-
-                body += "--" + boundary + "--\r\n";
-
-                httplib::SSLClient discord_client("discordapp.com");
-                std::shared_ptr<httplib::Response> webhook_response = discord_client.Post(
-                    "/api/webhooks/653071710744215584/"
-                    "hDR6t0oJZU4d4SPow-NdH52jVD4c859TUjYSCcqdS_88R6XwojfB9bcGygCPhoPXLpT6",
-                    body, ("multipart/form-data; boundary=" + boundary).c_str());
-                if (webhook_response == nullptr || webhook_response->status != 200) {
-                    QTimer::singleShot(0, qApp, [=] {
-                        if (webhook_response == nullptr) {
-                            QMessageBox::critical(this, QStringLiteral("Error"),
-                                                  QStringLiteral("Webhook request failed."));
-                        } else {
-                            QMessageBox::critical(
-                                this, QStringLiteral("Error"),
-                                QStringLiteral(
-                                    "Webhook request failed.\nStatus code: %1\n\nBody:\n%2")
-                                    .arg(QString::number(webhook_response->status),
-                                         QString::fromStdString(webhook_response->body)));
-                        }
-                    });
-                }
             }
 
             QTimer::singleShot(0, qApp, [=] {

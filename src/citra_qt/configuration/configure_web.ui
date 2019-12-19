@@ -188,6 +188,16 @@
        </layout>
       </widget>
      </item>
+     <item>
+      <widget class="QPushButton" name="connect_discord">
+       <property name="toolTip">
+        <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Required for sending logs and screenshots to Citra Valentin's Discord server.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+       </property>
+       <property name="text">
+        <string>Connect Discord to Citra Valentin</string>
+       </property>
+      </widget>
+     </item>
     </layout>
    </item>
    <item>

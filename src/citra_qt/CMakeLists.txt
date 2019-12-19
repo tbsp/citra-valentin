@@ -209,7 +209,7 @@ get_directory_property(OPENSSL_LIBS
 target_compile_options(citra-qt PRIVATE -DCPPHTTPLIB_OPENSSL_SUPPORT)
 
 target_link_libraries(citra-qt PRIVATE audio_core common core input_common network video_core)
-target_link_libraries(citra-qt PRIVATE Boost::boost glad json-headers nihstro-headers ${OPENSSL_LIBS} httplib Qt5::OpenGL Qt5::Widgets Qt5::Multimedia)
+target_link_libraries(citra-qt PRIVATE Boost::boost glad json-headers nihstro-headers ${OPENSSL_LIBS} httplib cpp-jwt Qt5::OpenGL Qt5::Widgets Qt5::Multimedia)
 target_link_libraries(citra-qt PRIVATE ${PLATFORM_LIBRARIES} Threads::Threads)
 
 target_compile_definitions(citra-qt PRIVATE

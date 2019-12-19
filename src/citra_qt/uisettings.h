@@ -96,8 +96,6 @@ struct Values {
     QString theme;
     u32 callout_flags;
 
-    std::string discord_token;
-
     // Qt frontend only buttons
     QString capture_screenshot_then_send_to_discord_server_button;
     QString increase_volume_button;
@@ -124,6 +122,7 @@ struct Values {
 
     // Web
     QString cv_web_api_url;
+    std::string cv_discord_send_jwt;
 #ifdef CITRA_ENABLE_DISCORD_RP
     bool enable_discord_rp;
     bool discord_rp_show_game_name;

@@ -6,62 +6,42 @@
 #include <QString>
 #include <QUrl>
 #include <httplib.h>
+#include <json.hpp>
 #include "citra_qt/uisettings.h"
 #include "citra_qt/util/discord.h"
-#include "common/logging/log.h"
+#include "common/assert.h"
 
 namespace DiscordUtil {
 
-BaseJson GetBaseJson() {
-    static BaseJson base_json;
-    if (base_json.first != nullptr && base_json.first->status == 200) {
-        return base_json;
-    } else {
-        base_json.second.clear();
-    }
+std::shared_ptr<httplib::Response> GetToken() {
+    httplib::SSLClient api_client(
+        QUrl(UISettings::values.cv_web_api_url).host().toStdString().c_str());
 
     QDesktopServices::openUrl(
         QUrl(QStringLiteral("https://discordapp.com/api/oauth2/"
                             "authorize?client_id=633487273413050418&redirect_uri=http%3A%2F%"
                             "2F127.0.0.1%3A6310&response_type=code&scope=identify")));
 
+    std::shared_ptr<httplib::Response> response;
     httplib::Server server;
 
     server.Get("/", [&](const httplib::Request& req, httplib::Response& res) {
         const std::string code = req.params.find("code")->second;
 
-        nlohmann::json api_input_json;
-        api_input_json["code"] = code;
-
-        httplib::SSLClient api_client(
-            QUrl(UISettings::values.cv_web_api_url).host().toStdString().c_str());
-        base_json.first =
-            api_client.Post("/discord/user", std::move(api_input_json).dump(), "application/json");
-        if (base_json.first == nullptr) {
-            LOG_ERROR(Frontend, "Discord user information request failed");
+        response = api_client.Post("/discord/jwt", code, "text/plain");
+        if (response == nullptr) {
+            LOG_ERROR(Frontend, "Get JWT request failed");
             res.status = 500;
-        } else if (base_json.first->status != 200) {
-            LOG_ERROR(Frontend,
-                      "Discord user information request failed, status code: {}, body: {}",
-                      base_json.first->status, base_json.first->body);
-            res.status = base_json.first->status;
-            res.set_content(base_json.first->body,
-                            httplib::detail::get_header_value(base_json.first->headers,
-                                                              "content-type", 0, "text/plain"));
+        } else if (response->status != 200) {
+            LOG_ERROR(Frontend, "Get JWT request failed, status code: {}, body: {}",
+                      response->status, response->body);
+            res.status = response->status;
+            res.set_content(response->body,
+                            httplib::detail::get_header_value(response->headers, "content-type", 0,
+                                                              "text/plain"));
         } else {
-            res.status = base_json.first->status;
-            res.set_content(base_json.first->body,
-                            httplib::detail::get_header_value(base_json.first->headers,
-                                                              "content-type", 0, "text/plain"));
-
-            if (std::strstr(httplib::detail::get_header_value(base_json.first->headers,
-                                                              "content-type", 0, "text/plain"),
-                            "application/json") != nullptr) {
-                const nlohmann::json discord_user_json =
-                    nlohmann::json::parse(base_json.first->body);
-                base_json.second["username"] = discord_user_json["username"].get<std::string>();
-                base_json.second["avatar_url"] = discord_user_json["avatar_url"].get<std::string>();
-            }
+            res.status = 200;
+            res.set_content("You can close this tab", "text/plain");
         }
 
         server.stop();
@@ -69,7 +49,7 @@ BaseJson GetBaseJson() {
 
     server.listen("127.0.0.1", 6310);
 
-    return base_json;
+    return response;
 }
 
 } // namespace DiscordUtil

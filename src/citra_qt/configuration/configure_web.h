@@ -10,7 +10,7 @@
 
 namespace Ui {
 class ConfigureWeb;
-}
+} // namespace Ui
 
 class ConfigureWeb : public QWidget {
     Q_OBJECT
@@ -24,12 +24,8 @@ public:
     void SetWebServiceConfigEnabled(bool enabled);
 
 private:
-    void OnLoginChanged();
-    void VerifyLogin();
-    void OnLoginVerified();
-
-    bool user_verified = true;
-    QFutureWatcher<bool> verify_watcher;
+    bool citra_account_verified = true;
+    QFutureWatcher<bool> citra_account_verify_watcher;
 
     std::unique_ptr<Ui::ConfigureWeb> ui;
 };

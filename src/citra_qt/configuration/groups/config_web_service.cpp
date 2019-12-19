@@ -15,6 +15,8 @@ void Config::ReadWebServiceValues() {
     UISettings::values.cv_web_api_url =
         ReadSetting(QStringLiteral("cv_web_api_url"), QStringLiteral("https://cv-aadb.glitch.me"))
             .toString();
+    UISettings::values.cv_discord_send_jwt =
+        ReadSetting(QStringLiteral("cv_discord_send_jwt")).toString().toStdString();
     Settings::values.citra_username =
         ReadSetting(QStringLiteral("citra_username")).toString().toStdString();
     Settings::values.citra_token =
@@ -29,6 +31,8 @@ void Config::SaveWebServiceValues() {
                  QStringLiteral("https://api.citra-emu.org"));
     WriteSetting(QStringLiteral("cv_web_api_url"), UISettings::values.cv_web_api_url,
                  QStringLiteral("https://cv-aadb.glitch.me"));
+    WriteSetting(QStringLiteral("cv_discord_send_jwt"),
+                 QString::fromStdString(UISettings::values.cv_discord_send_jwt));
     WriteSetting(QStringLiteral("citra_username"),
                  QString::fromStdString(Settings::values.citra_username));
     WriteSetting(QStringLiteral("citra_token"),
