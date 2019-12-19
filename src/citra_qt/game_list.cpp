@@ -477,7 +477,6 @@ void GameList::AddGamePopup(QMenu& context_menu, const QString& path, u64 progra
                 FileUtil::WriteStringToFile(true, general_config_path, "");
             }
 
-            const bool show_console = UISettings::values.show_console;
             UISettings::values.show_console = false;
             Debugger::ToggleConsole();
             QProcess::execute(QCoreApplication::applicationFilePath(), QStringList() << path);
