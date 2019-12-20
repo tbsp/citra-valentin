@@ -141,13 +141,13 @@ struct MIC_U::Impl {
             return;
         }
 
-        Frontend::Mic::Samples samples = mic->Read();
+        const Frontend::Mic::Samples samples = mic->Read();
         if (!samples.empty()) {
-            // write the samples to sharedmem page
+            // Write the samples to sharedmem page
             state.WriteSamples(samples);
         }
 
-        // schedule next run
+        // Schedule next run
         timing.ScheduleEvent(GetBufferUpdateRate(state.sample_rate) - cycles_late,
                              buffer_write_event);
     }
