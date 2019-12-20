@@ -238,6 +238,7 @@ mic_input_device =
 # 0 (default): None, 1: Real Device, 2: Static Noise
 mic_input_type = 0
 
+# DSP HLE only and requires audio-stretching to be enabled for this to work properly
 # Range: 0.01-4.0. Default: 1.0
 audio_speed =
 
