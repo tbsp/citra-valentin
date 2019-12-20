@@ -159,7 +159,7 @@
         <item>
          <widget class="QSlider" name="speed_slider">
           <property name="toolTip">
-           <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;This is only used in DSP HLE.&lt;/p&gt;&lt;p&gt;Requires audio stretching to be enabled to work properly.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+           <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Only used in DSP HLE.&lt;/p&gt;&lt;p&gt;Requires audio stretching to be enabled to work properly.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
           </property>
           <property name="minimum">
            <number>1</number>
