@@ -112,7 +112,7 @@ const std::array<ServiceModuleInfo, 40> service_module_map{
                                                        std::string_view port_name,
                                                        const u32* cmd_buff) {
     // Number of params == bits 0-5 + bits 6-11
-    int num_params = (cmd_buff[0] & 0x3F) + ((cmd_buff[0] >> 6) & 0x3F);
+    const int num_params = (cmd_buff[0] & 0x3F) + ((cmd_buff[0] >> 6) & 0x3F);
 
     std::string function_string = fmt::format("function '{}': port={}", name, port_name);
     for (int i = 1; i <= num_params; ++i) {
