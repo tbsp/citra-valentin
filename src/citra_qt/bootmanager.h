@@ -12,10 +12,10 @@
 #include <QWindow>
 #include "common/thread.h"
 #include "core/core.h"
-#include "core/frontend/emu_window.h"                                                                           
+#include "core/frontend/emu_window.h"
 #include "video_core/rasterizer_interface.h"
 
-class QKeyEvent;  
+class QKeyEvent;
 class QScreen;
 class QTouchEvent;
 class QOffscreenSurface;
