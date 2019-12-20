@@ -29,9 +29,7 @@
 #include "video_core/renderer_base.h"
 #include "video_core/video_core.h"
 
-EmuThread::EmuThread(Frontend::GraphicsContext& core_context) : core_context(core_context) {
-    UpdateQtButtons();
-}
+EmuThread::EmuThread(Frontend::GraphicsContext& core_context) : core_context(core_context) {}
 
 EmuThread::~EmuThread() = default;
 
@@ -63,14 +61,6 @@ void EmuThread::run() {
         if (running) {
             if (!was_active) {
                 emit DebugModeLeft();
-            }
-
-            if (capture_screenshot_then_send_to_discord_server_button->GetStatus()) {
-                emit CaptureScreenshotThenSendToDiscordServerRequested();
-            } else if (increase_volume_button->GetStatus() && Settings::values.volume < 1.0f) {
-                Settings::values.volume += 0.01f;
-            } else if (decrease_volume_button->GetStatus() && Settings::values.volume >= 0.01f) {
-                Settings::values.volume -= 0.01f;
             }
 
             Core::System::ResultStatus result = Core::System::GetInstance().RunLoop();
@@ -108,16 +98,6 @@ void EmuThread::run() {
 
     // Shutdown the core emulation
     Core::System::GetInstance().Shutdown();
-}
-
-void EmuThread::UpdateQtButtons() {
-    capture_screenshot_then_send_to_discord_server_button =
-        Input::CreateDevice<Input::ButtonDevice>(
-            UISettings::values.capture_screenshot_then_send_to_discord_server_button.toStdString());
-    increase_volume_button = Input::CreateDevice<Input::ButtonDevice>(
-        UISettings::values.increase_volume_button.toStdString());
-    decrease_volume_button = Input::CreateDevice<Input::ButtonDevice>(
-        UISettings::values.decrease_volume_button.toStdString());
 }
 
 OpenGLWindow::OpenGLWindow(QWindow* parent, QWidget* event_handler, QOpenGLContext* shared_context)

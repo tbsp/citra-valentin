@@ -44,6 +44,7 @@ class QProgressBar;
 class QProgressDialog;
 class RegistersWidget;
 class WaitTreeWidget;
+class QtButtons;
 
 class GMainWindow : public QMainWindow {
     Q_OBJECT
@@ -224,6 +225,8 @@ private:
 
     std::unique_ptr<QImage> screenshot_image;
     QMutex screenshot_image_mutex;
+
+    std::unique_ptr<QtButtons> buttons;
 
 #ifdef CITRA_ENABLE_DISCORD_RP
     DiscordRP discord_rp;

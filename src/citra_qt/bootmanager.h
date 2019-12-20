@@ -89,8 +89,6 @@ public:
         SetRunning(false);
     }
 
-    void UpdateQtButtons();
-
 private:
     bool exec_step = false;
     bool running = false;
@@ -99,11 +97,6 @@ private:
     std::condition_variable running_cv;
 
     Frontend::GraphicsContext& core_context;
-
-    // Qt frontend only buttons
-    std::unique_ptr<Input::ButtonDevice> capture_screenshot_then_send_to_discord_server_button;
-    std::unique_ptr<Input::ButtonDevice> increase_volume_button;
-    std::unique_ptr<Input::ButtonDevice> decrease_volume_button;
 
 signals:
     /**
@@ -127,8 +120,6 @@ signals:
     void ErrorThrown(Core::System::ResultStatus, std::string);
     void DiskShaderCacheLoadingProgress(VideoCore::LoadCallbackStage stage, std::size_t value,
                                         std::size_t total);
-
-    void CaptureScreenshotThenSendToDiscordServerRequested();
 };
 
 class OpenGLWindow : public QWindow {

@@ -47,6 +47,7 @@
 #include "citra_qt/hotkeys.h"
 #include "citra_qt/main.h"
 #include "citra_qt/multiplayer/state.h"
+#include "citra_qt/qt_buttons.h"
 #include "citra_qt/qt_image_interface.h"
 #include "citra_qt/uisettings.h"
 #include "citra_qt/util/clickable_label.h"
@@ -1244,7 +1245,8 @@ void GMainWindow::BootGame(const QString& filename) {
     connect(emu_thread.get(), &EmuThread::DiskShaderCacheLoadingProgress, this,
             &GMainWindow::OnDiskShaderCacheLoadingProgress);
 
-    connect(emu_thread.get(), &EmuThread::CaptureScreenshotThenSendToDiscordServerRequested,
+    buttons = std::make_unique<QtButtons>();
+    connect(buttons.get(), &QtButtons::CaptureScreenshotThenSendToDiscordServerRequested,
             ui.action_Capture_Screenshot_Send_To_Discord_Server_Current_Layout, &QAction::trigger);
 
 #ifdef CITRA_ENABLE_DISCORD_RP
@@ -1345,6 +1347,7 @@ void GMainWindow::ShutdownGame() {
     UpdateWindowTitle();
 
     game_path.clear();
+    buttons.reset();
 
     if (ui.action_Enable_Discord_Logger->isChecked()) {
         if (UISettings::values.cv_discord_send_jwt.empty()) {
@@ -1799,8 +1802,8 @@ void GMainWindow::OnConfigure(const bool goto_web) {
     if (result == QDialog::Accepted) {
         configureDialog.ApplyConfiguration();
         InitializeHotkeys();
-        if (emu_thread != nullptr) {
-            emu_thread->UpdateQtButtons();
+        if (buttons != nullptr) {
+            buttons->Update();
         }
         if (UISettings::values.theme != old_theme) {
             UpdateUITheme();

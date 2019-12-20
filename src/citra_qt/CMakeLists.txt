@@ -133,6 +133,8 @@ add_executable(citra-qt
     main.cpp
     main.h
     main.ui
+    qt_buttons.cpp
+    qt_buttons.h
     multiplayer/chat_room.cpp
     multiplayer/chat_room.h
     multiplayer/chat_room.ui
