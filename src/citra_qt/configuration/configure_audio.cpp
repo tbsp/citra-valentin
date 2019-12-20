@@ -52,7 +52,10 @@ void ConfigureAudio::SetConfiguration() {
 
     ui->toggle_audio_stretching->setChecked(Settings::values.enable_audio_stretching);
     ui->volume_slider->setValue(Settings::values.volume * ui->volume_slider->maximum());
+    ui->speed_slider->setValue(Settings::values.audio_speed * ui->speed_slider->maximum());
+
     SetVolumeIndicatorText(ui->volume_slider->sliderPosition());
+    SetSpeedIndicatorText(ui->speed_slider->sliderPosition());
 
     int selection;
     if (Settings::values.enable_dsp_lle) {
@@ -103,6 +106,10 @@ void ConfigureAudio::SetVolumeIndicatorText(int percentage) {
     ui->volume_indicator->setText(QStringLiteral("%1%").arg(percentage));
 }
 
+void ConfigureAudio::SetSpeedIndicatorText(int percentage) {
+    ui->speed_indicator->setText(QStringLiteral("%1%").arg(percentage));
+}
+
 void ConfigureAudio::ApplyConfiguration() {
     Settings::values.sink_id =
         ui->output_sink_combo_box->itemText(ui->output_sink_combo_box->currentIndex())
@@ -118,6 +125,8 @@ void ConfigureAudio::ApplyConfiguration() {
     Settings::values.mic_input_type =
         static_cast<Settings::MicInputType>(ui->input_type_combo_box->currentIndex());
     Settings::values.mic_input_device = ui->input_device_combo_box->currentText().toStdString();
+    Settings::values.audio_speed =
+        static_cast<float>(ui->speed_slider->sliderPosition()) / ui->speed_slider->maximum();
 }
 
 void ConfigureAudio::UpdateAudioOutputDevices(int sink_index) {

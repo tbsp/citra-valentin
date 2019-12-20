@@ -28,6 +28,7 @@ private:
     void SetOutputSinkFromSinkID();
     void SetAudioDeviceFromDeviceID();
     void SetVolumeIndicatorText(int percentage);
+    void SetSpeedIndicatorText(int percentage);
 
     std::unique_ptr<Ui::ConfigureAudio> ui;
 };
