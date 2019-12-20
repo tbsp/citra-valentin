@@ -189,6 +189,7 @@ struct Values {
     float volume;
     MicInputType mic_input_type;
     std::string mic_input_device;
+    float audio_speed;
 
     // Camera
     std::array<std::string, Service::CAM::NumCameras> camera_name;
@@ -210,7 +211,6 @@ struct Values {
     // Hacks
     bool custom_screen_refresh_rate;
     double screen_refresh_rate;
-
     bool sharper_distant_objects;
     bool ignore_format_reinterpretation;
 } extern values;
