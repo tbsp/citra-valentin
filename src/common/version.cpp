@@ -5,7 +5,7 @@
 #include "common/version.h"
 
 namespace Version {
-const semver::version citra_valentin{13, 1, 4};
+const semver::version citra_valentin{13, 1, 5};
 const u32 network = 4;
 const u8 movie = 1;
 const u16 shader_cache = 2;
