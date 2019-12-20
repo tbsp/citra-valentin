@@ -195,8 +195,9 @@ std::string ServiceFrameworkBase::GetFunctionName(u32 header) const {
 // Module interface
 
 static bool AttemptLLE(const ServiceModuleInfo& service_module) {
-    if (!Settings::values.lle_modules.at(service_module.name))
+    if (!Settings::values.lle_modules.at(service_module.name)) {
         return false;
+    }
     std::unique_ptr<Loader::AppLoader> loader =
         Loader::GetLoader(AM::GetTitleContentPath(FS::MediaType::NAND, service_module.title_id));
     if (!loader) {
@@ -216,8 +217,9 @@ void Init(Core::System& core) {
     SM::ServiceManager::InstallInterfaces(core);
 
     for (const Service::ServiceModuleInfo& service_module : service_module_map) {
-        if (!AttemptLLE(service_module) && service_module.init_function != nullptr)
+        if (!AttemptLLE(service_module) && service_module.init_function != nullptr) {
             service_module.init_function(core);
+        }
     }
     LOG_DEBUG(Service, "initialized OK");
 }
