@@ -32,6 +32,8 @@ ConfigureAudio::ConfigureAudio(QWidget* parent)
     connect(ui->volume_slider, &QSlider::valueChanged, this,
             &ConfigureAudio::SetVolumeIndicatorText);
 
+    connect(ui->speed_slider, &QSlider::valueChanged, this, &ConfigureAudio::SetSpeedIndicatorText);
+
     connect(ui->input_type_combo_box, qOverload<int>(&QComboBox::currentIndexChanged), this,
             &ConfigureAudio::UpdateAudioInputDevices);
 
