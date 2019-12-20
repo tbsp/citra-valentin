@@ -5,9 +5,12 @@
 #pragma once
 
 #include <QObject>
-#include "core/frontend/input.h"
 
 class QTimer;
+
+namespace Input {
+class ButtonDevice;
+} // namespace Input
 
 class QtButtons : public QObject {
     Q_OBJECT
