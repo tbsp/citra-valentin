@@ -152,7 +152,7 @@ std::vector<u8> DspHle::Impl::PipeRead(DspPipe pipe_number, u32 length) {
     const std::size_t pipe_index = static_cast<std::size_t>(pipe_number);
 
     if (pipe_index >= num_dsp_pipe) {
-        LOG_ERROR(Audio_DSP, "pipe_number = {} invalid", pipe_index);
+        LOG_ERROR(Audio_DSP, "pipe_index {} invalid", pipe_index);
         return {};
     }
 
@@ -171,8 +171,9 @@ std::vector<u8> DspHle::Impl::PipeRead(DspPipe pipe_number, u32 length) {
         length = static_cast<u32>(data.size());
     }
 
-    if (length == 0)
+    if (length == 0) {
         return {};
+    }
 
     std::vector<u8> ret(data.begin(), data.begin() + length);
     data.erase(data.begin(), data.begin() + length);
@@ -181,12 +182,10 @@ std::vector<u8> DspHle::Impl::PipeRead(DspPipe pipe_number, u32 length) {
 
 size_t DspHle::Impl::GetPipeReadableSize(DspPipe pipe_number) const {
     const std::size_t pipe_index = static_cast<std::size_t>(pipe_number);
-
     if (pipe_index >= num_dsp_pipe) {
-        LOG_ERROR(Audio_DSP, "pipe_number = {} invalid", pipe_index);
+        LOG_ERROR(Audio_DSP, "pipe_index {} invalid", pipe_index);
         return 0;
     }
-
     return pipe_data[pipe_index].size();
 }
 
