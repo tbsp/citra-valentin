@@ -548,25 +548,25 @@ void Y2R_U::SetPackageParameter(Kernel::HLERequestContext& ctx) {
     ResultCode result = conversion.SetInputLineWidth(params.input_line_width);
 
     if (result.IsError()) {
-        goto cleanup;
+        goto end;
     }
 
     result = conversion.SetInputLines(params.input_lines);
 
     if (result.IsError()) {
-        goto cleanup;
+        goto end;
     }
 
     result = conversion.SetStandardCoefficient(params.standard_coefficient);
 
     if (result.IsError()) {
-        goto cleanup;
+        goto end;
     }
 
     conversion.padding = params.padding;
     conversion.alpha = params.alpha;
 
-cleanup:
+end:
     IPC::RequestBuilder rb = rp.MakeBuilder(1, 0);
     rb.Push(result);
 
