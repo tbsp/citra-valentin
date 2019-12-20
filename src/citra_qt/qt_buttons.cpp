@@ -6,7 +6,6 @@
 #include <QTimer>
 #include "citra_qt/qt_buttons.h"
 #include "citra_qt/uisettings.h"
-#include "core/frontend/input.h"
 #include "core/settings.h"
 
 QtButtons::QtButtons() {
