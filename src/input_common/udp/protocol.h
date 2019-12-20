@@ -95,7 +95,7 @@ static_assert(std::is_trivially_copyable_v<PadData>,
 /**
  * Creates a message with the proper header data that can be sent to the server.
  * @param T data Request body to send
- * @param client_id ID of the udp client (usually not checked on the server)
+ * @param client_id ID of the UDP client (usually not checked on the server)
  */
 template <typename T>
 Message<T> Create(const T data, const u32 client_id = 0) {
