@@ -149,8 +149,9 @@ void ServiceFrameworkBase::RegisterHandlersBase(const FunctionInfoBase* function
 
 void ServiceFrameworkBase::ReportUnimplementedFunction(u32* cmd_buf, const FunctionInfoBase* info) {
     IPC::Header header{cmd_buf[0]};
-    int num_params = header.normal_params_size + header.translate_params_size;
-    std::string function_name = info == nullptr ? fmt::format("{:#08x}", cmd_buf[0]) : info->name;
+    const int num_params = header.normal_params_size + header.translate_params_size;
+    const std::string function_name =
+        info == nullptr ? fmt::format("{:#08x}", cmd_buf[0]) : info->name;
 
     fmt::memory_buffer buf;
     fmt::format_to(buf, "function '{}': port='{}' cmd_buf={{[0]={:#x}", function_name, service_name,
