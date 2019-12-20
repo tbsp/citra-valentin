@@ -238,7 +238,7 @@ mic_input_device =
 # 0 (default): None, 1: Real Device, 2: Static Noise
 mic_input_type = 0
 
-# Range: 0.01-1.0. Default: 1.0
+# Range: 0.01-4.0. Default: 1.0
 audio_speed =
 
 [Data Storage]
