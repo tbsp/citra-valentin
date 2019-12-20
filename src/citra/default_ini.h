@@ -217,7 +217,7 @@ enable_dsp_lle_thread =
 # auto (default): Auto-select, null: No audio output, sdl2: SDL2 (if available)
 output_engine =
 
-# Whether or not to enable the audio-stretching post-processing effect.
+# Whether or not to enable the audio stretching post-processing effect.
 # This effect adjusts audio speed to match emulation speed and helps prevent audio stutter,
 # at the cost of increasing audio latency.
 # 0: No, 1 (default): Yes
@@ -238,7 +238,7 @@ mic_input_device =
 # 0 (default): None, 1: Real Device, 2: Static Noise
 mic_input_type = 0
 
-# DSP HLE only and requires audio-stretching to be enabled for this to work properly
+# DSP HLE only and requires audio stretching to be enabled for this to work properly
 # Range: 0.01-4.0. Default: 1.0. If the value is 0.00, Citra Valentin will crash.
 audio_speed =
 
