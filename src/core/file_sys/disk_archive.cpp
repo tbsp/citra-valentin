@@ -73,8 +73,9 @@ u32 DiskDirectory::Read(const u32 count, Entry* entries) {
         // TODO(Link Mauve): use a proper conversion to UTF-16.
         for (std::size_t j = 0; j < FILENAME_LENGTH; ++j) {
             entry.filename[j] = filename[j];
-            if (!filename[j])
+            if (!filename[j]) {
                 break;
+            }
         }
 
         FileUtil::SplitFilename83(filename, entry.short_name, entry.extension);

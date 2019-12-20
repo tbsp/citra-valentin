@@ -25,35 +25,15 @@ std::string ToLower(std::string str) {
     return str;
 }
 
-/// Make a string uppercase
-std::string ToUpper(std::string str) {
-    std::transform(str.begin(), str.end(), str.begin(),
-                   [](unsigned char c) { return std::toupper(c); });
-    return str;
-}
-
 // Turns "  hej " into "hej". Also handles tabs.
 std::string StripSpaces(const std::string& str) {
     const std::size_t s = str.find_first_not_of(" \t\r\n");
 
-    if (str.npos != s)
+    if (str.npos != s) {
         return str.substr(s, str.find_last_not_of(" \t\r\n") - s + 1);
-    else
+    } else {
         return "";
-}
-
-// "\"hello\"" is turned to "hello"
-// This one assumes that the string has already been space stripped in both
-// ends, as done by StripSpaces above, for example.
-std::string StripQuotes(const std::string& s) {
-    if (s.size() && '\"' == s[0] && '\"' == *s.rbegin())
-        return s.substr(1, s.size() - 2);
-    else
-        return s;
-}
-
-std::string StringFromBool(bool value) {
-    return value ? "True" : "False";
+    }
 }
 
 bool SplitPath(const std::string& full_path, std::string* _pPath, std::string* _pFilename,
@@ -88,18 +68,6 @@ bool SplitPath(const std::string& full_path, std::string* _pPath, std::string* _
     return true;
 }
 
-void BuildCompleteFilename(std::string& _CompleteFilename, const std::string& _Path,
-                           const std::string& _Filename) {
-    _CompleteFilename = _Path;
-
-    // check for seperator
-    if (DIR_SEP_CHR != *_CompleteFilename.rbegin())
-        _CompleteFilename += DIR_SEP_CHR;
-
-    // add the filename
-    _CompleteFilename += _Filename;
-}
-
 void SplitString(const std::string& str, const char delim, std::vector<std::string>& output) {
     std::istringstream iss(str);
     output.resize(1);
@@ -111,21 +79,12 @@ void SplitString(const std::string& str, const char delim, std::vector<std::stri
     output.pop_back();
 }
 
-std::string TabsToSpaces(int tab_size, std::string in) {
-    std::size_t i = 0;
-
-    while ((i = in.find('\t')) != std::string::npos) {
-        in.replace(i, 1, tab_size, ' ');
-    }
-
-    return in;
-}
-
 std::string ReplaceAll(std::string result, const std::string& src, const std::string& dest) {
     std::size_t pos = 0;
 
-    if (src == dest)
+    if (src == dest) {
         return result;
+    }
 
     while ((pos = result.find(src, pos)) != std::string::npos) {
         result.replace(pos, src.size(), dest);
@@ -204,8 +163,9 @@ std::wstring UTF8ToUTF16W(const std::string& input) {
 
 std::string StringFromFixedZeroTerminatedBuffer(const char* buffer, std::size_t max_len) {
     std::size_t len = 0;
-    while (len < max_len && buffer[len] != '\0')
+    while (len < max_len && buffer[len] != '\0') {
         ++len;
+    }
 
     return std::string(buffer, len);
 }

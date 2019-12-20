@@ -100,7 +100,7 @@ private:
             }
         }
 
-        bool exit_loop{};
+        bool exit_loop = false;
         SPSCQueue<std::function<void()>> queue;
         std::thread thread{[this] { Loop(); }};
         std::atomic<bool> spinlock_enabled{};

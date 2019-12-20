@@ -16,15 +16,7 @@ namespace Common {
 /// Make a string lowercase
 std::string ToLower(std::string str);
 
-/// Make a string uppercase
-std::string ToUpper(std::string str);
-
 std::string StripSpaces(const std::string& s);
-std::string StripQuotes(const std::string& s);
-
-std::string StringFromBool(bool value);
-
-std::string TabsToSpaces(int tab_size, std::string in);
 
 void SplitString(const std::string& str, char delim, std::vector<std::string>& output);
 
@@ -32,8 +24,6 @@ void SplitString(const std::string& str, char delim, std::vector<std::string>& o
 bool SplitPath(const std::string& full_path, std::string* _pPath, std::string* _pFilename,
                std::string* _pExtension);
 
-void BuildCompleteFilename(std::string& _CompleteFilename, const std::string& _Path,
-                           const std::string& _Filename);
 std::string ReplaceAll(std::string result, const std::string& src, const std::string& dest);
 
 std::string UTF16ToUTF8(const std::u16string& input);
@@ -42,7 +32,6 @@ std::u16string UTF8ToUTF16(const std::string& input);
 #ifdef _WIN32
 std::string UTF16ToUTF8(const std::wstring& input);
 std::wstring UTF8ToUTF16W(const std::string& str);
-
 #endif
 
 /**
