@@ -239,7 +239,7 @@ mic_input_device =
 mic_input_type = 0
 
 # DSP HLE only and requires audio-stretching to be enabled for this to work properly
-# Range: 0.01-4.0. Default: 1.0
+# Range: 0.01-4.0. Default: 1.0. If the value is 0.00, Citra Valentin will crash.
 audio_speed =
 
 [Data Storage]

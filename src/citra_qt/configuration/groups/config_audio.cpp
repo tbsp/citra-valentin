@@ -28,6 +28,7 @@ void Config::ReadAudioValues() {
             .toString()
             .toStdString();
     Settings::values.audio_speed = ReadSetting(QStringLiteral("audio_speed"), 1.0f).toFloat();
+    ASSERT_MSG(Settings::values.audio_speed != 0.00f, "audio_speed: 0.00 is not allowed!");
     qt_config->endGroup();
 }
 

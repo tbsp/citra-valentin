@@ -183,6 +183,9 @@ void Config::ReadValues() {
         sdl2_config->GetString("Audio", "mic_input_device", Frontend::Mic::default_device_name);
     Settings::values.mic_input_type =
         static_cast<Settings::MicInputType>(sdl2_config->GetInteger("Audio", "mic_input_type", 0));
+    Settings::values.audio_speed =
+        static_cast<float>(sdl2_config->GetReal("Audio", "audio_speed", 1));
+    ASSERT_MSG(Settings::values.audio_speed != 0.00f, "audio_speed: 0.00 is not allowed!");
 
     // Data Storage
     Settings::values.use_virtual_sd =
