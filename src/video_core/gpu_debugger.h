@@ -45,8 +45,9 @@ public:
     };
 
     void GXCommandProcessed(u8* command_data) {
-        if (observers.empty())
+        if (observers.empty()) {
             return;
+        }
 
         gx_command_history.emplace_back();
         Service::GSP::Command& cmd = gx_command_history.back();

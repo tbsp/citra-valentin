@@ -87,7 +87,7 @@ void AnnounceMultiplayerSession::UpdateBackendData(std::shared_ptr<Network::Room
         room_information.member_slots, Version::network, room->HasPassword(),
         room_information.preferred_game, room_information.preferred_game_id);
     backend->ClearPlayers();
-    for (const auto& member : members) {
+    for (const Network::Room::Member& member : members) {
         backend->AddPlayer(member.username, member.nickname, member.avatar_url, member.mac_address,
                            member.game_info.id, member.game_info.name);
     }

@@ -19,8 +19,9 @@ int GPUCommandStreamItemModel::rowCount(const QModelIndex& parent) const {
 }
 
 QVariant GPUCommandStreamItemModel::data(const QModelIndex& index, int role) const {
-    if (!index.isValid())
+    if (!index.isValid()) {
         return QVariant();
+    }
 
     int command_index = index.row();
     const Service::GSP::Command& command = GetDebugger()->ReadGXCommandHistory(command_index);
@@ -55,8 +56,9 @@ void GPUCommandStreamItemModel::GXCommandProcessed(int total_command_count) {
 }
 
 void GPUCommandStreamItemModel::OnGXCommandFinishedInternal(int total_command_count) {
-    if (total_command_count == 0)
+    if (total_command_count == 0) {
         return;
+    }
 
     int prev_command_count = command_count;
     command_count = total_command_count;
