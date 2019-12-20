@@ -74,7 +74,7 @@ touch_device=
 
 # Most desktop operating systems do not expose a way to poll the motion state of the controllers
 # so as a way around it, cemuhook created a UDP client/server protocol to broadcast the data directly
-# from a controller device to the client program. Citra has a client that can connect and read
+# from a controller device to the client program. Citra Valentin has a client that can connect and read
 # from any cemuhook compatible motion program.
 
 # IPv4 address of the UDP input server (Default "127.0.0.1")
@@ -248,15 +248,15 @@ audio_speed =
 use_virtual_sd =
 
 [System]
-# The system model that Citra will try to emulate
+# The system model that Citra Valentin will try to emulate
 # 0: Old 3DS (default), 1: New 3DS
 is_new_3ds =
 
-# The system region that Citra will use during emulation
+# The system region that Citra Valentin will use during emulation
 # -1: Auto-select (default), 0: Japan, 1: USA, 2: Europe, 3: Australia, 4: China, 5: Korea, 6: Taiwan
 region_value =
 
-# The clock to use when citra starts
+# The clock to use when Citra Valentin starts
 # 0: System clock (default), 1: fixed time
 init_clock =
 
