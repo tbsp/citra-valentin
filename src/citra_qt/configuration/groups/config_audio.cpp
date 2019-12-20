@@ -27,6 +27,7 @@ void Config::ReadAudioValues() {
         ReadSetting(QStringLiteral("mic_input_device"), Frontend::Mic::default_device_name)
             .toString()
             .toStdString();
+    Settings::values.audio_speed = ReadSetting(QStringLiteral("audio_speed"), 1.0f).toFloat();
     qt_config->endGroup();
 }
 
@@ -47,5 +48,6 @@ void Config::SaveAudioValues() {
                  Frontend::Mic::default_device_name);
     WriteSetting(QStringLiteral("mic_input_type"),
                  static_cast<int>(Settings::values.mic_input_type), 0);
+    WriteSetting(QStringLiteral("audio_speed"), Settings::values.audio_speed, 1.0f);
     qt_config->endGroup();
 }
