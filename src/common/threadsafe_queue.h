@@ -78,7 +78,7 @@ public:
 
     T PopWait() {
         if (Empty()) {
-            std::unique_lock lock{cv_mutex};
+            std::unique_lock<std::mutex> lock(cv_mutex);
             cv.wait(lock, [this]() { return !Empty(); });
         }
         T t;

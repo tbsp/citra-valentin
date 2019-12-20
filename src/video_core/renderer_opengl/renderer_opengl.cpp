@@ -72,7 +72,7 @@ public:
     ~OGLTextureMailbox() override {
         // Lock the mutex and clear out the present and free_queues and notify any people who are
         // blocked to prevent deadlock on shutdown
-        std::scoped_lock lock(swap_chain_lock);
+        std::scoped_lock<std::mutex> lock(swap_chain_lock);
         std::queue<Frontend::Frame*>().swap(free_queue);
         present_queue.clear();
         present_cv.notify_all();

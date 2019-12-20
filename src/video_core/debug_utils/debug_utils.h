@@ -63,21 +63,22 @@ public:
         /// Constructs the object such that it observes events of the given DebugContext.
         BreakPointObserver(std::shared_ptr<DebugContext> debug_context)
             : context_weak(debug_context) {
-            std::unique_lock lock{debug_context->breakpoint_mutex};
+            std::unique_lock<std::mutex> lock(debug_context->breakpoint_mutex);
             debug_context->breakpoint_observers.push_back(this);
         }
 
         virtual ~BreakPointObserver() {
             std::shared_ptr<Pica::DebugContext> context = context_weak.lock();
             if (context != nullptr) {
-                std::unique_lock lock(context->breakpoint_mutex);
+                std::unique_lock<std::mutex> lock(context->breakpoint_mutex);
                 context->breakpoint_observers.remove(this);
 
                 // If we are the last observer to be destroyed, tell the debugger context that
                 // it is free to continue. In particular, this is required for a proper Citra
                 // shutdown, when the emulation thread is waiting at a breakpoint.
-                if (context->breakpoint_observers.empty())
+                if (context->breakpoint_observers.empty()) {
                     context->Resume();
+                }
             }
         }
 

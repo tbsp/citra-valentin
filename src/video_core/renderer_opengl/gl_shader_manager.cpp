@@ -511,13 +511,13 @@ void ShaderProgramManager::LoadDiskCache(const std::atomic_bool& stop_loading,
                     // We have both the binary shader and the decompiled, so inject it into the
                     // cache
                     if (raw.GetProgramType() == ProgramType::VS) {
-                        auto [conf, setup] = BuildVSConfigFromRaw(raw);
-                        std::scoped_lock lock(mutex);
+                        const auto [conf, setup] = BuildVSConfigFromRaw(raw);
+                        std::scoped_lock<std::mutex> lock(mutex);
                         impl->programmable_vertex_shaders.Inject(conf, decomp->second.code,
                                                                  std::move(shader));
                     } else if (raw.GetProgramType() == ProgramType::FS) {
                         PicaFSConfig conf = PicaFSConfig::BuildFromRegs(raw.GetRawShaderConfig());
-                        std::scoped_lock lock(mutex);
+                        std::scoped_lock<std::mutex> lock(mutex);
                         impl->fragment_shaders.Inject(conf, decomp->second.code, std::move(shader));
                     } else {
                         // Unsupported shader type got stored somehow so nuke the cache
@@ -528,7 +528,7 @@ void ShaderProgramManager::LoadDiskCache(const std::atomic_bool& stop_loading,
                     }
                 } else {
                     // Since precompiled didn't have the dump, we'll load them in the next phase
-                    std::scoped_lock lock(mutex);
+                    std::scoped_lock<std::mutex> lock(mutex);
                     load_raws_index.push_back(i);
                 }
                 if (callback) {
@@ -570,13 +570,13 @@ void ShaderProgramManager::LoadDiskCache(const std::atomic_bool& stop_loading,
                 // TODO: This isn't the ideal place to lock, since we really only want to
                 // lock access to the shared cache
                 auto [conf, setup] = BuildVSConfigFromRaw(raw);
-                std::scoped_lock lock(mutex);
+                std::scoped_lock<std::mutex> lock(mutex);
                 auto [h, r] = impl->programmable_vertex_shaders.Get(conf, setup);
                 handle = h;
                 result = r;
             } else if (raw.GetProgramType() == ProgramType::FS) {
                 PicaFSConfig conf = PicaFSConfig::BuildFromRegs(raw.GetRawShaderConfig());
-                std::scoped_lock lock(mutex);
+                std::scoped_lock<std::mutex> lock(mutex);
                 auto [h, r] = impl->fragment_shaders.Get(conf);
                 handle = h;
                 result = r;

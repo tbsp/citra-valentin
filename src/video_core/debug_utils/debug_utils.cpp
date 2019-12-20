@@ -42,26 +42,24 @@ using nihstro::DVLPHeader;
 namespace Pica {
 
 void DebugContext::DoOnEvent(Event event, void* data) {
-    {
-        std::unique_lock lock{breakpoint_mutex};
+    std::unique_lock<std::mutex> lock(breakpoint_mutex);
 
-        // Commit the rasterizer's caches so framebuffers, render targets, etc. will show on debug
-        // widgets
-        VideoCore::g_renderer->Rasterizer()->FlushAll();
+    // Commit the rasterizer's caches so framebuffers, render targets, etc. will show on debug
+    // widgets
+    VideoCore::g_renderer->Rasterizer()->FlushAll();
 
-        // TODO: Should stop the CPU thread here once we multithread emulation.
+    // TODO: Should stop the CPU thread here once we multithread emulation.
 
-        active_breakpoint = event;
-        at_breakpoint = true;
+    active_breakpoint = event;
+    at_breakpoint = true;
 
-        // Tell all observers that we hit a breakpoint
-        for (DebugContext::BreakPointObserver*& breakpoint_observer : breakpoint_observers) {
-            breakpoint_observer->OnPicaBreakPointHit(event, data);
-        }
-
-        // Wait until another thread tells us to Resume()
-        resume_from_breakpoint.wait(lock, [&] { return !at_breakpoint; });
+    // Tell all observers that we hit a breakpoint
+    for (DebugContext::BreakPointObserver*& breakpoint_observer : breakpoint_observers) {
+        breakpoint_observer->OnPicaBreakPointHit(event, data);
     }
+
+    // Wait until another thread tells us to Resume()
+    resume_from_breakpoint.wait(lock, [&] { return !at_breakpoint; });
 }
 
 void DebugContext::Resume() {
@@ -96,7 +94,7 @@ void DumpShader(const std::string& filename, const ShaderRegs& config,
 
     auto QueueForWriting = [&writing_queue, &write_offset](const u8* pointer, u32 size) {
         writing_queue.push_back({pointer, size});
-        u32 old_write_offset = write_offset;
+        const u32 old_write_offset = write_offset;
         write_offset += size;
         return old_write_offset;
     };

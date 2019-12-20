@@ -138,19 +138,19 @@ void Recorder::SetHLEUnimplemented(const std::shared_ptr<Kernel::Thread>& client
 }
 
 CallbackHandle Recorder::BindCallback(CallbackType callback) {
-    std::unique_lock lock(callback_mutex);
+    std::unique_lock<std::shared_mutex> lock(callback_mutex);
     CallbackHandle handle = std::make_shared<CallbackType>(callback);
     callbacks.emplace(handle);
     return handle;
 }
 
 void Recorder::UnbindCallback(const CallbackHandle& handle) {
-    std::unique_lock lock(callback_mutex);
+    std::unique_lock<std::shared_mutex> lock(callback_mutex);
     callbacks.erase(handle);
 }
 
 void Recorder::InvokeCallbacks(const RequestRecord& request) {
-    std::shared_lock lock(callback_mutex);
+    std::shared_lock<std::shared_mutex> lock(callback_mutex);
     for (const IPCDebugger::CallbackHandle& iter : callbacks) {
         (*iter)(request);
     }
