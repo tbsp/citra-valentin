@@ -26,19 +26,30 @@ std::shared_ptr<httplib::Response> GetToken() {
     httplib::Server server;
 
     server.Get("/", [&](const httplib::Request& req, httplib::Response& res) {
-        const std::string code = req.params.find("code")->second;
+        if (req.has_param("error")) {
+            LOG_ERROR(Frontend, "Error: {}", req.get_param_value("error_description"));
+            response = std::make_unique<httplib::Response>();
+            response->status = 403;
+            response->body = req.get_param_value("error_description");
+            response->set_header("x-when", "authorize");
+            server.stop();
+            return;
+        }
+
+        const std::string code = req.get_param_value("code");
 
         response = api_client.Post("/discord/jwt", code, "text/plain");
         if (response == nullptr) {
             LOG_ERROR(Frontend, "Get JWT request failed");
             res.status = 500;
         } else if (response->status != 200) {
-            LOG_ERROR(Frontend, "Get JWT request failed, status code: {}, body: {}",
-                      response->status, response->body);
+            LOG_ERROR(Frontend, "Get JWT request failed, status code: {}, body: {}, when: {}",
+                      response->status, response->body, response->get_header_value("x-when"));
             res.status = response->status;
             res.set_content(response->body,
                             httplib::detail::get_header_value(response->headers, "content-type", 0,
                                                               "text/plain"));
+            res.set_header("x-when", response->get_header_value("x-when"));
         } else {
             res.status = 200;
             res.set_content("You can close this tab", "text/plain");

@@ -89,9 +89,10 @@ ConfigureWeb::ConfigureWeb(QWidget* parent)
         } else if (response->status != 200) {
             QMessageBox::critical(
                 this, QStringLiteral("Error"),
-                QStringLiteral(
-                    "Error while connecting Discord to Citra Valentin (status code %1):<br>%2")
+                QStringLiteral("Error while connecting Discord to Citra Valentin (status code %1, "
+                               "when: %2):<br>%3")
                     .arg(QString::number(response->status),
+                         QString::fromStdString(response->get_header_value("x-when")),
                          QString::fromStdString(response->body)));
         } else {
             UISettings::values.cv_discord_send_jwt = response->body;
