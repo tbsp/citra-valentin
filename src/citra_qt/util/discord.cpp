@@ -28,6 +28,9 @@ std::shared_ptr<httplib::Response> GetToken() {
     server.Get("/", [&](const httplib::Request& req, httplib::Response& res) {
         if (req.has_param("error")) {
             LOG_ERROR(Frontend, "Error: {}", req.get_param_value("error_description"));
+            res.status = 403;
+            res.body = req.get_param_value("error_description");
+            res.set_header("x-when", "authorize");
             response = std::make_unique<httplib::Response>();
             response->status = 403;
             response->body = req.get_param_value("error_description");
