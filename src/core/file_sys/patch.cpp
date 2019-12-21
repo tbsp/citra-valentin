@@ -76,7 +76,7 @@ static u32 crc32(const u8* data, std::size_t size) {
     for (std::size_t i = 0; i < size; ++i) {
         crc ^= data[i];
         for (std::size_t j = 0; j < 8; ++j) {
-            const u32 mask = -(crc & 1);
+            const u32 mask = -1 * (crc & 1);
             crc = (crc >> 1) ^ (0xEDB88320 & mask);
         }
     }
