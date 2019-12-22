@@ -235,7 +235,6 @@ void GMainWindow::InitializeWidgets() {
     // Create status bar
     message_label = new QLabel();
     // Configured separately for left alignment
-    message_label->setVisible(false);
     message_label->setFrameStyle(QFrame::NoFrame);
     message_label->setContentsMargins(4, 0, 4, 0);
     message_label->setAlignment(Qt::AlignLeft);
@@ -1334,7 +1333,6 @@ void GMainWindow::ShutdownGame() {
 
     // Disable status bar updates
     status_bar_update_timer.stop();
-    message_label->setVisible(false);
     emu_speed_label->setVisible(false);
     emu_frametime_label->setVisible(false);
 
@@ -2164,7 +2162,6 @@ void GMainWindow::OnCoreError(Core::System::ResultStatus result, std::string det
         if (emu_thread) {
             emu_thread->SetRunning(true);
             message_label->setText(status_message);
-            message_label->setVisible(true);
         }
     }
 }
