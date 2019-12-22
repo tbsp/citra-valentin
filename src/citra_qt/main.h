@@ -180,8 +180,10 @@ private:
     // Whether emulation is currently running in Citra.
     bool emulation_running = false;
     std::unique_ptr<EmuThread> emu_thread;
+
     // The title of the game currently running
     QString game_title;
+
     // The path to the game currently running
     QString game_path;
 
