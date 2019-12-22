@@ -2340,7 +2340,7 @@ bool GMainWindow::ConfirmChangeGame() {
     return answer != QMessageBox::No;
 }
 
-void GMainWindow::filterBarSetChecked(bool state) {
+void GMainWindow::FilterBarSetChecked(bool state) {
     ui.action_Show_Filter_Bar->setChecked(state);
     emit(OnToggleFilterBar());
 }

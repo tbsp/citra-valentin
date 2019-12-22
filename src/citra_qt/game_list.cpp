@@ -273,7 +273,7 @@ void GameList::onUpdateThemedIcons() {
 }
 
 void GameList::onFilterCloseClicked() {
-    main_window->filterBarSetChecked(false);
+    main_window->FilterBarSetChecked(false);
 }
 
 GameList::GameList(GMainWindow* parent) : QWidget(parent) {
