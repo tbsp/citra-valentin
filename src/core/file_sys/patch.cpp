@@ -163,7 +163,7 @@ private:
 class PatchApplier {
 public:
     PatchApplier(Stream<const u8> source, Stream<u8> target, Stream<const u8> patch)
-        : m_source{source}, m_target{target}, m_patch{patch} {}
+        : m_source(source), m_target(target), m_patch(patch) {}
 
     bool Apply() {
         const auto magic = *m_patch.Read<std::array<char, 4>>();
@@ -195,13 +195,16 @@ public:
         // Process all patch commands.
         std::memset(m_target.Data(), 0, m_target.Size());
         while (m_patch.Tell() < command_end_offset) {
-            const bool ok = HandleCommand();
-            if (!ok) {
+            if (!HandleCommand()) {
                 return false;
             }
         }
 
-        ASSERT(crc32(m_target.Data(), target_size) == target_crc32);
+        if (crc32(m_target.Data(), target_size) != target_crc32) {
+            LOG_ERROR(Service_FS, "Unexpected target hash");
+            return false;
+        }
+
         return true;
     }
 
@@ -260,7 +263,7 @@ private:
             return false;
         }
         // Byte by byte copy.
-        for (size_t i = 0; i < length; ++i) {
+        for (std::size_t i = 0; i < length; ++i) {
             m_target.Data()[m_target.Tell() + i] = m_target.Data()[m_target_relative_offset++];
         }
         m_target.Seek(m_target.Tell() + length);
