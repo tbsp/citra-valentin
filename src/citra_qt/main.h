@@ -196,6 +196,7 @@ private:
     // Video dumping
     bool video_dumping_on_start = false;
     QString video_dumping_path;
+
     // Whether game shutdown is delayed due to video dumping
     bool game_shutdown_delayed = false;
 
