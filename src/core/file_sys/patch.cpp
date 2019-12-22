@@ -8,6 +8,7 @@
 #include <string>
 #include <string_view>
 #include <type_traits>
+#include <boost/crc.hpp>
 #include "common/assert.h"
 #include "common/logging/log.h"
 #include "core/file_sys/patch.h"
@@ -69,19 +70,6 @@ namespace Bps {
 using Number = u32;
 
 constexpr std::size_t FooterSize = 12;
-
-// The BPS format uses CRC32 checksums.
-static u32 crc32(const u8* data, std::size_t size) {
-    u32 crc = 0xFFFFFFFF;
-    for (std::size_t i = 0; i < size; ++i) {
-        crc ^= data[i];
-        for (std::size_t j = 0; j < 8; ++j) {
-            const u32 mask = -1 * (crc & 1);
-            crc = (crc >> 1) ^ (0xEDB88320 & mask);
-        }
-    }
-    return ~crc;
-}
 
 // Utility class to make keeping track of offsets and bound checks less error prone.
 template <typename T>
@@ -187,9 +175,13 @@ public:
         const u32 target_crc32 = *m_patch.Read<u32>();
         m_patch.Seek(command_start_offset);
 
-        if (crc32(m_source.Data(), source_size) != source_crc32) {
-            LOG_ERROR(Service_FS, "Unexpected source hash");
-            return false;
+        {
+            boost::crc_32_type crc;
+            crc.process_bytes(m_source.Data(), source_size);
+            if (crc.checksum() != source_crc32) {
+                LOG_ERROR(Service_FS, "Unexpected source hash");
+                return false;
+            }
         }
 
         // Process all patch commands.
@@ -200,9 +192,13 @@ public:
             }
         }
 
-        if (crc32(m_target.Data(), target_size) != target_crc32) {
-            LOG_ERROR(Service_FS, "Unexpected target hash");
-            return false;
+        {
+            boost::crc_32_type crc;
+            crc.process_bytes(m_target.Data(), target_size);
+            if (crc.checksum() != target_crc32) {
+                LOG_ERROR(Service_FS, "Unexpected target hash");
+                return false;
+            }
         }
 
         return true;
