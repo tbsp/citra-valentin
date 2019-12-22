@@ -103,6 +103,7 @@
      <addaction name="action_Screen_Layout_Side_by_Side"/>
      <addaction name="separator"/>
      <addaction name="action_Screen_Layout_Swap_Screens"/>
+     <addaction name="action_Screen_Layout_Enable_Custom_Layout"/>
     </widget>
     <addaction name="action_Fullscreen"/>
     <addaction name="action_Single_Window_Mode"/>
@@ -542,6 +543,14 @@ This feature is only for Discord members.</string>
   <action name="action_Capture_Screenshot_Send_To_Discord_Server_Current_Layout">
    <property name="text">
     <string>Current Layout</string>
+   </property>
+  </action>
+  <action name="action_Screen_Layout_Enable_Custom_Layout">
+   <property name="checkable">
+    <bool>true</bool>
+   </property>
+   <property name="text">
+    <string>Enable Custom Layout</string>
    </property>
   </action>
  </widget>

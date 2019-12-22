@@ -733,16 +733,7 @@ void GMainWindow::InitializeHotkeys() {
 
     connect(hotkey_registry.GetHotkey(QStringLiteral("Main Window"),
                                       QStringLiteral("Toggle Custom Layout"), this),
-            &QShortcut::activated, this, [this] {
-                Settings::values.custom_layout = !Settings::values.custom_layout;
-                config->Save();
-                Settings::Apply();
-                Settings::LogSettings();
-
-                statusBar()->showMessage(Settings::values.custom_layout
-                                             ? QStringLiteral("Custom Layout: On")
-                                             : QStringLiteral("Custom Layout: Off"));
-            });
+            &QShortcut::activated, ui.action_Screen_Layout_Enable_Custom_Layout, &QAction::trigger);
 
     connect(hotkey_registry.GetHotkey(QStringLiteral("Main Window"),
                                       QStringLiteral("Toggle Custom Screen Refresh Rate"), this),
@@ -935,6 +926,16 @@ void GMainWindow::ConnectMenuEvents() {
             &GMainWindow::ChangeScreenLayout);
     connect(ui.action_Screen_Layout_Swap_Screens, &QAction::triggered, this,
             &GMainWindow::OnSwapScreens);
+    connect(ui.action_Screen_Layout_Enable_Custom_Layout, &QAction::triggered, this, [this] {
+        Settings::values.custom_layout = !Settings::values.custom_layout;
+        config->Save();
+        Settings::Apply();
+        Settings::LogSettings();
+
+        statusBar()->showMessage(Settings::values.custom_layout
+                                     ? QStringLiteral("Custom Layout: On")
+                                     : QStringLiteral("Custom Layout: Off"));
+    });
 
     // Movie
     connect(ui.action_Record_Movie, &QAction::triggered, this, &GMainWindow::OnRecordMovie);
@@ -1778,7 +1779,9 @@ void GMainWindow::ToggleScreenLayout() {
 
 void GMainWindow::OnSwapScreens() {
     Settings::values.swap_screen = ui.action_Screen_Layout_Swap_Screens->isChecked();
+    config->Save();
     Settings::Apply();
+    Settings::LogSettings();
 }
 
 void GMainWindow::OnCheats() {
@@ -1787,8 +1790,8 @@ void GMainWindow::OnCheats() {
 }
 
 void GMainWindow::OnConfigure(const bool goto_web) {
-    ConfigureDialog configureDialog(this, hotkey_registry, goto_web,
-                                    !multiplayer_state->IsHostingPublicRoom());
+    ConfigureDialog configure_dialog(this, hotkey_registry, goto_web,
+                                     !multiplayer_state->IsHostingPublicRoom());
     const QString old_theme = UISettings::values.theme;
     const int old_input_profile_index = Settings::values.current_input_profile_index;
     const std::vector<Settings::InputProfile> old_input_profiles = Settings::values.input_profiles;
@@ -1798,9 +1801,9 @@ void GMainWindow::OnConfigure(const bool goto_web) {
     const bool discord_rp_show_room_information =
         UISettings::values.discord_rp_show_room_information;
 #endif
-    const int result = configureDialog.exec();
+    const int result = configure_dialog.exec();
     if (result == QDialog::Accepted) {
-        configureDialog.ApplyConfiguration();
+        configure_dialog.ApplyConfiguration();
         InitializeHotkeys();
         if (buttons != nullptr) {
             buttons->Update();
@@ -2396,6 +2399,7 @@ void GMainWindow::SyncMenuUISettings() {
     ui.action_Screen_Layout_Side_by_Side->setChecked(Settings::values.layout_option ==
                                                      Settings::LayoutOption::SideScreen);
     ui.action_Screen_Layout_Swap_Screens->setChecked(Settings::values.swap_screen);
+    ui.action_Screen_Layout_Enable_Custom_Layout->setChecked(Settings::values.custom_layout);
 }
 
 Layout::FramebufferLayout GMainWindow::CreateTopScreenLayout() {

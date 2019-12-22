@@ -93,6 +93,7 @@ void LogSettings() {
     LogSetting("render_3d", static_cast<int>(Settings::values.render_3d));
     LogSetting("factor_3d", Settings::values.factor_3d);
     LogSetting("layout_option", static_cast<int>(Settings::values.layout_option));
+    LogSetting("custom_layout", Settings::values.custom_layout);
     LogSetting("swap_screen", Settings::values.swap_screen);
     LogSetting("dump_textures", Settings::values.dump_textures);
     LogSetting("custom_textures", Settings::values.custom_textures);
