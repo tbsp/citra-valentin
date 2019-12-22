@@ -254,7 +254,6 @@ private slots:
     void ChangeScreenLayout();
     void ToggleScreenLayout();
     void OnSwapScreens();
-    void OnCheats();
     void ShowFullscreen();
     void HideFullscreen();
     void ToggleWindowMode();
@@ -268,9 +267,6 @@ private slots:
     void OnDiskShaderCacheLoadingProgress(VideoCore::LoadCallbackStage stage, std::size_t value,
                                           std::size_t total);
     void BootGameFromArguments();
-
-    /// Called whenever a user selects Help->About Citra Valentin
-    void OnMenuAboutCitraValentin();
 
 protected:
     void dropEvent(QDropEvent* event) override;

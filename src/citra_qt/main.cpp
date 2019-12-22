@@ -886,7 +886,7 @@ void GMainWindow::ConnectMenuEvents() {
     connect(ui.action_Stop, &QAction::triggered, this, &GMainWindow::OnStopGame);
     connect(ui.action_Restart, &QAction::triggered, this, [this] { BootGame(QString(game_path)); });
     connect(ui.action_Configure, &QAction::triggered, this, &GMainWindow::OnConfigure);
-    connect(ui.action_Cheats, &QAction::triggered, this, &GMainWindow::OnCheats);
+    connect(ui.action_Cheats, &QAction::triggered, this, [=] { CheatDialog(this).exec(); });
 
     // View
     connect(ui.action_Single_Window_Mode, &QAction::triggered, this,
@@ -1011,7 +1011,7 @@ void GMainWindow::ConnectMenuEvents() {
     });
 
     // Help
-    connect(ui.action_About, &QAction::triggered, this, &GMainWindow::OnMenuAboutCitraValentin);
+    connect(ui.action_About, &QAction::triggered, this, [=] { AboutDialog(this).exec(); });
     connect(ui.action_Discord_Server, &QAction::triggered, this,
             [] { QDesktopServices::openUrl(QUrl(QStringLiteral("https://discord.gg/fPmDUaY"))); });
 }
@@ -1784,11 +1784,6 @@ void GMainWindow::OnSwapScreens() {
     Settings::LogSettings();
 }
 
-void GMainWindow::OnCheats() {
-    CheatDialog cheat_dialog(this);
-    cheat_dialog.exec();
-}
-
 void GMainWindow::OnConfigure(const bool goto_web) {
     ConfigureDialog configure_dialog(this, hotkey_registry, goto_web,
                                      !multiplayer_state->IsHostingPublicRoom());
@@ -2156,8 +2151,9 @@ void GMainWindow::OnCoreError(Core::System::ResultStatus result, std::string det
     message_box.addButton(QStringLiteral("Continue"), QMessageBox::RejectRole);
     QPushButton* abort_button =
         message_box.addButton(QStringLiteral("Abort"), QMessageBox::AcceptRole);
-    if (result != Core::System::ResultStatus::ShutdownRequested)
+    if (result != Core::System::ResultStatus::ShutdownRequested) {
         message_box.exec();
+    }
 
     if (result == Core::System::ResultStatus::ShutdownRequested ||
         message_box.clickedButton() == abort_button) {
@@ -2221,11 +2217,6 @@ void GMainWindow::OnDiskShaderCacheLoadingProgress(VideoCore::LoadCallbackStage 
     }
     default: { break; }
     }
-}
-
-void GMainWindow::OnMenuAboutCitraValentin() {
-    AboutDialog about{this};
-    about.exec();
 }
 
 bool GMainWindow::ConfirmClose() {
