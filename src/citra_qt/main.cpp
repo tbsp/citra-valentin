@@ -584,7 +584,7 @@ void GMainWindow::InitializeHotkeys() {
                     Settings::values.resolution_factor = 0;
                     config->Save();
                     Settings::LogSettings();
-                    statusBar()->showMessage(QStringLiteral("Internal Resolution: Auto"));
+                    message_label->setText(QStringLiteral("Internal Resolution: Auto"));
                 }
             });
 
@@ -597,7 +597,7 @@ void GMainWindow::InitializeHotkeys() {
                     Settings::values.resolution_factor = 1;
                     config->Save();
                     Settings::LogSettings();
-                    statusBar()->showMessage(QStringLiteral("Internal Resolution: Native"));
+                    message_label->setText(QStringLiteral("Internal Resolution: Native"));
                 }
             });
 
@@ -610,7 +610,7 @@ void GMainWindow::InitializeHotkeys() {
                     Settings::values.resolution_factor = 2;
                     config->Save();
                     Settings::LogSettings();
-                    statusBar()->showMessage(QStringLiteral("Internal Resolution: 2x Native"));
+                    message_label->setText(QStringLiteral("Internal Resolution: 2x Native"));
                 }
             });
 
@@ -623,7 +623,7 @@ void GMainWindow::InitializeHotkeys() {
                     Settings::values.resolution_factor = 3;
                     config->Save();
                     Settings::LogSettings();
-                    statusBar()->showMessage(QStringLiteral("Internal Resolution: 3x Native"));
+                    message_label->setText(QStringLiteral("Internal Resolution: 3x Native"));
                 }
             });
 
@@ -636,7 +636,7 @@ void GMainWindow::InitializeHotkeys() {
                     Settings::values.resolution_factor = 4;
                     config->Save();
                     Settings::LogSettings();
-                    statusBar()->showMessage(QStringLiteral("Internal Resolution: 4x Native"));
+                    message_label->setText(QStringLiteral("Internal Resolution: 4x Native"));
                 }
             });
 
@@ -649,7 +649,7 @@ void GMainWindow::InitializeHotkeys() {
                     Settings::values.resolution_factor = 5;
                     config->Save();
                     Settings::LogSettings();
-                    statusBar()->showMessage(QStringLiteral("Internal Resolution: 5x Native"));
+                    message_label->setText(QStringLiteral("Internal Resolution: 5x Native"));
                 }
             });
 
@@ -662,7 +662,7 @@ void GMainWindow::InitializeHotkeys() {
                     Settings::values.resolution_factor = 6;
                     config->Save();
                     Settings::LogSettings();
-                    statusBar()->showMessage(QStringLiteral("Internal Resolution: 6x Native"));
+                    message_label->setText(QStringLiteral("Internal Resolution: 6x Native"));
                 }
             });
 
@@ -675,7 +675,7 @@ void GMainWindow::InitializeHotkeys() {
                     Settings::values.resolution_factor = 7;
                     config->Save();
                     Settings::LogSettings();
-                    statusBar()->showMessage(QStringLiteral("Internal Resolution: 7x Native"));
+                    message_label->setText(QStringLiteral("Internal Resolution: 7x Native"));
                 }
             });
 
@@ -688,7 +688,7 @@ void GMainWindow::InitializeHotkeys() {
                     Settings::values.resolution_factor = 8;
                     config->Save();
                     Settings::LogSettings();
-                    statusBar()->showMessage(QStringLiteral("Internal Resolution: 8x Native"));
+                    message_label->setText(QStringLiteral("Internal Resolution: 8x Native"));
                 }
             });
 
@@ -701,7 +701,7 @@ void GMainWindow::InitializeHotkeys() {
                     Settings::values.resolution_factor = 9;
                     config->Save();
                     Settings::LogSettings();
-                    statusBar()->showMessage(QStringLiteral("Internal Resolution: 9x Native"));
+                    message_label->setText(QStringLiteral("Internal Resolution: 9x Native"));
                 }
             });
 
@@ -714,7 +714,7 @@ void GMainWindow::InitializeHotkeys() {
                     Settings::values.resolution_factor = 10;
                     config->Save();
                     Settings::LogSettings();
-                    statusBar()->showMessage(QStringLiteral("Internal Resolution: 10x Native"));
+                    message_label->setText(QStringLiteral("Internal Resolution: 10x Native"));
                 }
             });
 
@@ -726,9 +726,9 @@ void GMainWindow::InitializeHotkeys() {
                 Settings::Apply();
                 Settings::LogSettings();
 
-                statusBar()->showMessage(Settings::values.use_hw_shader
-                                             ? QStringLiteral("Hardware Shader: On")
-                                             : QStringLiteral("Hardware Shader: Off"));
+                message_label->setText(Settings::values.use_hw_shader
+                                           ? QStringLiteral("Hardware Shader: On")
+                                           : QStringLiteral("Hardware Shader: Off"));
             });
 
     connect(hotkey_registry.GetHotkey(QStringLiteral("Main Window"),
@@ -744,9 +744,9 @@ void GMainWindow::InitializeHotkeys() {
                 Settings::Apply();
                 Settings::LogSettings();
 
-                statusBar()->showMessage(Settings::values.custom_screen_refresh_rate
-                                             ? QStringLiteral("Custom Screen Refresh Rate: On")
-                                             : QStringLiteral("Custom Screen Refresh Rate: Off"));
+                message_label->setText(Settings::values.custom_screen_refresh_rate
+                                           ? QStringLiteral("Custom Screen Refresh Rate: On")
+                                           : QStringLiteral("Custom Screen Refresh Rate: Off"));
             });
 
     connect(hotkey_registry.GetHotkey(QStringLiteral("Main Window"),
@@ -774,9 +774,9 @@ void GMainWindow::InitializeHotkeys() {
                 Settings::values.use_custom_cpu_ticks = !Settings::values.use_custom_cpu_ticks;
                 config->Save();
                 Settings::LogSettings();
-                statusBar()->showMessage(Settings::values.use_custom_cpu_ticks
-                                             ? QStringLiteral("Custom CPU Ticks: On")
-                                             : QStringLiteral("Custom CPU Ticks: Off"));
+                message_label->setText(Settings::values.use_custom_cpu_ticks
+                                           ? QStringLiteral("Custom CPU Ticks: On")
+                                           : QStringLiteral("Custom CPU Ticks: Off"));
             });
 }
 
@@ -932,9 +932,9 @@ void GMainWindow::ConnectMenuEvents() {
         Settings::Apply();
         Settings::LogSettings();
 
-        statusBar()->showMessage(Settings::values.custom_layout
-                                     ? QStringLiteral("Custom Layout: On")
-                                     : QStringLiteral("Custom Layout: Off"));
+        message_label->setText(Settings::values.custom_layout
+                                   ? QStringLiteral("Custom Layout: On")
+                                   : QStringLiteral("Custom Layout: Off"));
     });
 
     // Movie
@@ -1570,8 +1570,7 @@ void GMainWindow::OnCIAInstallReport(Service::AM::InstallStatus status, QString 
 
     switch (status) {
     case Service::AM::InstallStatus::Success:
-        statusBar()->showMessage(
-            QStringLiteral("%1 has been installed successfully.").arg(filename));
+        message_label->setText(QStringLiteral("%1 has been installed successfully.").arg(filename));
         break;
     case Service::AM::InstallStatus::ErrorFailedToOpenFile:
         QMessageBox::critical(this, "Unable to open File",
@@ -2129,11 +2128,11 @@ void GMainWindow::OnCoreError(Core::System::ResultStatus result, std::string det
         if (!details.empty()) {
             message = common_message.arg(QString::fromStdString(details));
         } else {
-            message = common_message.arg("A system archive");
+            message = common_message.arg(QStringLiteral("A system archive"));
         }
 
         title = QStringLiteral("System Archive Not Found");
-        status_message = "System Archive Missing";
+        status_message = QStringLiteral("System Archive Missing");
     } else {
         title = QStringLiteral("Fatal Error");
         message = QStringLiteral(
@@ -2141,7 +2140,7 @@ void GMainWindow::OnCoreError(Core::System::ResultStatus result, std::string det
             "<a href='https://community.citra-emu.org/t/how-to-upload-the-log-file/296'>Check "
             "the log</a> for details."
             "<br/>Continuing emulation may result in crashes and bugs.");
-        status_message = "Fatal Error encountered";
+        status_message = QStringLiteral("Fatal Error Encountered");
     }
 
     QMessageBox message_box;
